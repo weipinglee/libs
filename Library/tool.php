@@ -141,4 +141,5 @@ class tool{
         return isset($str) && $str ? (strpos($str,',') ? explode($str,',') : array($str) ): array();
     }
 
+
 }
