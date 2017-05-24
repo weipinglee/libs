@@ -13,6 +13,7 @@ class recharge extends payment{
     public function __construct($pay)
     {
         parent::__construct($pay);
+        $this->paymentId = $pay->getPaymentId();
         $this->callbackUrl = url::createUrl('/fund/rechargeCallback?id='.$this->paymentId.'@user');
         $this->serverCallback = url::createUrl('/login/rechargeServerCallback?id='.$this->paymentId.'@user');
     }
