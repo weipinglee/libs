@@ -110,6 +110,7 @@ class MYPDO {
             if($res = $stmt->execute()){
 
                 switch($type){  //根据不同的操作类型，返回数据
+                    case 'SHOW' :
                     case 'SELECT' : {
                         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
                     }
