@@ -155,10 +155,16 @@ class StoreDelivery extends Delivery{
 	 */
 	public function storeCheckList($page,$user_id){
 		$query = new Query('product_delivery as pd');
-		$query->join = 'left join order_sell as o on pd.order_id = o.id left join product_offer as po on pd.offer_id = po.id left join store_products as sp on sp.product_id = po.product_id left join store_manager as sm on sm.store_id = sp.store_id left join store_list as sl on sl.id = sp.store_id left join user as u on u.id = o.user_id left join products as p on p.id = po.product_id';
+		$query->join = 'left join order_sell as o on pd.order_id = o.id
+						left join product_offer as po on pd.offer_id = po.id
+						left join store_products as sp on sp.product_id = po.product_id
+						left join store_manager as sm on sm.store_id = sp.store_id
+						left join store_list as sl on sl.id = sp.store_id
+						left join user as u on u.id = o.user_id
+						left join products as p on p.id = po.product_id';
 		
 		$query->fields = 'pd.id,o.order_no,pd.num as delivery_num,sl.name as store_name,o.num as order_num,u.type,p.name as product_name,p.unit';
-		$query->where = 'o.user_id=:user_id';
+		$query->where = 'sm.user_id=:user_id';
 		$query->bind = array('user_id'=>$user_id);
 		$query->order = 'pd.create_time desc';
 		$query->page = $page;
@@ -172,11 +178,13 @@ class StoreDelivery extends Delivery{
 	/**
 	 * 仓库管理员确认出库
 	 * @param  int $delivery_id 提货表Id
+	 * @param int $user_id 用户id
 	 * @return array $res  返回结果信息
 	 */
-	public function managerCheckout($delivery_id){
+	public function managerCheckout($delivery_id,$user_id=0){
 		$delivery = $this->deliveryInfo($delivery_id);
-		if($delivery && $delivery['status'] == parent::DELIVERY_MANAGER_CHECKOUT){
+		$can = $this->checkStoreManager($delivery_id,$user_id);//检验是否是自己的仓单生成的提货单
+		if($delivery && $can && $delivery['status'] == parent::DELIVERY_MANAGER_CHECKOUT){
 			$deliveryData['id'] = $delivery_id;
 			$deliveryData['status'] = parent::DELIVERY_ADMIN_CHECK;//等待后台管理员进行审核
 			
@@ -246,6 +254,29 @@ class StoreDelivery extends Delivery{
 	        }
 	        $detail['attr_name'] = $attrs;
 		return $detail;
+	}
+
+	/**
+	 ** 检查该仓库管理员是否可管理该提货单对应仓单
+	 * @param int $delivery_id 提货单id
+	 * @param int $user_id 仓库管理员id
+	 */
+	public function checkStoreManager($delivery_id,$user_id){
+		$query = new Query('product_delivery as pd');
+		$query->join = 'left join order_sell as o on pd.order_id = o.id
+						left join product_offer as po on pd.offer_id = po.id
+						left join store_products as sp on sp.product_id = po.product_id
+						left join store_manager as sm on sm.store_id = sp.store_id';
+
+		$query->fields = 'pd.id';
+		$query->where = 'pd.id=:delivery_id and sm.user_id=:user_id';
+		$query->bind = array('user_id'=>$user_id,'delivery_id'=>$delivery_id);
+		$res = $query->find();
+		if(empty($res)){
+			return false;
+		}
+		return true;
+
 	}
 	
 	/**
