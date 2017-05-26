@@ -184,7 +184,7 @@ class Article{
 		$bind = array();
 		//若设置了用户id 则获取指定用户收藏的文章列表
         if(intval($user_id)>0){
-        	$reModel->join .= 'left join user_favcate as uf on uf.cate_id = c.id';
+        	$reModel->join .= 'left join user_favcate as uf on uf.cate_id = a.id';
         	$where = 'uf.user_id=:user_id and';
         	$bind = array_merge($bind,array('user_id'=>intval($user_id)));
         }

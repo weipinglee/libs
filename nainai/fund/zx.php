@@ -76,7 +76,8 @@ class zx extends account{
      * @param int $user_id
      */
     public function getActive($user_id){
-        //TODO 
+        $yue = $this->attachBalance($user_id);
+        return isset($yue['kyamt']) ? $yue['kyamt'] : 0;
         
     }
 
@@ -126,8 +127,12 @@ class zx extends account{
      public function in($user_id,$num){
          
      }
-     
-    
+
+
+    /**
+     * @param $data array 字段：user_id 用户id,num:金额
+     * @return array
+     */
      public function out($data){
         $accInfo = $this->attachAccount->attachInfo($data['user_id']);
         $clientID = tool::create_uuid($data['user_id']);
