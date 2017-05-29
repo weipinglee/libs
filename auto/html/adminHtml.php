@@ -20,7 +20,17 @@ class adminHtml extends htmlBase
                 $tags[] = $item;
             }
         }
-        return $tags;
+
+        $tagsDetail = array();
+        foreach($tags as $key=>$item){
+            $tagsDetail[$item]['str'] = call_user_func(array($this,$item));
+            $temp = preg_match_all('/\$\d+/',$tagsDetail[$item]['str'],$match);
+            if($temp){
+                $tagsDetail[$item]['arg'] =  implode(',',array_unique($match[0]));
+            }
+
+        }
+        return $tagsDetail;
     }
 
     public function getListTags(){
@@ -31,28 +41,37 @@ class adminHtml extends htmlBase
                 $tags[] = $item;
             }
         }
-        return $tags;
+        $tagsDetail = array();
+        foreach($tags as $key=>$item){
+            $tagsDetail[$item]['str'] = call_user_func(array($this,$item));
+            $temp = preg_match_all('/\$\d+/',$tagsDetail[$item]['str'],$match);
+            if($temp){
+                $tagsDetail[$item]['arg'] = implode(',', array_unique($match[0]));
+            }
+
+        }
+        return $tagsDetail;
     }
 
 
     public function operation_edit(){
         return  <<< OEF
-            <a title="编辑" href="{url:$url?id=$1}" class="ml-5" style="text-decoration:none"><i class="icon-edit fa-edit"></i></a>
+            <a title="编辑" href="{url:$1}" class="ml-5" style="text-decoration:none"><i class="icon-edit fa-edit"></i></a>
 OEF;
     }
 
     public function operation_del(){
         return <<< OEF
-            <a title="删除" href="javascript:;"  ajax_status=-1 ajax_url="{url:$url?id=$1}" class="ml-5" style="text-decoration:none"><i class="icon-trash fa-trash"></i></a>
+            <a title="删除" href="javascript:;"  ajax_status=-1 ajax_url="{url:$1}" class="ml-5" style="text-decoration:none"><i class="icon-trash fa-trash"></i></a>
 OEF;
     }
 
     public function operation_status(){
         return <<< OEF
             {if:$1 == 1}
-                <a style="text-decoration:none" href="javascript:;" title="停用" ajax_status=0 ajax_url="{url:$url?id=$2}"><i class="icon-pause fa-pause"></i></a>
+                <a style="text-decoration:none" href="javascript:;" title="停用" ajax_status=0 ajax_url="{url:$2}"><i class="icon-pause fa-pause"></i></a>
             {elseif:$1 == 0}
-                <a style="text-decoration:none" href="javascript:;" title="启用" ajax_status=1 ajax_url="{url:$url?id=$2}"><i class="icon-play fa-play"></i></a>
+                <a style="text-decoration:none" href="javascript:;" title="启用" ajax_status=1 ajax_url="{url:$$2}"><i class="icon-play fa-play"></i></a>
             {/if}
 OEF;
     }

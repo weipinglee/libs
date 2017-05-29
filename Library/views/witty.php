@@ -138,7 +138,6 @@ class witty{
             $content = preg_replace_callback('/{(\/?)(\$|url|root|views|echo|foreach|set|if|elseif|else|while|for|code|areatext|img|area)\s*(:?)([^}]*)}/i', array($this,'translate'), $content);
 
 
-
             if (!file_put_contents($parse_file, $content) ) {
                 exit('编译文件生成出错！');
             }
