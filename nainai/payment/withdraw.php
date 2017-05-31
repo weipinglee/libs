@@ -94,6 +94,9 @@ class withdraw extends payment{
             $argument['final_message'] = '';
         if($id){
             $M = new M($this->mainTable);
+			$curr_status = $M->where(array('id'=>$id))->getField('status');
+			if($curr_status!=self::FIRST_SUCCESS)
+				 return tool::getSuccInfo(0,'该状态不能终审');
             $data = $M->where(array('id'=>$id))->getObj();
             if(!empty($data)){
                 //判断可提现余额是否足够
@@ -127,8 +130,11 @@ class withdraw extends payment{
      * @param array $argument 包含status和first_message字段
      */
     public function firstHandle($id,Array $argument=array()){
-        if($id && in_array($argument['status'],array(self::APPLY))) {
+        if($id && in_array($argument['status'],array(self::FIRST_FAIL,self::FIRST_SUCCESS))) {
             $M = new M($this->mainTable);
+			$curr_status = $M->where(array('id'=>$id))->getField('status');
+			if($curr_status!=self::APPLY)
+				 return tool::getSuccInfo(0,'该状态不能初审');
             if(!isset($argument['first_message']))
                 $argument['first_message'] = '';
             if($M->where(array('id'=>$id))->data(array('status'=>$argument['status'],'first_message'=>$argument['first_message']))->update()){
@@ -145,8 +151,11 @@ class withdraw extends payment{
      * @return array
      */
     public function finalHandleFail($id,$argument=array()){
-        if($id && in_array($argument['status'],array(self::FIRST_SUCCESS))) {
+        if($id ) {
             $M = new M($this->mainTable);
+			$curr_status = $M->where(array('id'=>$id))->getField('status');
+			if($curr_status!=self::FIRST_SUCCESS)
+				 return tool::getSuccInfo(0,'该状态不能终审');
             if(!isset($argument['final_message']))
                 $argument['final_message'] = '';
             if($M->where(array('id'=>$id))->data(array('status'=>self::FINAL_FAIL,'final_message'=>$argument['final_message']))->update()){
