@@ -28,20 +28,27 @@ class withdraw extends payment{
     );
 
     CONST APPLY = 0;
-    CONST FAIL  = 2;
-    CONST SUCCESS = 1;
+    CONST FIRST_FAIL  = 1;
+    CONST FIRST_SUCCESS = 2;
+    CONST FINAL_FAIL  = 3;
+    CONST FINAL_SUCCESS = 4;
 
     public function getStatusText($status){
         switch($status){
             case self::APPLY :
                 return '申请提现';
             break;
-            case self::FAIL :
-                return '提现被驳回';
+            case self::FIRST_FAIL :
+                return '初审被驳回';
             break;
-            case self::SUCCESS :
+            case self::FIRST_SUCCESS :
+                return '初审通过';
+            break;
+            case self::FINAL_FAIL :
+                return '终审被驳回';
+            break;
+            case self::FINAL_SUCCESS:
                 return '提现成功';
-            break;
             default :
                 return '未知';
         }
@@ -83,6 +90,8 @@ class withdraw extends payment{
     public function payAfter(Array $argument=array())
     {
         $id = isset($argument['id']) ? $argument['id'] : 0;
+        if(!isset($argument['final_message']))
+            $argument['final_message'] = '';
         if($id){
             $M = new M($this->mainTable);
             $data = $M->where(array('id'=>$id))->getObj();
@@ -95,7 +104,7 @@ class withdraw extends payment{
                 //出金操作
                 $res = $this->payObj->out(array('user_id'=>$data['user_id'],'num'=>$data['amount']));
                 if($res['success']==1){//如果出金成功，更新字段状态
-                    $M->data(array('status'=>self::SUCCESS))->where(array('id'=>$id))->update();
+                    $M->data(array('status'=>self::FINAL_SUCCESS,'final_message'=>$argument['final_message']))->where(array('id'=>$id))->update();
                 }
                 else{
                     return tool::getSuccInfo(0,$res['info']);
@@ -113,14 +122,34 @@ class withdraw extends payment{
     }
 
     /**
-     * 出金拒绝操作
-     * @param array $argument 字段id出金申请id
+     * 初审操作
+     * @param int $Id 申请id
+     * @param array $argument 包含status和first_message字段
      */
-    public function handleReject(Array $argument=array()){
-        $id = isset($argument['id']) ? $argument['id'] : 0;
-        if($id) {
+    public function firstHandle($id,Array $argument=array()){
+        if($id && in_array($argument['status'],array(self::APPLY))) {
             $M = new M($this->mainTable);
-            if($M->where(array('id'=>$id))->data(array('status'=>self::FAIL))->update()){
+            if(!isset($argument['first_message']))
+                $argument['first_message'] = '';
+            if($M->where(array('id'=>$id))->data(array('status'=>$argument['status'],'first_message'=>$argument['first_message']))->update()){
+                return tool::getSuccInfo();
+            }
+        }
+        return tool::getSuccInfo(0,'操作失败');
+    }
+
+    /**
+     * 终审失败操作
+     * @param $id 申请id
+     * @param array $argument 参数
+     * @return array
+     */
+    public function finalHandleFail($id,$argument=array()){
+        if($id && in_array($argument['status'],array(self::FIRST_SUCCESS))) {
+            $M = new M($this->mainTable);
+            if(!isset($argument['final_message']))
+                $argument['final_message'] = '';
+            if($M->where(array('id'=>$id))->data(array('status'=>self::FINAL_FAIL,'final_message'=>$argument['final_message']))->update()){
                 return tool::getSuccInfo();
             }
         }
@@ -137,14 +166,11 @@ class withdraw extends payment{
         $Q = new searchQuery($this->mainTable .' as uw');
         $Q->join = 'left join user as u on u.id = uw.user_id';
         $where = 'uw.bank_name = "zx"';
-        if($type=='init'){
-            $where .= ' and uw.status in ('.self::APPLY.')';
+        if($type=='ing'){
+            $where .= ' and uw.status in ('.self::APPLY.','.self::FIRST_SUCCESS.')';
         }
-        elseif($type=='fail'){
-            $where .= ' and uw.status in ('.self::FAIL.')';
-        }
-        elseif($type=='success'){
-            $where .= ' and uw.status in ('.self::SUCCESS.')';
+        elseif($type=='ed'){
+            $where .= ' and uw.status in ('.self::FINAL_SUCCESS.','.self::FINAL_FAIL.','.self::FIRST_FAIL.')';
         }
         $Q->where = $where;
        $Q->fields = 'uw.*,u.username,u.type,u.mobile,u.user_no';

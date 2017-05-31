@@ -544,7 +544,7 @@ class zx extends account{
                 <subAccNo>{$payAccInfo['no']}</subAccNo>
             </stream>";
         $res = $this->curl($xml);
-        return $res['row'] ? $res['row'] : array();
+        return isset($res['row']) && $res['row'] ? $res['row'] : array();
 
     }
 
@@ -680,6 +680,8 @@ class zx extends account{
     public function signStatus(){
         $sign = new M('bank_sign');
         $res = $sign->where(array('date'=>date('Y-m-d',time()),'bank_name'=>'中信银行'))->getObj();
+        if(!isset($res['signin']))
+            return '未签到';
         return $res['signin'] && $res['signout'] ? '已签退' : ($res['signin'] ? true : '未签到');
     }
 
