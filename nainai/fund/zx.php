@@ -77,7 +77,7 @@ class zx extends account{
      */
     public function getActive($user_id){
         $yue = $this->attachBalance($user_id);
-        return isset($yue['kyamt']) ? $yue['kyamt'] : 0;
+        return isset($yue['KYAMT']) ? $yue['KYAMT'] : 0;
         
     }
 

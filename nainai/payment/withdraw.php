@@ -71,7 +71,7 @@ class withdraw extends payment{
                 return tool::getSuccInfo(0,'可用余额不足');
             if($argument['amount']<=0)
                 return tool::getSuccInfo(0,'提现金额不能为0');
-            if($M->add()){
+            if($M->data($argument)->add()){
                 return tool::getSuccInfo(1,'申请成功，等待后台处理');
             }
         }
