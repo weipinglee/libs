@@ -116,7 +116,12 @@ class withdraw extends payment{
                 //出金操作
                 $res = $this->payObj->out(array('user_id'=>$data['user_id'],'num'=>$data['amount']));
                 if($res['success']==1){//如果出金成功，更新字段状态
-                    $M->data(array('status'=>self::FINAL_SUCCESS,'final_message'=>$argument['final_message']))->where(array('id'=>$id))->update();
+                    $update = array(
+                        'status'=>self::FINAL_SUCCESS,
+                        'final_message'=>$argument['final_message'],
+                        'final_time'=> \Library\time::getDateTime()
+                    );
+                    $M->data($update)->where(array('id'=>$id))->update();
                 }
                 else{
                     return tool::getSuccInfo(0,$res['info']);
@@ -146,7 +151,8 @@ class withdraw extends payment{
 				 return tool::getSuccInfo(0,'该状态不能初审');
             if(!isset($argument['first_message']))
                 $argument['first_message'] = '';
-            if($M->where(array('id'=>$id))->data(array('status'=>$argument['status'],'first_message'=>$argument['first_message']))->update()){
+            $argument['first_time'] = \Library\time::getDateTime();
+            if($M->where(array('id'=>$id))->data($argument)->update()){
                 return tool::getSuccInfo();
             }
         }
@@ -167,7 +173,12 @@ class withdraw extends payment{
 				 return tool::getSuccInfo(0,'该状态不能终审');
             if(!isset($argument['final_message']))
                 $argument['final_message'] = '';
-            if($M->where(array('id'=>$id))->data(array('status'=>self::FINAL_FAIL,'final_message'=>$argument['final_message']))->update()){
+            $data = array(
+                'status'=>self::FINAL_FAIL,
+                'final_message'=>$argument['final_message'],
+                'final_time'  => \Library\time::getDateTime()
+            );
+            if($M->where(array('id'=>$id))->data($data)->update()){
                 return tool::getSuccInfo();
             }
         }
