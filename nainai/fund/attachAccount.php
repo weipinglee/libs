@@ -97,6 +97,7 @@ class attachAccount{
 	 	if(curl_errno($ch)){
 	 		print curl_errno($ch);
 	 	}
+
 	 	
 	 	// $output = iconv('GBK','UTF-8',$output);
 	 	
@@ -122,9 +123,12 @@ class attachAccount{
 				}
 				$xml_obj['row'] = $row;
 			}
+			$xml_obj['zx_status'] = $xml_obj['status'];
 			$xml_obj['status'] = 1;
 			$xml_obj['success'] = 1;
-		}else{
+			
+ 		}else{
+			$xml_obj['zx_status'] = $xml_obj['status'];
 			$xml_obj['status'] = 0;
 			$xml_obj['success'] = 0;
 		}
