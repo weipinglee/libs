@@ -14,13 +14,19 @@ class checkRight{
 
     //session操作对象
     static private $sessObj = '';
+	private $db_name = '';
+	private $userModel = null;
     /**
      *
      */
-    public function __construct(){
+    public function __construct($db=''){
         $sess = 'DB';//根据配置文件获取
-        $tableName = 'user_session';
+       
+		if($db)
+			$this->db_name=$db;
         $expireTime = 7200;
+		$this->userModel = $this->db_name ? new M($this->db_name.'.user') : new M('user');
+		 $tableName = $this->db_name ? $this->db_name.'.user_session' : 'user_session';
         switch($sess){
             case 'DB' : {
                 self::$sessObj = new Db($tableName,$expireTime);
@@ -52,7 +58,7 @@ class checkRight{
         $sessData = session::get('login');
         self::$sessObj->gc();
         self::$sessObj->write($sessID,serialize($sessData));
-        $userModel = new M('user');
+        $userModel = $this->userModel;
         $ip=\Library\Client::getIP();
         $userModel->where(array('id'=>$data['id']))->data(array('session_id'=>$sessID,'login_ip'=>$ip,'login_time'=>date('Y-m-d H:i:s',time())))->update();
         $riskModel=new userRisk();
@@ -80,7 +86,7 @@ class checkRight{
 
         //判断是否登录以及登录是否超时
         if($sessLogin!=null && isset($sessLogin['user_id']) && $sessID !=''){
-            $userModel = new M('user');
+            $userModel = $this->userModel;
             $login_sess = $userModel->where(array('id'=>$sessLogin['user_id']))->fields('session_id,cert_status, status')->getObj();
 
             if($login_sess['status'] == \nainai\user\User::NOMAL && $sessID == $login_sess['session_id'] && self::$sessObj->expire($sessID)){
@@ -157,7 +163,7 @@ class checkRight{
         $sessLogin = session::get('login');
 
         if(isset($sessLogin['user_id'])){
-            $userModel = new M('user');
+            $userModel = $this->userModel;
             $userModel->where(array('id'=>$sessLogin['user_id']))->data(array('session_id'=>''))->update();
         }
 
