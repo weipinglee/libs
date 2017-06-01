@@ -28,24 +28,41 @@ class withdraw extends payment{
     );
 
     CONST APPLY = 0;
-    CONST FAIL  = 2;
-    CONST SUCCESS = 1;
+    CONST FIRST_FAIL  = 1;
+    CONST FIRST_SUCCESS = 2;
+    CONST FINAL_FAIL  = 3;
+    CONST FINAL_SUCCESS = 4;
 
     public function getStatusText($status){
         switch($status){
             case self::APPLY :
                 return '申请提现';
             break;
-            case self::FAIL :
-                return '提现被驳回';
+            case self::FIRST_FAIL :
+                return '初审被驳回';
             break;
-            case self::SUCCESS :
+            case self::FIRST_SUCCESS :
+                return '初审通过';
+            break;
+            case self::FINAL_FAIL :
+                return '终审被驳回';
+            break;
+            case self::FINAL_SUCCESS:
                 return '提现成功';
-            break;
             default :
                 return '未知';
         }
 
+    }
+
+    public function getBankName($bank){
+        switch($bank){
+            case 'zx' :
+                return '中信银行';
+            break;
+            default:
+                return '中信银行';
+        }
     }
     /**
      * 提现前操作（生成订单，提交到数据库等待后台审核）
@@ -64,7 +81,7 @@ class withdraw extends payment{
                 return tool::getSuccInfo(0,'可用余额不足');
             if($argument['amount']<=0)
                 return tool::getSuccInfo(0,'提现金额不能为0');
-            if($M->add()){
+            if($M->data($argument)->add()){
                 return tool::getSuccInfo(1,'申请成功，等待后台处理');
             }
         }
@@ -83,10 +100,14 @@ class withdraw extends payment{
     public function payAfter(Array $argument=array())
     {
         $id = isset($argument['id']) ? $argument['id'] : 0;
+        if(!isset($argument['final_message']))
+            $argument['final_message'] = '';
         if($id){
             $M = new M($this->mainTable);
             $data = $M->where(array('id'=>$id))->getObj();
             if(!empty($data)){
+				if($data['status']!=self::FIRST_SUCCESS)
+				 return tool::getSuccInfo(0,'该状态不能终审');
                 //判断可提现余额是否足够
                 if($this->payObj->getActive($data['user_id']) < $data['amount'])
                     return tool::getSuccInfo(0,'可提现余额不足');
@@ -95,7 +116,12 @@ class withdraw extends payment{
                 //出金操作
                 $res = $this->payObj->out(array('user_id'=>$data['user_id'],'num'=>$data['amount']));
                 if($res['success']==1){//如果出金成功，更新字段状态
-                    $M->data(array('status'=>self::SUCCESS))->where(array('id'=>$id))->update();
+                    $update = array(
+                        'status'=>self::FINAL_SUCCESS,
+                        'final_message'=>$argument['final_message'],
+                        'final_time'=> \Library\time::getDateTime()
+                    );
+                    $M->data($update)->where(array('id'=>$id))->update();
                 }
                 else{
                     return tool::getSuccInfo(0,$res['info']);
@@ -113,14 +139,46 @@ class withdraw extends payment{
     }
 
     /**
-     * 出金拒绝操作
-     * @param array $argument 字段id出金申请id
+     * 初审操作
+     * @param int $Id 申请id
+     * @param array $argument 包含status和first_message字段
      */
-    public function handleReject(Array $argument=array()){
-        $id = isset($argument['id']) ? $argument['id'] : 0;
-        if($id) {
+    public function firstHandle($id,Array $argument=array()){
+        if($id && in_array($argument['status'],array(self::FIRST_FAIL,self::FIRST_SUCCESS))) {
             $M = new M($this->mainTable);
-            if($M->where(array('id'=>$id))->data(array('status'=>self::FAIL))->update()){
+			$curr_status = $M->where(array('id'=>$id))->getField('status');
+			if($curr_status!=self::APPLY)
+				 return tool::getSuccInfo(0,'该状态不能初审');
+            if(!isset($argument['first_message']))
+                $argument['first_message'] = '';
+            $argument['first_time'] = \Library\time::getDateTime();
+            if($M->where(array('id'=>$id))->data($argument)->update()){
+                return tool::getSuccInfo();
+            }
+        }
+        return tool::getSuccInfo(0,'操作失败');
+    }
+
+    /**
+     * 终审失败操作
+     * @param $id 申请id
+     * @param array $argument 参数
+     * @return array
+     */
+    public function finalHandleFail($id,$argument=array()){
+        if($id ) {
+            $M = new M($this->mainTable);
+			$curr_status = $M->where(array('id'=>$id))->getField('status');
+			if($curr_status!=self::FIRST_SUCCESS)
+				 return tool::getSuccInfo(0,'该状态不能终审');
+            if(!isset($argument['final_message']))
+                $argument['final_message'] = '';
+            $data = array(
+                'status'=>self::FINAL_FAIL,
+                'final_message'=>$argument['final_message'],
+                'final_time'  => \Library\time::getDateTime()
+            );
+            if($M->where(array('id'=>$id))->data($data)->update()){
                 return tool::getSuccInfo();
             }
         }
@@ -137,14 +195,11 @@ class withdraw extends payment{
         $Q = new searchQuery($this->mainTable .' as uw');
         $Q->join = 'left join user as u on u.id = uw.user_id';
         $where = 'uw.bank_name = "zx"';
-        if($type=='init'){
-            $where .= ' and uw.status in ('.self::APPLY.')';
+        if($type=='ing'){
+            $where .= ' and uw.status in ('.self::APPLY.','.self::FIRST_SUCCESS.')';
         }
-        elseif($type=='fail'){
-            $where .= ' and uw.status in ('.self::FAIL.')';
-        }
-        elseif($type=='success'){
-            $where .= ' and uw.status in ('.self::SUCCESS.')';
+        elseif($type=='ed'){
+            $where .= ' and uw.status in ('.self::FINAL_SUCCESS.','.self::FINAL_FAIL.','.self::FIRST_FAIL.')';
         }
         $Q->where = $where;
        $Q->fields = 'uw.*,u.username,u.type,u.mobile,u.user_no';
@@ -160,6 +215,7 @@ class withdraw extends payment{
         $data = $M->where(array('id'=>$id))->getObj();
         if(!empty($data)){
             $data['status_text'] = $this->getStatusText($data['status']);
+            $data['bank_name']   = $this->getBankName($data['bank_name']);
         }
         return $data;
     }

@@ -77,7 +77,7 @@ class zx extends account{
      */
     public function getActive($user_id){
         $yue = $this->attachBalance($user_id);
-        return isset($yue['kyamt']) ? $yue['kyamt'] : 0;
+        return isset($yue['KYAMT']) ? $yue['KYAMT'] : 0;
         
     }
 
@@ -161,7 +161,11 @@ class zx extends account{
                 <preDate></preDate>
                 <preTime></preTime>
             </stream>";
-        return $this->curl($xml);
+        $res = $this->curl($xml);
+         if(strpos($res['zx_status'],'AAAAAA')===0){
+             $res['success'] =1;
+         }
+		return $res;
      }
 
     /**
@@ -544,7 +548,7 @@ class zx extends account{
                 <subAccNo>{$payAccInfo['no']}</subAccNo>
             </stream>";
         $res = $this->curl($xml);
-        return $res['row'] ? $res['row'] : array();
+        return isset($res['row']) && $res['row'] ? $res['row'] : array();
 
     }
 
@@ -680,6 +684,8 @@ class zx extends account{
     public function signStatus(){
         $sign = new M('bank_sign');
         $res = $sign->where(array('date'=>date('Y-m-d',time()),'bank_name'=>'中信银行'))->getObj();
+        if(!isset($res['signin']))
+            return '未签到';
         return $res['signin'] && $res['signout'] ? '已签退' : ($res['signin'] ? true : '未签到');
     }
 
