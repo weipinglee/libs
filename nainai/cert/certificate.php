@@ -22,6 +22,7 @@ class certificate{
     const CERT_FIRST_OK=4;  //初审通过
     const CERT_SUCCESS =   2; //后台确认认证通过
     const CERT_FAIL    =   3; //后台拒绝认证
+	private $db_name = '';
 
     protected static $certType = '';
     public static $certTable = array(
@@ -79,6 +80,10 @@ class certificate{
     public function __construct($user_id=0,$user_type=''){
         $this->user_type = $user_type==1 ? 1 : 0;
         $this->user_id   = $user_id  ;
+		$db = \Library\tool::getGlobalConfig(array('db','trade'));
+		if($db)
+			$this->db_name = $db;
+		
     }
 
     /**
@@ -356,6 +361,8 @@ class certificate{
         $obj = new M('');
         $result = array();
         foreach(self::$certTable as $type=>$table){
+			if($this->db_name)
+				$table = $this->db_name.'.'.$table;
             $status = $obj->table($table)->where(array('user_id'=>$user_id))->getField('status');
             $result[$type] = $status==self::CERT_SUCCESS ? 1 : ($status==self::CERT_FIRST_OK?1:0);
         }
