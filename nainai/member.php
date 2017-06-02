@@ -225,6 +225,27 @@ class member{
         );
     }
 
+    /**
+     * 给用户发送短信
+     * @param $user_id
+     * @param $text
+     * @return bool
+     */
+    public function sendShortMessage($user_id,$text){
+        $userObj = new M($this->table);
+        $mobile = $userObj->where(array('id'=>$user_id))->getField('mobile');
+        if($mobile&&$text){
+            $text = preg_replace('/<a>.*</a>/','',$text);
+            $hsms = new \Library\Hsms();
+            if($hsms->send($mobile,$text)){
+                return true;
+            }
+
+
+        }
+        return false;
+    }
+
 
 
 
