@@ -235,7 +235,7 @@ class member{
         $userObj = new M($this->table);
         $mobile = $userObj->where(array('id'=>$user_id))->getField('mobile');
         if($mobile&&$text){
-            $text = preg_replace('/<a>.*</a>/','',$text);
+            $text = preg_replace('/<a.*<\/a>/','',$text);
             $hsms = new \Library\Hsms();
             if($hsms->send($mobile,$text)){
                 return true;
