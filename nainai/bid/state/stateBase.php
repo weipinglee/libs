@@ -14,7 +14,8 @@ namespace nainai\bid\state;
 use nainai\bid\oper\openBid;
 use nainai\bid\oper\privateBid;
 use nainai\state\bidOper;
-
+use Library\M;
+use \Library\tool;
 abstract class stateBase extends \nainai\bid\bidBase
 {
     public $bidObj = null;
@@ -24,6 +25,7 @@ abstract class stateBase extends \nainai\bid\bidBase
         $this->bidObj = new bidOper();
     }
 
+
     public function setBidID($id){
         $this->bidID = $id;
     }
@@ -31,7 +33,7 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function init($args);
 
-    abstract public function release();
+    abstract public function release($pay_type);
 
     abstract public function verify($state);
 

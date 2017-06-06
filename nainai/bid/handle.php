@@ -14,38 +14,47 @@ use \Library\M;
 abstract class handle extends \nainai\bid\state\stateBase
 {
     public $stateObj = null;
-    public function __construct($bid_id=0)
+    public $operUserId = 0;
+    public $bidID = 0;
+    public function __construct($bid_id=0,$user_id=0)
     {
-        if($bid_id){
-            $this->setState($bid_id);
-            if($this->stateObj){
-                $this->stateObj->setBidID($bid_id);
-            }
+        $this->setStateObj($bid_id);
+        $this->operUserId = $user_id;
+        $this->bidID = $bid_id;
+        if($this->stateObj){
+            $this->stateObj->setBidID($bid_id);
         }
+
+
     }
 
-    public function setState($bid_id){
-        $bidObj = new M($this->bidTable);
-        $bid = $bidObj->where(array('id'=>$bid_id))->getObj();
-        if(!empty($bid) && isset($bid['status'])){
-            switch($bid['status']){
-                case self::BID_INIT : {
-                    $this->stateObj = new \nainai\bid\state\initState();
+    public function setStateObj($bid_id){
+        if(!$bid_id)
+            $this->stateObj = new \nainai\bid\state\uninitState();
+        else{
+            $bidObj = new M($this->bidTable);
+            $bid = $bidObj->where(array('id'=>$bid_id))->getObj();
+            if(!empty($bid) && isset($bid['status'])){
+                switch($bid['status']){
+                    case self::BID_INIT : {
+                        $this->stateObj = new \nainai\bid\state\initState();
+                    }
+                        break;
+                    case self::BID_RELEASE_WAITVERIFY :
+                        $this->stateObj = new \nainai\bid\state\releaseState();
+                        break;
+                    case self::BID_RELEASE_VERIFYFAIL:
+                        $this->stateObj = new \nainai\bid\state\verifyFailState();
+                        break;
+                    case self::BID_RELEASE_VERIFYSUCC:
+                        $this->stateObj = new \nainai\bid\state\verifySuccState();
+                        break;
                 }
-                break;
-                case self::BID_RELEASE_WAITVERIFY :
-                    $this->stateObj = new \nainai\bid\state\releaseState();
-                    break;
-                case self::BID_RELEASE_VERIFYFAIL:
-                    $this->stateObj = new \nainai\bid\state\verifyFailState();
-                    break;
-                case self::BID_RELEASE_VERIFYSUCC:
-                    $this->stateObj = new \nainai\bid\state\verifySuccState();
-                    break;
+
+
             }
-
-
         }
+
     }
 
    public function init($args)
@@ -53,9 +62,10 @@ abstract class handle extends \nainai\bid\state\stateBase
       $this->stateObj->init($args);
    }
 
-    public function release()
+    public function release($pay_type)
     {
-       $this->stateObj->release();
+       if( $this->check())
+            $this->stateObj->release($pay_type);
     }
 
     public function verify($state)

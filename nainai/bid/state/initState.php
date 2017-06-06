@@ -15,17 +15,22 @@ class initState extends stateBase
 {
     public function init($args)
     {
-        $this->bidObj->createNewBid($args);
+
     }
 
-     public function release()
+     public function release($pay_type)
      {
-        $this->bidObj->releaseBid($this->bidID);
+         $this->bidObj->beginTrans();
+         $this->bidObj->payBidDeposit($this->bidID,$pay_type);
+         $this->bidObj->setStatus($this->bidID,self::BID_RELEASE_WAITVERIFY);
+         return $this->bidObj->commit();
+
+
      }
 
      public function verify($status)
      {
-         $this->bidObj->verifyBid($this->bidID,$status);
+
      }
 
 }

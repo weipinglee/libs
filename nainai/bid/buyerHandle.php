@@ -12,6 +12,10 @@ namespace nainai\bid;
 class buyerHandle extends handle
 {
     public function check(){
-
+        $bidObj = new \Library\M($this->bidTable);
+        $user_id = $bidObj->where(array('id'=>$this->bidID))->getField('user_id');
+        if($user_id==$this->operUserId)
+            return true;
+        return false;
     }
 }
