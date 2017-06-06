@@ -52,15 +52,20 @@ class message{
 	 * [send  发送消息]
 	 * @param   $type    通知类型
 	 * @param   $param 订单id,
+	 * @param $short int 是否同步发送短信
 	 * @return    [type]             [description]
 	 */
 
-	public function send($type,$param=0){
+	public function send($type,$param=0,$short=1){
 		if(in_array($type, self::$type)){
 			$mess=call_user_func(array(__CLASS__,$type),$param);
 			$mess['user_id']=$this->user_id;
 			$mess['send_time']= \Library\Time::getDateTime();
 			$messObj=new M('message');
+			if($short){
+				$member = new member();
+				$member->sendShortMessage($mess['user_id'],$mess['content']);
+			}
 			if($messObj->data($mess)->add()){
 				return $this->messCode['sendOk'];
 			}else{
