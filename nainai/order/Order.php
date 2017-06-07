@@ -72,7 +72,7 @@ class Order{
 		$this->products = new M('products');
 		$this->paylog = new M('pay_log');
 		$this->account = new \nainai\fund\agentAccount();
-		$this->base_account = new \nainai\fund\account();
+		$this->base_account = new \nainai\fund();
 		$this->user_invoice = new \nainai\user\UserInvoice();
 		$this->zx = new \nainai\fund\zx();
 		$this->delivery = new \nainai\delivery\Delivery();

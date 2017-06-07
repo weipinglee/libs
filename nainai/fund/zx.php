@@ -186,11 +186,14 @@ class zx extends account{
      * @param float $num 释放金额
      */
     
-    public function freezeRelease($user_id,$num,$time=''){
-        $freeze_records = $this->freezeTrans($user_id,$time);
-        $djcode = $this->getFreezeCode($freeze_records,$num);
+    public function freezeRelease($user_id,$num,$note='',$freezeCode=''){
+        $freeze_records = $this->freezeTrans($user_id);
+        if($freezeCode!='')
+            $djcode = $freezeCode;
+        else
+            $djcode = $this->getFreezeCode($freeze_records,$num);
         if(!$djcode) return '无效冻结金额';
-        return $this->bankTransfer('',$num,$user_id,0,'freezeRelease',$time,$djcode);
+        return $this->bankTransfer('',$num,$user_id,0,'freezeRelease',$note,$djcode);
     }
 
     /**
@@ -202,9 +205,9 @@ class zx extends account{
      *
      */
 
-    public function freezePay($from,$to=0,$num,$time='',$amount=''){
+    public function freezePay($from,$to=0,$num,$note='',$amount=''){
         $amount = number_format($amount,2);
-        $freeze_records = $this->freezeTrans($from,$time);//加缓存TODO
+        $freeze_records = $this->freezeTrans($from);//加缓存TODO
         if(is_array($num)){
             $temp = array();
             $freeze_nos = array();
@@ -229,7 +232,7 @@ class zx extends account{
             $num = number_format($num,2);
             $code = $this->getFreezeCode($freeze_records,$amount ? $amount : $num);
             if(!$code) return '冻结信息获取错误:'.($amount ? $amount : $num);
-            $res = $this->bankTransfer('',$num,$from,$to,'freezePay',$time,$code); 
+            $res = $this->bankTransfer('',$num,$from,$to,'freezePay',$note,$code);
 
             if($res !== true){
                 return is_string($res)? $res : $res['info'];
@@ -432,7 +435,10 @@ class zx extends account{
 
         $res = $this->curl($xml);
         // var_dump($res);exit;
-        return $res['status'] == 1 ? true : $res['info'];
+        if(strpos($res['zx_status'],'AAAAAA')===0){
+            return true;
+        }
+        return  $res['info'];
 
     }
 
@@ -508,10 +514,10 @@ class zx extends account{
     /**
      * 附属账户冻结信息查询
      * @param  int $user_id 用户id
-     * @param  datetime $date 冻结时间
+     * @param  datetime $date 冻结开始时间，如果为空，从87天前开始
      * @return array 
      */
-    public function freezeTrans($user_id,$date){
+    public function freezeTrans($user_id,$date=''){
         $date = strlen($date)<=8 ? $date : '';
         $payAccInfo = $this->attachAccount->attachInfo($user_id);
        // var_dump($payAccInfo);exit;

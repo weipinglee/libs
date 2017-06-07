@@ -18,8 +18,13 @@ abstract class bidBase
     const BID_RELEASE_WAITVERIFY = 1;//发布待审核
     const BID_RELEASE_VERIFYSUCC = 2;//发布审核成功
     const BID_RELEASE_VERIFYFAIL = 3;//发布审核驳回
+    const BID_CANCLE = 4; //招标撤销
+
 
     protected $bidTable = 'bid';
     protected $bidPackageTable = 'bid_package';
+    protected $bidReplyTable = 'bid_reply';
+    protected $bidReplyCertTable = 'bid_reply_cert';
+    protected $bidReplyPackTable = 'bid_reply_package';
 
 }

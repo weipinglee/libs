@@ -229,8 +229,10 @@ class agentAccount extends account{
      * 冻结资金释放
      * @param int $user_id
      * @param float $num 释放金额
+     * @param string $note 备注
+     * @param string $freezeno 冻结编号
      */
-    public function freezeRelease($user_id,$num,$note=''){
+    public function freezeRelease($user_id,$num,$note='',$freezeno=''){
         $num = floatval($num);
         if($num>0){
             $freeze = $this->agentModel->table($this->agentTable)->where(array('user_id'=>$user_id))->getField('freeze');
@@ -260,6 +262,8 @@ class agentAccount extends account{
      * @param int $from 冻结账户用户id
      * @param int $to  转到的账户用户id,0代表市场
      * @param float $num 转账的金额
+     * @param string $note 备注
+     * @param string $amount
      *
      */
     public function freezePay($from,$to=0,$num,$note='',$amount=''){
