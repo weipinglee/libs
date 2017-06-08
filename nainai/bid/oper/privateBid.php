@@ -16,4 +16,15 @@ use nainai\state\bidOper;
 class privateBid extends bidOper
 {
 
+    public function isInvite($user_id,$invite)
+    {
+        if($invite){
+            $invite_arr = explode(',',$invite);
+            if(in_array($user_id,$invite_arr)){
+                return true;
+            }
+        }
+        return false;
+
+    }
 }

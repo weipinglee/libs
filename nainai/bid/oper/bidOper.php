@@ -37,6 +37,10 @@ class bidOper extends \nainai\bid\bidBase
         $this->succInfo = tool::getSuccInfo();
     }
 
+    public function getSuccInfo(){
+        return $this->succInfo;
+    }
+
     public function beginTrans(){
         $this->bidModel->beginTrans();
     }
@@ -148,12 +152,22 @@ class bidOper extends \nainai\bid\bidBase
             $updateData = $this->handleBidData($bidData);
             $updateData['status'] = 0;
             if($this->bidModel->data($updateData)->validate($this->bidRules)){
-                if(!$this->bidModel->update()){
+                if(!$this->bidModel->where(array('id'=>$bidData['id']))->update()){
                     $this->succInfo = tool::getSuccInfo(0,'更新失败');
+                    return false;
                 }
+                if(isset($bidData['package'])){
+                    $packObj = new M($this->bidPackageTable);
+                    if(!$packObj->insertUpdates($bidData['package'],$bidData['package'])){
+                        $this->succInfo = tool::getSuccInfo(0,'更新失败');
+                        return false;
+                    }
+                }
+                return true;
             }
             else{
                 $this->succInfo = tool::getSuccInfo(0,$this->bidModel->getError());
+                return false;
             }
         }
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
@@ -273,10 +287,12 @@ class bidOper extends \nainai\bid\bidBase
            if(!$this->bidModel->where($where)->data($data)->update()){
                $this->succInfo = tool::getSuccInfo(0,'审核失败，请重新操作');
            }
+           return true;
        }
        else{
-            return tool::getSuccInfo(0,$this->bidModel->getError());
+           $this->succInfo = tool::getSuccInfo(0,$this->bidModel->getError());
         }
+        return false;
     }
 
     /**
@@ -291,10 +307,29 @@ class bidOper extends \nainai\bid\bidBase
         $data['status'] = $status;
         if(!$this->bidModel->where($where)->data($data)->update()){
             $this->succInfo = tool::getSuccInfo(0,'设置失败');
+            return false;
         }
+        return true;
 
     }
 
+    /**
+     * 设置投标状态
+     * @param $reply_id
+     * @param $status
+     * @return bool
+     */
+    public function setReplyStatus($reply_id,$status){
+        $where = array('id'=>$reply_id);
+        $data = array();
+        $data['status'] = $status;
+        $replyObj = new M($this->bidReplyTable);
+        if(!$replyObj->where($where)->data($data)->update()){
+            $this->succInfo = tool::getSuccInfo(0,'设置失败');
+            return false;
+        }
+        return true;
+    }
 
 
     /**
@@ -328,12 +363,65 @@ class bidOper extends \nainai\bid\bidBase
             $bid_user_id = $bidData['user_id'];//招标用户id
             $bid_no = $bidData['no'];
             $fund = new \nainai\fund();
-            //退还投标标书购买费用
+
+            $this->bidModel->rollBack();//每一个退款都在一个独立的事务里
+
+            //退还招标方保证金
+            if($bidData['bail']>0 && $bidData['bail_is_refund']==0){
+                $this->bidModel->beginTrans();
+                $fundObj = $fund->createFund($bidData['bail_pay_way']);
+                $note  = '取消招标'.$bid_no.'退回保证金';
+                $bailRes = $fundObj->freezeRelease($bidData['user_id'],$bidData['bail'],$note);
+                if($bailRes===true){
+                    $res1 = false;
+                    while($res1!==true){
+                        if($this->bidModel->where(array('id'=>$bid_id))->data(array('bail_is_refund'=>1))->update()){
+                            $res1 = $this->bidModel->commit();
+                        }
+                    }
+                }
+                else{
+                    $this->succInfo = tool::getSuccInfo(0,'退还保证金失败');
+                    $this->bidModel->rollBack();
+                    return false;
+                }
+
+            }
+
+
             $replyObj = new M($this->bidReplyTable);
             $replyData = $replyObj->where(array('bid_id'=>$bid_id))->select();
-            $docFeeTotal = 0;
+
+            //释放投标方保证金
+            foreach($replyData as $key=>$item){
+                if($item['bail_fee']>0 && $item['bail_fee_refund']==0){//保证金大于0 且没有释放
+                    $replyObj->beginTrans();
+                    $fundObj = $fund->createFund($item['bail_pay_way']);
+                    $note = '招标编号为'.$bid_no.'的招标撤销释放投标方保证金';
+                    $resRelease = $fundObj->freezeRelease($item['reply_user_id'],$item['bail_fee'],$note);
+                    if($resRelease===true){
+                        $res2 = false;
+                        while($res2!==true){
+                            if($replyObj->where(array('id'=>$item['id']))->data(array('bail_fee_refund'=>1))->update()){
+                                $res2 = $this->bidModel->commit();
+                            }
+                        }
+                    }
+                    else{
+                        $this->succInfo = tool::getSuccInfo(0,'释放卖方保证金失败');
+                        $this->bidModel->rollBack();
+                        return false;
+                    }
+
+                }
+            }
+
+
+            //退还投标标书购买费用
             foreach($replyData as $item){
                 if($item['doc_fee']>0 && $item['doc_fee_refund']==0){//已支付标书费且未退还的情况下，退还标书费用
+
+                    $replyObj->beginTrans();
                     $fundObj = $fund->createFund($item['doc_pay_way']);
                     $transfer = array(
                         'amount'=>$item['doc_fee'],
@@ -341,27 +429,50 @@ class bidOper extends \nainai\bid\bidBase
                     );
                     if($fundObj->getActive($bid_user_id)<$item['doc_fee']){//如果招标方对应账户可用余额不足退还
                         $this->succInfo = tool::getSuccInfo(0,$fund::getFundName($item['doc_pay_way']).'余额不足，部分用户标书费用未退还，请充值后再继续退款');
+                        return false;
                     }
                     $res = $fundObj->transfer($bid_user_id,$replyData['reply_user_id'],$transfer);
                     if($res===true){//退款成功，修改投保标书退款标示字段为‘已退款’
-                        $replyObj->where(array('id'=>$item['id']))->data(array('doc_fee_refund'=>1))->update();
+                        $ref = false;
+                        while(!$ref){//退款后务必将是否退款的状态改为1
+                            $replyObj->where(array('id'=>$item['id']))->data(array('doc_fee_refund'=>1))->update();
+                            $ref = $replyObj->commit();
+                        }
+
+                    }else{
+                        $this->succInfo = tool::getSuccInfo(0,'部分用户退款失败');
+                        $replyObj->rollBack();
+                        return false;
                     }
                 }
 
             }
 
-            //退还招标方保证金
-            $bailRes = true;
-            if($bidData['bail']>0){
-
-                $fundObj = $fund->createFund($bidData['bail_pay_way']);
-                $note  = '取消招标'.$bid_no.'退回保证金';
-                $bailRes = $fundObj->freezeRelease($bidData['user_id'],$bidData['bail'],$note);
-
-            }
-
-
+            return true;
         }
+        return false;
+
+    }
+
+    /**
+     * 招标取消通知投标方，在投标方保证金和标书费用都退还情况下通知
+     * @param $bid_id int 招标id
+     * @return bool
+     */
+    public function bidCancleNotify($bid_id)
+    {
+        $replyObj = new M($this->bidReplyTable);
+        $replyData = $replyObj->where(array('bid_id'=>$bid_id))->select();
+        $bid_no = $this->bidModel->where(array('id'=>$bid_id))->getField('no');
+        if($bid_no){
+            $message = new \nainai\message();
+            foreach($replyData as $item){
+                $message->setUserId($item['reply_user_id']);
+                $message->send('bidCancle',$bid_no);
+            }
+            return true;
+        }
+        return false;
 
     }
 
@@ -422,6 +533,18 @@ class bidOper extends \nainai\bid\bidBase
     }
 
 
+    public function delReplyCerts($cert_id)
+    {
+        $certObj = new M($this->bidReplyCertTable);
+        if(!$certObj->where(array('id'=>$cert_id))->delete()){
+            $this->succInfo = tool::getSuccInfo(0,'删除失败');
+            return false;
+        }
+        return true;
+    }
+
+
+
     /**
      * 创建新的投标
      * @param $bid_id int 招标id
@@ -434,6 +557,11 @@ class bidOper extends \nainai\bid\bidBase
         $bidData = $this->bidModel->where(array('id'=>$bid_id))->getObj();
         if(empty($bidData)){
             $this->succInfo = tool::getSuccInfo(0,'该招标不存在');
+            return false;
+        }
+        //检查该用户是否可投标
+        if(!$this->isInvite($user_id,$bidData['yq_user'])){
+            $this->succInfo = tool::getSuccInfo(0,'非邀请用户，不能投标');
             return false;
         }
         //检查该用户是否已投过标
@@ -504,11 +632,18 @@ class bidOper extends \nainai\bid\bidBase
         $bidData = $this->bidModel->where(array('id'=>$replyData['bid_id']))->getObj();
         if(isset($bidData['doc_price']) && $bidData['doc_price']>0){
             $payData = array('amount'=>$bidData['doc_price'],'note'=>'支付标书费用');
-            $payRes = $pay_type->transfer($replyData['reply_user_id'],$replyData['bid_user_id'],$payData);
+            $fund = new \nainai\fund();
+            $payType = $fund->createFund($pay_type);
+            $payRes = $payType->transfer($replyData['reply_user_id'],$replyData['bid_user_id'],$payData);
             if(true!==$payRes){
                 $this->succInfo = tool::getSuccInfo(0,'支付失败');
                 return false;
             }
+            $res = false;
+            while(!$res){
+                $res = $replyObj->data(array('doc_fee'=>$bidData['doc_price'],'doc_pay_way'=>$pay_type))->update();
+            }
+
             return true;
 
         }
@@ -565,6 +700,10 @@ class bidOper extends \nainai\bid\bidBase
     {
         $replyObj = new M($this->bidReplyTable);
         $replyData = $replyObj->where(array('id'=>$reply_id))->getObj();
+        if(empty($replyData)){
+            $this->succInfo = tool::getSuccInfo(0,'投标不存在');
+            return false;
+        }
         $bid_id = $replyData['bid_id'];//招标id
         //包件类型，1：分包，2：总包
         $pack_type = $this->bidModel->where(array('id'=>$bid_id))->getField('pack_type');

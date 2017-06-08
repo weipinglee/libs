@@ -14,28 +14,69 @@ use \Library\M;
 abstract class handle extends \nainai\bid\state\stateBase
 {
     public $stateObj = null;
+    public $operObj  = null;
     public $operUserId = 0;
     public $bidID = 0;
-    public function __construct($bid_id=0,$user_id=0)
-    {
-        $this->setStateObj($bid_id);
-        $this->operUserId = $user_id;
-        $this->bidID = $bid_id;
-        if($this->stateObj){
-            $this->stateObj->setBidID($bid_id);
-        }
 
+    public function __construct($type,$id=0,$user_id=0)
+    {
+        $bid_id= 0;
+        $reply_id = 0;
+        if($type=='bid'){
+            $this->setStateObj($id,0);
+            $bid_id = $id;
+            $reply_id = 0;
+        }
+        elseif($type=='reply'){
+            $reply_id = $id;
+            $replyObj = new M($this->bidReplyTable);
+            $replyData = $replyObj->where(array('id'=>$id))->fields('bid_id,status')->getObj();
+            if(!empty($replyData)){
+                $this->setStateObj($replyData['bid_id'],$id,$replyData);
+                $bid_id = $replyData['bid_id'];
+            }
+
+        }
+        $this->bidID = $bid_id;
+        $this->operUserId = $user_id;
+        if($this->stateObj){
+            $this->stateObj->_init($bid_id,$reply_id,$this->operObj);
+        }
 
     }
 
-    public function setStateObj($bid_id){
+    /**
+     * 获取操作类
+     * @param $mode
+     */
+    private function getOperClass($mode){
+        //获取操作类
+        switch($mode){
+            case 'gk' :
+                $this->operObj = new \nainai\bid\oper\openBid();
+                break;
+            case 'yq' :
+                $this->operObj = new \nainai\bid\oper\privateBid();
+                break;
+        }
+    }
+
+    /**
+     * 设置状态对象
+     * @param $bid_id int 招标id
+     * @param $reply_id int 投标id
+     * @param array $replyData 投标数据，如果传入该值，则不必重复获取投标数据
+     */
+    public function setStateObj($bid_id,$reply_id,$replyData=array()){
         if(!$bid_id)
             $this->stateObj = new \nainai\bid\state\uninitState();
         else{
             $bidObj = new M($this->bidTable);
-            $bid = $bidObj->where(array('id'=>$bid_id))->getObj();
-            if(!empty($bid) && isset($bid['status'])){
-                switch($bid['status']){
+            $bidData = $bidObj->where(array('id'=>$bid_id))->fields('status,mode')->getObj();
+            if(!empty($bidData) ){
+                $this->getOperClass($bidData['mode']);
+                //获取状态类
+                switch($bidData['status']){
                     case self::BID_INIT : {
                         $this->stateObj = new \nainai\bid\state\initState();
                     }
@@ -49,6 +90,48 @@ abstract class handle extends \nainai\bid\state\stateBase
                     case self::BID_RELEASE_VERIFYSUCC:
                         $this->stateObj = new \nainai\bid\state\verifySuccState();
                         break;
+                    case self::BID_CANCLE :
+                        $this->stateObj = new \nainai\bid\state\bidCancleState();
+                        break;
+                    case self::BID_CLOSE :
+                        $this->stateObj = new \nainai\bid\state\bidCloseState();
+                        break;
+                }
+
+                //投标id不为0且招标状态为成功，设置投标状态对象
+                if($reply_id!=0 && $bidData['status']==self::BID_RELEASE_VERIFYSUCC){
+                    if(empty($replyData)){
+                        $replyObj = new M($this->bidReplyTable);
+                        $replyData = $replyObj->where(array('id'=>$reply_id))->fields('status,bid_id')->getObj();
+
+                    }
+                    if(!empty($replyData)){
+                        switch($replyData['status']){
+                            case self::REPLY_CREATE :
+                                $this->stateObj = new \nainai\bid\state\replyCreateState();
+                                break;
+                            case self::REPLY_CERTED :
+                                $this->stateObj = new \nainai\bid\state\replyCertedState();
+                                break;
+                            case self::REPLY_CERT_VERIFYFAIL :
+                                $this->stateObj = new \nainai\bid\state\replyCertVerifyfailState();
+                                break;
+                            case self::REPLY_CERT_VERIFYSUCC :
+                                $this->stateObj = new \nainai\bid\state\replyCertVerifysuccState();
+                                break;
+                            case self::REPLY_DOC_PAYED :
+                                $this->stateObj = new \nainai\bid\state\replyDocPayedState();
+                                break;
+                            case self::REPLY_DOC_UPLOADED :
+                                $this->stateObj = new \nainai\bid\state\replyDocUploadedState();
+                                break;
+                            case self::REPLY_PACKAGE_SUBMIT :
+                                $this->stateObj = new \nainai\bid\state\replyPackageSubmitState();
+                                break;
+
+                        }
+                    }
+
                 }
 
 
@@ -68,9 +151,56 @@ abstract class handle extends \nainai\bid\state\stateBase
             $this->stateObj->release($pay_type);
     }
 
-    public function verify($state)
+    public function verify($state,$mess='')
     {
-        $this->stateObj->verify($state);
+        $this->stateObj->verify($state,$mess='');
+    }
+
+    public function bidRerelease($data){
+        $this->stateObj->bidRerelease($data);
+    }
+
+    public function bidCancle(){
+
+    }
+
+    public function bidClose(){
+
+    }
+
+
+
+    public function replyUploadCerts($reply_user_id,$certs)
+    {
+        $this->stateObj->replyUploadCerts($reply_user_id,$certs);
+    }
+
+    public function replyCertsVerify($status)
+    {
+
+    }
+
+    public function replyCertAdd($reply_id,$cert)
+    {
+
+    }
+
+    public function replyCertDel($cert_id){
+
+    }
+    
+
+
+    public function replyDocUpload($upload){
+
+    }
+
+    public function replyPaydocFee($pay_type){
+
+    }
+
+    public function replySubmitPackage($data){
+
     }
 
 }

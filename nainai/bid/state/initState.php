@@ -28,9 +28,54 @@ class initState extends stateBase
 
      }
 
-     public function verify($status)
+     public function verify($status,$mess='')
      {
 
      }
+
+    public function bidRerelease($data){
+
+    }
+
+    public function bidCancle(){
+
+    }
+
+    public function bidClose(){
+
+    }
+
+
+    public function replyCertAdd($reply_id,$cert)
+    {
+
+    }
+
+    public function replyCertDel($cert_id){
+
+    }
+
+
+
+    public function replyDocUpload($upload){
+
+    }
+
+    public function replyUploadCerts($reply_user_id,$certs){
+
+    }
+
+    public function replyCertsVerify($status){
+
+    }
+
+    public function replyPaydocFee($pay_type){
+
+    }
+
+    public function replySubmitPackage($data){
+
+    }
+
 
 }

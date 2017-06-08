@@ -15,5 +15,7 @@ use nainai\state\bidOper;
 
 class openBid extends bidOper
 {
-
+    public function isInvite($user_id,$invite){
+        return true;
+    }
 }
