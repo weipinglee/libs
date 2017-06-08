@@ -62,7 +62,7 @@ class articleFavorite
             $obj = new Query($this->favorite_table .' as f');
             $obj->join = 'left join article as a on f.article_id = a.id left join article_cover as ac on a.id = ac.article_id';
             $obj->feilds = 'a.id,a.name,a.create_time,ac.url';
-            $obj->where = ' f.user_id = '.$user_id.' and a.status=1 and a.is_del=0';
+            $obj->where = ' f.user_id = '.$user_id.' and a.id is not null';
             $obj->distinct = 'f.id';
             $obj->page = $page;
             return $obj->find();
