@@ -65,6 +65,7 @@ class articleFavorite
             $obj->where = ' f.user_id = '.$user_id.' and a.id is not null';
             $obj->distinct = 'f.id';
             $obj->page = $page;
+			$obj->pagesize = 10;
             return $obj->find();
         }
         return array();
