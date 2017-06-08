@@ -20,7 +20,7 @@ class articleComment
 
     protected $userinfo_table = 'user_info';
 
-    protected $article_table = 'artile';
+    protected $article_table = 'article';
 
     protected $favorite_table = 'article_comment_favorite';
 
