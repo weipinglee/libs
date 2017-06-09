@@ -9,7 +9,7 @@
  */
 
 namespace nainai\bid\state;
-use nainai\state\bidOper;
+use nainai\bid\oper\bidOper;
 use Library\M;
 use \Library\tool;
 abstract class stateBase extends \nainai\bid\bidBase
@@ -40,6 +40,7 @@ abstract class stateBase extends \nainai\bid\bidBase
     }
 
 
+    public function uploadBid(){}
     abstract public function init($args);//创建招标
 
     abstract public function release($pay_type);//支付保证金

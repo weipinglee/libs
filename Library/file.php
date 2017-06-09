@@ -240,6 +240,9 @@ class File
 					{
 						return array('zip','docx','xlsx');
 					}
+					elseif($val[0] == 208207){
+						return array('xls','doc');
+					}
 					else
 					{
 						return $val[1];
@@ -263,7 +266,8 @@ class File
 			array('6677','bmp'),
 			array('6063','xml'),
 			array('60104','html'),
-			array('208207','xls/doc'),
+			array('208207','xls'),
+			array('208207','doc'),
 			array('8075','zip'),
 			array('8075','docx'),
 			array('8075','xlsx'),

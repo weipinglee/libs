@@ -15,7 +15,7 @@ namespace Library;
 class Upload
 {
 	//允许上传附件类型
-	private $allowType = array('jpg','gif','png','zip','rar','docx','doc');
+	private $allowType = array('jpg','gif','png','zip','rar','docx');
 
 	//需要检测木马的文件类型
 	private $checkType = array('jpg','gif','png');
@@ -211,6 +211,7 @@ class Upload
 		                {
 							/*开始上传文件*/
 		                    //(1)上传类型不符合
+
 		                    if(!in_array($fileext,$this->allowType))
 		                    {
 		                        $fileInfo[$key]['flag'] = -7;

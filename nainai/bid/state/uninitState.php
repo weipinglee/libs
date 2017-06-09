@@ -18,10 +18,17 @@ class uninitState extends stateBase
         $this->bidObj->beginTrans();
         $new_id = $this->bidObj->createNewBid($args);
         $this->bidObj->createNewPackage($new_id,$args['package']);
-        return $this->bidObj->commit();
+        $res = $this->bidObj->commit();
+        $res['id'] = $new_id;
+        return $res;
     }
 
-     public function release($pay_type)
+    public function uploadBid()
+    {
+        return $this->bidObj->uploadBidDoc();
+    }
+
+    public function release($pay_type)
      {
 
      }

@@ -8,7 +8,7 @@
  * @version 1.0
  */
 
-namespace nainai\state;
+namespace nainai\bid\oper;
 use \Library\M;
 use \Library\tool;
 use \Library\time;
@@ -50,13 +50,15 @@ class bidOper extends \nainai\bid\bidBase
      * 事务提交，如果在操作中有错误消息，则回滚事务，否则正常提交
      * @return array
      */
-    public function commit(){
+    public function commit($id=0,$url=''){
         $res = $this->succInfo;
         if(!($res['success']==1 && $this->bidModel->commit())){
             $this->bidModel->rollBack();
             if($res['success']==1)
                 $res = array('success'=>0,'info'=>'操作失败');
         }
+        $res['id'] = $id;
+        $res['url'] = $url;
         return $res;
     }
 
@@ -110,6 +112,18 @@ class bidOper extends \nainai\bid\bidBase
         }
         return $newData;
 
+
+    }
+
+    public function uploadBidDoc(){
+        //获取上传招标文件
+        $name = 'doc';
+        $upload = new \Library\upload\commonUpload();
+        $uploadDir = 'upload/bid/'.date('Y/m');
+        $upload->setDir($uploadDir);
+        $upload->setallowType(array('doc','docx'));
+        $data = $upload->upload();
+        return isset($data[$name]) ? $data[$name] : array();
 
     }
 

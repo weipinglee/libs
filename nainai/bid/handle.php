@@ -18,12 +18,18 @@ abstract class handle extends \nainai\bid\state\stateBase
     public $operUserId = 0;
     public $bidID = 0;
 
-    public function __construct($type,$id=0,$user_id=0)
+    public function __construct($user_id=0)
+    {
+        $this->operUserId = $user_id;
+    }
+
+    //设置状态对象
+    public function setStateObj($type='bid',$id=0)
     {
         $bid_id= 0;
         $reply_id = 0;
         if($type=='bid'){
-            $this->setStateObj($id,0);
+            $this->getStateObj($id,0);
             $bid_id = $id;
             $reply_id = 0;
         }
@@ -32,13 +38,12 @@ abstract class handle extends \nainai\bid\state\stateBase
             $replyObj = new M($this->bidReplyTable);
             $replyData = $replyObj->where(array('id'=>$id))->fields('bid_id,status')->getObj();
             if(!empty($replyData)){
-                $this->setStateObj($replyData['bid_id'],$id,$replyData);
+                $this->getStateObj($replyData['bid_id'],$id,$replyData);
                 $bid_id = $replyData['bid_id'];
             }
 
         }
         $this->bidID = $bid_id;
-        $this->operUserId = $user_id;
         if($this->stateObj){
             $this->stateObj->_init($bid_id,$reply_id,$this->operObj);
         }
@@ -67,7 +72,7 @@ abstract class handle extends \nainai\bid\state\stateBase
      * @param $reply_id int 投标id
      * @param array $replyData 投标数据，如果传入该值，则不必重复获取投标数据
      */
-    public function setStateObj($bid_id,$reply_id,$replyData=array()){
+    private function getStateObj($bid_id,$reply_id,$replyData=array()){
         if(!$bid_id)
             $this->stateObj = new \nainai\bid\state\uninitState();
         else{
@@ -142,13 +147,13 @@ abstract class handle extends \nainai\bid\state\stateBase
 
    public function init($args)
    {
-      $this->stateObj->init($args);
+      return $this->stateObj->init($args);
    }
 
     public function release($pay_type)
     {
        if( $this->check())
-            $this->stateObj->release($pay_type);
+            return $this->stateObj->release($pay_type);
     }
 
     public function verify($state,$mess='')
@@ -188,7 +193,7 @@ abstract class handle extends \nainai\bid\state\stateBase
     public function replyCertDel($cert_id){
 
     }
-    
+
 
 
     public function replyDocUpload($upload){
@@ -201,6 +206,11 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function replySubmitPackage($data){
 
+    }
+
+    public function uploadBid()
+    {
+       return  $this->stateObj->uploadBid();
     }
 
 }

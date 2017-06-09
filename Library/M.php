@@ -448,7 +448,7 @@ class M{
     public function select()
     {
     	$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
-    	
+
     	if ($this->cache) {
 			$cacheKey = md5($sql);
 			$result = $this->cache->get($cacheKey);
