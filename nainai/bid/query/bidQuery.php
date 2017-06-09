@@ -2,7 +2,7 @@
 /**
  * @copyright (c) 2017 nainaiwang.com
  * @file bidQuery.php
- * @brief ÕÐ±ê²éÑ¯»ù´¡Àà
+ * @brief æ‹›æ ‡æŸ¥è¯¢åŸºç¡€ç±»
  * @author weipinglee
  * @date 2017-6-9
  * @version 1.0
@@ -24,32 +24,32 @@ class bidQuery extends bidBase
     public function getBidStatusText($status){
         switch($status){
             case  self::BID_INIT : {
-                return 'µÈ´ý½ÉÄÉ±£Ö¤½ð';
+                return 'ç­‰å¾…ç¼´çº³ä¿è¯é‡‘';
             }
             case self::BID_RELEASE_WAITVERIFY :
-                return 'ÒÑ·¢²¼£¬µÈ´ýÉóºË';
+                return 'å·²å‘å¸ƒï¼Œç­‰å¾…å®¡æ ¸';
             case self::BID_RELEASE_VERIFYSUCC :
-                return '·¢²¼³É¹¦';
+                return 'å‘å¸ƒæˆåŠŸ';
             case self::BID_RELEASE_VERIFYFAIL :
-                return 'ºóÌ¨²µ»Ø';
+                return 'åŽå°é©³å›ž';
             case self::BID_CANCLE :
-                return 'ÒÑ³·Ïú';
+                return 'å·²æ’¤é”€';
             case self::BID_CLOSE:
-                return 'ÒÑÖÕÖ¹';
+                return 'å·²ç»ˆæ­¢';
 
         }
-        return 'Î´Öª';
+        return 'æœªçŸ¥';
     }
 
     private function getPackType($type){
         if($type==1)
-            return '·Ö°ü';
-        return '×Ü°ü';
+            return 'åˆ†åŒ…';
+        return 'æ€»åŒ…';
     }
 
     /**
-     * @param int $page Ò³Âë
-     * @param array $where ²éÑ¯Ìõ¼þ [0]=>²éÑ¯×Ö·û´®£¬[1]=>°ó¶¨²ÎÊýÊý×é
+     * @param int $page é¡µç 
+     * @param array $where æŸ¥è¯¢æ¡ä»¶ [0]=>æŸ¥è¯¢å­—ç¬¦ä¸²ï¼Œ[1]=>ç»‘å®šå‚æ•°æ•°ç»„
      * @return array
      */
     public function getBidList($page=1,$where=array())
@@ -69,7 +69,7 @@ class bidQuery extends bidBase
             foreach($res['list'] as $key=>$val){
                 $res['list'][$key]['status_text'] = $this->getBidStatusText($val['status']);
                 $res['list'][$key]['pack_type_text'] = $this->getPackType($val['pack_type']);
-                $res['list'][$key]['open_way_text'] =  $res['list'][$key]['open_way']==1 ? 'ÏßÉÏ' : 'ÏßÏÂ';
+                $res['list'][$key]['open_way_text'] =  $res['list'][$key]['open_way']==1 ? 'çº¿ä¸Š' : 'çº¿ä¸‹';
             }
         }
 
@@ -99,7 +99,8 @@ class bidQuery extends bidBase
         if(!empty($data)){
             $data['status_text'] = $this->getBidStatusText($data['status']);
             $data['pack_type_text'] = $this->getPackType($data['pack_type']);
-            $data['open_way_text'] = $data['open_way'] == 1 ? 'ÏßÉÏ' : 'ÏßÏÂ';
+            $data['open_way_text'] = $data['open_way'] == 1 ? 'çº¿ä¸Š' : 'çº¿ä¸‹';
+            $data['eq'] = unserialize($data['eq']);
             $packageObj = new M($this->bidPackageTable);
             $data['package'] = $packageObj->where(array('bid_id'=>$id))->select();
         }

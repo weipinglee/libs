@@ -115,6 +115,10 @@ class bidOper extends \nainai\bid\bidBase
 
     }
 
+    /**
+     * 上传招标文件
+     * @return array
+     */
     public function uploadBidDoc(){
         //获取上传招标文件
         $name = 'doc';
