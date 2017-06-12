@@ -158,7 +158,8 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function verify($state,$mess='')
     {
-        $this->stateObj->verify($state,$mess='');
+        return $this->stateObj->verify($state,$mess='');
+
     }
 
     public function bidRerelease($data){

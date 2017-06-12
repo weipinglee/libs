@@ -20,6 +20,8 @@ class bidQuery extends bidBase
 
     public $cateTable = 'product_category';
 
+    public $userTable = 'user';
+
 
     public function getBidStatusText($status){
         switch($status){
@@ -55,8 +57,8 @@ class bidQuery extends bidBase
     public function getBidList($page=1,$where=array())
     {
         $query = new searchQuery($this->bidTable .' as b');
-        $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id';
-        $query->field = 'b.* , pc.name as cate_name';
+        $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id left join '.$this->userTable.' as u on b.user_id = u.id';
+        $query->field = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
         $query->page = $page;
         if(!empty($where)){
             $query->where = $where[0];
@@ -82,8 +84,8 @@ class bidQuery extends bidBase
     public function getBidDetail($id,$where=array())
     {
         $query = new Query($this->bidTable .' as b');
-        $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id';
-        $query->field = 'b.* , pc.name as cate_name';
+        $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id left join '.$this->userTable.' as u on u.id = b.user_id';
+        $query->field = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
         $query->limit = 1;
         if(!empty($where)){
             $query->where = 'b.id = :id and '.$where[0];
