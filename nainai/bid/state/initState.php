@@ -65,6 +65,11 @@ class initState extends stateBase
 
     }
 
+    public function replySubmitCert()
+    {
+        // TODO: Implement replySubmitCert() method.
+    }
+
     public function replyCertsVerify($status){
 
     }
@@ -73,7 +78,7 @@ class initState extends stateBase
 
     }
 
-    public function replySubmitPackage($data){
+    public function replySubmitPackage($data,$upload){
 
     }
 

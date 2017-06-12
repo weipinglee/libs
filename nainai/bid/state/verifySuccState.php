@@ -32,12 +32,20 @@ class verifySuccState extends stateBase
 
     }
 
-    public function bidCancle(){
-
+    public function bidCancle()
+    {
+        $this->bidObj->beginTrans();
+        $this->bidObj->cancleBid($this->bidID);
+        $this->bidObj->setStatus($this->bidID,self::BID_CANCLE);
+       return  $this->bidObj->commit();
     }
 
-    public function bidClose(){
-
+    public function bidClose()
+    {
+        $this->bidObj->beginTrans();
+        $this->bidObj->cancleBid($this->bidID);
+        $this->bidObj->setStatus($this->bidID,self::BID_CLOSE);
+        return  $this->bidObj->commit();
     }
 
 
@@ -80,7 +88,14 @@ class verifySuccState extends stateBase
 
     }
 
-    public function replySubmitPackage($data){
+    public function replySubmitPackage($data,$upload){
 
+    }
+
+    public function bidStop()
+    {
+        $this->bidObj->beginTrans();
+         $this->bidObj->setStatus($this->bidID,self::BID_STOP);
+        return $this->bidObj->commit();
     }
 }

@@ -20,6 +20,8 @@ abstract class bidBase
     const BID_RELEASE_VERIFYFAIL = 3;//发布审核驳回
     const BID_CANCLE = 4; //招标撤销
     const BID_CLOSE   = 5;//终止招标
+    const BID_STOP   = 6;//截标
+
 
     const REPLY_CREATE = 1;//报名成功
     const REPLY_CERTED = 2;//已上传资质文件

@@ -39,7 +39,11 @@ class uninitState extends stateBase
      }
 
     public function bidRerelease($data){
-
+        $this->bidObj->beginTrans();
+        $this->bidObj->updateBid($data);
+        $this->bidObj->setStatus($this->bidID,self::BID_RELEASE_WAITVERIFY);
+        $res = $this->bidObj->commit();
+        return $res;
     }
 
     public function bidCancle(){
@@ -62,6 +66,11 @@ class uninitState extends stateBase
 
     }
 
+    public function replySubmitCert()
+    {
+        // TODO: Implement replySubmitCert() method.
+    }
+
     public function replyCertAdd($reply_id,$cert)
     {
 
@@ -80,7 +89,7 @@ class uninitState extends stateBase
 
     }
 
-    public function replySubmitPackage($data){
+    public function replySubmitPackage($data,$upload){
 
     }
 

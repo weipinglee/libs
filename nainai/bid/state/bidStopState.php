@@ -11,12 +11,12 @@
 namespace nainai\bid\state;
 
 
- class replyCertVerifysuccState extends stateBase
+class bidStopState extends stateBase
 {
-    public function init($args)
-    {
+     public function init($args)
+     {
 
-    }
+     }
 
      public function release($pay_type)
      {
@@ -32,8 +32,7 @@ namespace nainai\bid\state;
 
      }
 
-     public function bidCancle()
-     {
+     public function bidCancle(){
 
      }
 
@@ -49,12 +48,17 @@ namespace nainai\bid\state;
 
      }
 
-     public function replySubmitCert()
-     {
-         // TODO: Implement replySubmitCert() method.
+     public function replyCertsVerify($status){
+
      }
 
-     public function replyCertsVerify($status){
+     public function replySubmitCert()
+     {
+      // TODO: Implement replySubmitCert() method.
+     }
+
+     public function replyCertAdd($reply_id,$cert)
+     {
 
      }
 
@@ -63,20 +67,13 @@ namespace nainai\bid\state;
      }
 
 
-     public function replyCertAdd($reply_id,$cert){
+
+     public function replyDocUpload($upload){
 
      }
 
-    public function replyDocUpload($upload){
-
-    }
-
      public function replyPaydocFee($pay_type){
-          $this->bidObj->beginTrans();
-          $res = $this->bidObj->payBidDoc($this->replyID,$pay_type);
-          if($res)
-              $this->bidObj->setReplyStatus($this->replyID,self::REPLY_DOC_PAYED);
-         return $this->bidObj->commit();
+
      }
 
      public function replySubmitPackage($data,$upload){

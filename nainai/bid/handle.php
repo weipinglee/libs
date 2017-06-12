@@ -164,16 +164,21 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     }
 
-    public function bidRerelease($data){
+    public function bidRerelease($data)
+    {
         $this->stateObj->bidRerelease($data);
     }
 
-    public function bidCancle(){
-
+    public function bidCancle()
+    {
+        if( $this->check())
+             $this->stateObj->bidCancle();
     }
 
-    public function bidClose(){
-
+    public function bidClose()
+    {
+        if( $this->check())
+            $this->stateObj->bidClose();
     }
 
 
@@ -222,6 +227,13 @@ abstract class handle extends \nainai\bid\state\stateBase
     public function uploadBid()
     {
        return  $this->stateObj->uploadBid();
+    }
+
+    public function bidStop()
+    {
+        if($this->check()){
+            return $this->stateObj->bidStop();
+        }
     }
 
 }

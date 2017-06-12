@@ -69,6 +69,8 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function replySubmitPackage($data,$upload);
 
+    abstract public function bidStop();
+
 
 
 
