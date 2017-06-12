@@ -12,6 +12,7 @@ namespace zixun;
 use \Library\M;
 use \Library\tool;
 use \Library\Query;
+use \Library\time;
 
 class articleComment
 {
@@ -41,7 +42,7 @@ class articleComment
     protected function getUserInfo($user_id)
     {
         $userObj = new M($this->userinfo_table);
-        if(is_int($user_id) && $user_id){
+        if( $user_id){
             $userData = $userObj->where(array('user_id'=>$user_id))->getObj();
             return $userData;
         }
@@ -80,6 +81,8 @@ class articleComment
             $data = array(
                 'article_id'=> $article_id,
                 'content' => $text,
+				'user_id' => $user_id,
+				'creat_time' => time::getDateTime(),
             );
             if(!empty($userData)){
                 $data['curr_nick'] = $userData['nick'];
