@@ -55,6 +55,8 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function replyUploadCerts($reply_user_id,$certs);
 
+    abstract public function replySubmitCert();//所有资质文件上传成功后，提交等待招标方审核资质
+
     abstract public function replyCertsVerify($status);
 
     abstract public function replyCertDel($cert_id);
@@ -65,7 +67,7 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function replyDocUpload($upload);
 
-    abstract public function replySubmitPackage($data);
+    abstract public function replySubmitPackage($data,$upload);
 
 
 

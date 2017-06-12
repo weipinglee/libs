@@ -110,4 +110,6 @@ class bidQuery extends bidBase
 
 
     }
+
+
 }

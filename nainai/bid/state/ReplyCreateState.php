@@ -42,6 +42,12 @@ class replyCreateState extends stateBase
     {
     }
 
+    public function replySubmitCert()
+    {
+         $this->bidObj->setReplyStatus($this->replyID,self::REPLY_CERTED);
+        return $this->bidObj->getSuccInfo();
+    }
+
     public function replyCertsVerify($status)
     {
 

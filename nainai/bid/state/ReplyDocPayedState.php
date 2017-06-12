@@ -2,7 +2,7 @@
 /**
  * @copyright (c) 2017 nainaiwang.com
  * @file stateBase.php
- * @brief �б��ʼ����
+ * @brief 招标初始化类
  * @author weipinglee
  * @date 2017-6-5
  * @version 1.0
@@ -66,15 +66,20 @@ class replyDocPayedState extends stateBase
       }
 
      public function replyDocUpload($upload){
-        $this->bidObj->beginTrans();
-        if($this->bidObj->addReplyDoc($this->replyID,$upload)){
-         $this->bidObj->setReplyStatus($this->replyID,self::REPLY_DOC_UPLOADED);
-        }
-        return $this->bidObj->commit();
+
 
      }
-     public function replySubmitPackage($data){
-
+     public function replySubmitPackage($data,$upload){
+        $this->bidObj->beginTrans();
+        if($this->bidObj->addReplyDoc($this->replyID,$upload)){
+         $this->bidObj->replyPackage($this->replyID,$data);
+         $this->bidObj->setReplyStatus($this->replyID,self::REPLY_PACKAGE_SUBMIT);
+        }
+        $res = $this->bidObj->commit();
+      if($res['success']==1){
+       $res['info'] = '投标成功，等待开标';
+      }
+      return $res;
      }
 
 }

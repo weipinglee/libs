@@ -48,8 +48,13 @@ class verifySuccState extends stateBase
         if($reply_id){
             $this->bidObj->addReplyCerts($reply_id,$certs);
         }
-        $this->bidObj->setStatus($this->bidID,self::REPLY_DOC_UPLOADED);
-       return  $this->bidObj->commit();
+        $this->bidObj->setStatus($this->bidID,self::REPLY_CREATE);
+       return  $this->bidObj->commit($reply_id);
+    }
+
+    public function replySubmitCert()
+    {
+        // TODO: Implement replySubmitCert() method.
     }
 
     public function replyCertsVerify($status){

@@ -323,6 +323,10 @@ class bidOper extends \nainai\bid\bidBase
         $where = array('id'=>$bid_id);
         $data = array();
         $data['status'] = $status;
+        $statusNow = $this->bidModel->where($where)->getField('status');
+        if($statusNow == $status){
+            return true;
+        }
         if(!$this->bidModel->where($where)->data($data)->update()){
             $this->succInfo = tool::getSuccInfo(0,'设置失败');
             return false;
@@ -586,8 +590,8 @@ class bidOper extends \nainai\bid\bidBase
         $replyObj = new M($this->bidReplyTable);
         $replyData = $replyObj->where(array('bid_id'=>$bid_id,'reply_user_id'=>$user_id))->getObj();
         if(!empty($replyData)){
-            $this->succInfo = tool::getSuccInfo(0,'您已对该招标投过标，不能重复投标');
-            return false;
+            //$this->succInfo = tool::getSuccInfo(0,'您已对该招标投过标，不能重复投标');
+            return $replyData['id'];
         }
 
         $replyData = array(
@@ -733,7 +737,7 @@ class bidOper extends \nainai\bid\bidBase
         foreach($packageData as $key=>$item){
             if(isset($item['pack_id']) && in_array($item['pack_id'],$pack_ids)){
                 $replyPackData[$key]['pack_id'] = $item['pack_id'];//包件id
-                $replyPackData[$key]['reply_id'] = $item['reply_id'];//投标id
+                $replyPackData[$key]['reply_id'] = $reply_id;//投标id
                 $replyPackData[$key]['brand'] = $item['brand'];//品牌
                 $replyPackData[$key]['spec'] = $item['spec'];
                 $replyPackData[$key]['tech_need'] = $item['tech_need'];

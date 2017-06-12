@@ -48,8 +48,15 @@ class replyCertedState extends stateBase
 
      }
 
-     public function replyCertsVerify($status){
+    public function replySubmitCert()
+    {
 
+    }
+
+     public function replyCertsVerify($status)
+     {
+         $newStatus = $status==1 ? self::REPLY_CERT_VERIFYSUCC : self::REPLY_CERT_VERIFYFAIL;
+         return $this->bidObj->setReplyStatus($this->replyID,$newStatus);
      }
 
  public function replyCertAdd($reply_id,$cert)

@@ -17,6 +17,7 @@ abstract class handle extends \nainai\bid\state\stateBase
     public $operObj  = null;
     public $operUserId = 0;
     public $bidID = 0;
+    public $replyID = 0;
 
     public function __construct($user_id=0)
     {
@@ -44,6 +45,7 @@ abstract class handle extends \nainai\bid\state\stateBase
 
         }
         $this->bidID = $bid_id;
+        $this->replyID = $reply_id;
         if($this->stateObj){
             $this->stateObj->_init($bid_id,$reply_id,$this->operObj);
         }
@@ -178,12 +180,17 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function replyUploadCerts($reply_user_id,$certs)
     {
-        $this->stateObj->replyUploadCerts($reply_user_id,$certs);
+        return $this->stateObj->replyUploadCerts($reply_user_id,$certs);
+    }
+
+    public function replySubmitCert()
+    {
+        return $this->stateObj->replySubmitCert();
     }
 
     public function replyCertsVerify($status)
     {
-
+        return $this->stateObj->replyCertsVerify($status);
     }
 
     public function replyCertAdd($reply_id,$cert)
@@ -202,10 +209,13 @@ abstract class handle extends \nainai\bid\state\stateBase
     }
 
     public function replyPaydocFee($pay_type){
-
+        return $this->stateObj->replyPaydocFee($pay_type);
     }
 
-    public function replySubmitPackage($data){
+    public function replySubmitPackage($data,$upload){
+        if($this->checkReply()){
+            return $this->stateObj->replySubmitPackage($data,$upload);
+        }
 
     }
 
