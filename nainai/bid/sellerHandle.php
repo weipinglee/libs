@@ -35,4 +35,11 @@ class sellerHandle extends handle
         return $bidQuery->getBidDetail($id,$where);
 
     }
+
+    public function getUserReplyCerts($user_id,$bid_id)
+    {
+        $bidQuery = new bidQuery();
+        return $bidQuery->getUserReplyCerts($user_id,$bid_id);
+
+    }
 }

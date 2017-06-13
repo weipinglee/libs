@@ -17,9 +17,11 @@ abstract class stateBase extends \nainai\bid\bidBase
     public $bidObj = null;
     public $bidID = 0;//操作的招标id
     public $replyID = 0;
+    protected $errInfo ;
     public function __construct()
     {
         $this->bidObj = new bidOper();
+        $this->errInfo = tool::getSuccInfo(0,'该状态不允许此操作');
     }
 
 

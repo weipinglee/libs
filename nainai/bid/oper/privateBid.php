@@ -11,7 +11,7 @@
 namespace nainai\bid\oper;
 
 
-use nainai\state\bidOper;
+use nainai\bid\oper\bidOper;
 
 class privateBid extends bidOper
 {

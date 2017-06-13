@@ -346,6 +346,10 @@ class bidOper extends \nainai\bid\bidBase
         $data = array();
         $data['status'] = $status;
         $replyObj = new M($this->bidReplyTable);
+        $statusNow = $replyObj->where($where)->getField('status');
+        if($statusNow == $status){
+            return true;
+        }
         if(!$replyObj->where($where)->data($data)->update()){
             $this->succInfo = tool::getSuccInfo(0,'设置失败');
             return false;

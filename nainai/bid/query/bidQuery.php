@@ -85,7 +85,7 @@ class bidQuery extends bidBase
     {
         $query = new Query($this->bidTable .' as b');
         $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id left join '.$this->userTable.' as u on u.id = b.user_id';
-        $query->field = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
+        $query->fields = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
         $query->limit = 1;
         if(!empty($where)){
             $query->where = 'b.id = :id and '.$where[0];
@@ -102,12 +102,29 @@ class bidQuery extends bidBase
             $data['status_text'] = $this->getBidStatusText($data['status']);
             $data['pack_type_text'] = $this->getPackType($data['pack_type']);
             $data['open_way_text'] = $data['open_way'] == 1 ? '线上' : '线下';
+            $data['mode_text'] = $data['mode'] == 'gk' ? '公开招标' : '邀请招标';
             $data['eq'] = unserialize($data['eq']);
             $packageObj = new M($this->bidPackageTable);
             $data['package'] = $packageObj->where(array('bid_id'=>$id))->select();
         }
         return $data;
 
+
+    }
+
+    /**
+     *根据招标id和投标用户id获取资质数据
+     * @param $user_id int 投标用户id
+     * @param $bid_id int 招标id
+     */
+    public function getUserReplyCerts($user_id,$bid_id)
+    {
+        $Query = new Query($this->bidReplyTable.' as br');
+        $Query->join = 'left join '.$this->bidReplyCertTable.' as c on c.reply_id = br.id';
+        $Query->fields = 'c.*';
+        $Query->where = 'br.bid_id='.$bid_id.' and br.reply_user_id='.$user_id;
+        $certs = $Query->find();
+        return $certs;
 
     }
 

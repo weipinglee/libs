@@ -15,21 +15,21 @@ class verifySuccState extends stateBase
 {
     public function init($args)
     {
-
+        return $this->errInfo;
     }
 
     public function release($pay_type){
-
+        return $this->errInfo;
     }
 
     public function verify($state,$mess='')
     {
-
+        return $this->errInfo;
 
     }
 
     public function bidRerelease($data){
-
+        return $this->errInfo;
     }
 
     public function bidCancle()
@@ -55,41 +55,42 @@ class verifySuccState extends stateBase
         $reply_id = $this->bidObj->createNewBidreply($this->bidID,$reply_user_id);
         if($reply_id){
             $this->bidObj->addReplyCerts($reply_id,$certs);
+            $this->bidObj->setReplyStatus($reply_id,self::REPLY_CREATE);
         }
-        $this->bidObj->setStatus($this->bidID,self::REPLY_CREATE);
+
        return  $this->bidObj->commit($reply_id);
     }
 
     public function replySubmitCert()
     {
-        // TODO: Implement replySubmitCert() method.
+        return $this->errInfo;
     }
 
     public function replyCertsVerify($status){
-
+        return $this->errInfo;
     }
 
     public function replyCertAdd($reply_id,$cert)
     {
-
+        return $this->errInfo;
     }
 
     public function replyCertDel($cert_id){
-
+        return $this->errInfo;
     }
 
 
 
     public function replyDocUpload($upload){
-
+        return $this->errInfo;
     }
 
     public function replyPaydocFee($pay_type){
-
+        return $this->errInfo;
     }
 
     public function replySubmitPackage($data,$upload){
-
+        return $this->errInfo;
     }
 
     public function bidStop()
