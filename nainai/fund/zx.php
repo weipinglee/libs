@@ -89,7 +89,8 @@ class zx extends account{
         //TODO
     }
 
-     /**
+
+    /**
       * 获取资金流水表
       * @param int $user_id
       * @param int $where 查询条件 ‘begin'开始时间，’end'结束时间，'no'序列号

@@ -19,7 +19,7 @@ abstract class account{
      * »ñÈ¡¶³½á×Ê½ð½ð¶î
      * @param int $user_id ÓÃ»§id
      */
-    abstract protected function getFeeze($user_id);
+    abstract protected function getFreeze($user_id);
     /**
      * Èë½ð²Ù×÷
      * @param int $user_id ÓÃ»§id
