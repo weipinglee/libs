@@ -21,6 +21,8 @@ abstract class bidBase
     const BID_CANCLE = 4; //招标撤销
     const BID_CLOSE   = 5;//终止招标
     const BID_STOP   = 6;//截标
+    const BID_OVER   = 7;//评标结束
+    const BID_ABORT  = 8;//流标
 
 
     const REPLY_CREATE = 1;//报名成功

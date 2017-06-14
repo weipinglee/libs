@@ -43,6 +43,28 @@ class bidQuery extends bidBase
         return '未知';
     }
 
+    public function getReplyStatusText($status){
+        switch($status){
+            case  self::REPLY_CREATE : {
+                return '报名成功';
+            }
+            case self::REPLY_CERTED :
+                return '已上传资质文件';
+            case self::REPLY_CERT_VERIFYFAIL :
+                return '资质审核被驳回';
+            case self::REPLY_CERT_VERIFYSUCC :
+                return '资质审核通过';
+            case self::REPLY_DOC_UPLOADED :
+                return '已上传投标书';
+            case self::REPLY_DOC_PAYED:
+                return '已支付标书费用';
+            case self::REPLY_PACKAGE_SUBMIT:
+                return '报价完成，等待开标';
+
+        }
+        return '未知';
+    }
+
     private function getPackType($type){
         if($type==1)
             return '分包';
@@ -58,8 +80,9 @@ class bidQuery extends bidBase
     {
         $query = new searchQuery($this->bidTable .' as b');
         $query->join = ' left join '.$this->cateTable .' as pc on b.top_cate = pc.id left join '.$this->userTable.' as u on b.user_id = u.id';
-        $query->field = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
+        $query->fields = 'b.* , pc.name as cate_name,u.username,u.mobile,u.true_name';
         $query->page = $page;
+        $query->order = 'b.id desc';
         if(!empty($where)){
             $query->where = $where[0];
             if(isset($where[1])){
@@ -72,6 +95,7 @@ class bidQuery extends bidBase
                 $res['list'][$key]['status_text'] = $this->getBidStatusText($val['status']);
                 $res['list'][$key]['pack_type_text'] = $this->getPackType($val['pack_type']);
                 $res['list'][$key]['open_way_text'] =  $res['list'][$key]['open_way']==1 ? '线上' : '线下';
+                $res['list'][$key]['mode_text'] = $res['list'][$key]['mode'] == 'gk' ? '公开招标' : '邀请招标';
             }
         }
 
@@ -81,6 +105,12 @@ class bidQuery extends bidBase
     }
 
 
+    /**
+     * 获取招标详情
+     * @param $id int 招标id
+     * @param array $where 查询条件
+     * @return array
+     */
     public function getBidDetail($id,$where=array())
     {
         $query = new Query($this->bidTable .' as b');
@@ -121,11 +151,55 @@ class bidQuery extends bidBase
     {
         $Query = new Query($this->bidReplyTable.' as br');
         $Query->join = 'left join '.$this->bidReplyCertTable.' as c on c.reply_id = br.id';
-        $Query->fields = 'c.*';
+        $Query->fields = 'c.*,br.status';
         $Query->where = 'br.bid_id='.$bid_id.' and br.reply_user_id='.$user_id;
         $certs = $Query->find();
         return $certs;
 
+    }
+
+
+    /**
+     * 获取投标列表
+     * @param array $where 查询条件
+     * @return array
+     */
+    public function getReplyList($page=1,$where=array()){
+        $Query = new searchQuery($this->bidReplyTable.' as br ');
+        $Query->join = 'left join '.$this->bidTable .' as b on b.id = br.bid_id left join '.$this->userTable.' as u on br.reply_user_id = u.id';
+        $Query->fields = ' br.*,u.true_name,b.no,b.mode,b.pro_name,b.pro_address,b.begin_time,b.open_time,b.end_time,b.pack_type,b.doc_begin,b.doc_price,b.supply_bail ';
+        $Query->page = $page;
+        $Query->order = 'br.id desc';
+        if(!empty($where)){
+            $Query->where = $where[0];
+            $Query->bind = $where[1];
+        }
+
+        $res = $Query->find();
+        if(!empty($res['list'])){
+            foreach($res['list'] as $key=>$val){
+                $res['list'][$key]['status_text'] = $this->getReplyStatusText($val['status']);
+                $res['list'][$key]['pack_type_text'] = $this->getPackType($val['pack_type']);
+                $res['list'][$key]['mode_text'] = $res['list'][$key]['mode'] == 'gk' ? '公开招标' : '邀请招标';
+            }
+        }
+        return $res;
+    }
+
+    public function getReplyDetail($id){
+        $Query = new Query($this->bidReplyTable.' as br ');
+        $Query->join = 'left join '.$this->bidTable .' as b on b.id = br.bid_id ';
+        $Query->fields = ' br.*,b.no,b.mode,b.pro_name,b.pro_address,b.begin_time,b.open_time,b.end_time,b.pack_type,b.doc_begin,b.doc_price,b.supply_bail ';
+        $Query->where = 'br.id=:id';
+        $Query->bind = array('id'=>$id);
+
+
+        $res = $Query->getObj();
+        $res['status_text'] = $this->getReplyStatusText($res['status']);
+        $res['pack_type_text'] = $this->getPackType($res['pack_type']);
+        $res['mode_text'] = $res['mode'] == 'gk' ? '公开招标' : '邀请招标';
+
+        return $res;
     }
 
 

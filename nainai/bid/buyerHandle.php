@@ -41,4 +41,15 @@ class buyerHandle extends handle
         return $bidQuery->getBidDetail($id,$where);
 
     }
+
+
+    public function getReplyList($page=1){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'b.user_id =:user_id',
+            array('user_id'=>$this->operUserId)
+
+        );
+        return $bidQuery->getReplyList($page,$where);
+    }
 }

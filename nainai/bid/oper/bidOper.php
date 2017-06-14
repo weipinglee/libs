@@ -208,11 +208,12 @@ class bidOper extends \nainai\bid\bidBase
                 $package[$key]['tech_need'] = $val['tech_need'];
                 $package[$key]['unit'] = $val['unit'];
                 $package[$key]['num'] = $val['num'];
-                $package[$key]['tran_date'] = $val['tran_date'];
+                $package[$key]['tran_days'] = $val['tran_days'];
                 $package[$key]['bid_id'] = $bid_id;
             }
+
             $packageObj = new M($this->bidPackageTable);
-            if(!$new_id = $packageObj->adds($packageData)){
+            if(!$new_id = $packageObj->data($package)->adds()){
                 $this->succInfo = tool::getSuccInfo(0,'操作失败');
             }
         }
@@ -273,10 +274,12 @@ class bidOper extends \nainai\bid\bidBase
     {
         $data = $this->bidModel->where(array('id'=>$bid_id))->fields('user_id,bail')->getObj();
         if(!empty($data) && $data['user_id'] && $data['bail']>0){
-            $active = $pay_type->getActive();
+            $fund = new \nainai\fund();
+            $fundObj = $fund->createFund($pay_type);
+            $active = $fundObj->getActive($data['user_id']);
             if($active<$data['bail'])
                 $this->succInfo = tool::getSuccInfo(0,'账户可用余额不足');
-            $res = $pay_type->freeze($data['user_id'],$data['bail'],'招投标支付保证金');
+            $res = $fundObj->freeze($data['user_id'],$data['bail'],'招投标支付保证金');
             if(true!==$res){//支付成功
                 $this->succInfo =  tool::getSuccInfo(0,'支付保证金失败');
             }
