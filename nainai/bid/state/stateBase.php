@@ -73,6 +73,10 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function bidStop();
 
+    public function pingbiao($reply_pack_id,$point,$status){}//评标
+
+    public function pbClose($status){}
+
 
 
 

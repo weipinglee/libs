@@ -38,6 +38,7 @@ abstract class handle extends \nainai\bid\state\stateBase
             $reply_id = $id;
             $replyObj = new M($this->bidReplyTable);
             $replyData = $replyObj->where(array('id'=>$id))->fields('bid_id,status')->getObj();
+
             if(!empty($replyData)){
                 $this->getStateObj($replyData['bid_id'],$id,$replyData);
                 $bid_id = $replyData['bid_id'];
@@ -97,6 +98,8 @@ abstract class handle extends \nainai\bid\state\stateBase
                     case self::BID_RELEASE_VERIFYSUCC:
                         $this->stateObj = new \nainai\bid\state\verifySuccState();
                         break;
+                    case self::BID_STOP :
+                        $this->stateObj = new \nainai\bid\state\bidStopState();
                     case self::BID_CANCLE :
                         $this->stateObj = new \nainai\bid\state\bidCancleState();
                         break;
@@ -234,6 +237,18 @@ abstract class handle extends \nainai\bid\state\stateBase
         if($this->check()){
             return $this->stateObj->bidStop();
         }
+    }
+
+    public function pingbiao($reply_pack_id,$point,$status){
+        return $this->stateObj->pingbiao($reply_pack_id,$point,$status);
+    }
+
+    public function pbClose($status)
+    {
+        if($this->check()){
+            $this->stateObj->pbClose($status);
+        }
+
     }
 
 }

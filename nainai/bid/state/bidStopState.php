@@ -85,4 +85,18 @@ class bidStopState extends stateBase
           return $this->errInfo;
      }
 
+     public function pingbiao($reply_pack_id,$point,$status){
+          $this->bidObj->beginTrans();
+          $this->bidObj->pingbiao($reply_pack_id,$point,$status);
+          return $this->bidObj->commit();
+     }
+
+     public function pbClose($status)
+     {
+          $this->bidObj->beginTrans();
+          $new_status = $status==1 ? self::BID_OVER : self::BID_ABORT;
+          $this->bidObj->setStatus($this->bidID,$new_status);
+          return $this->bidObj->commit();
+     }
+
 }

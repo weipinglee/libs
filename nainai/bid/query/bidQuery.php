@@ -14,6 +14,7 @@ use \Library\searchQuery;
 use \Library\Query;
 use nainai\bid\bidBase;
 use \Library\M;
+use \Library\tool;
 
 class bidQuery extends bidBase
 {
@@ -136,6 +137,7 @@ class bidQuery extends bidBase
             $data['eq'] = unserialize($data['eq']);
             $packageObj = new M($this->bidPackageTable);
             $data['package'] = $packageObj->where(array('bid_id'=>$id))->select();
+            $data['doc'] = \Library\thumb::getOrigImg($data['doc']);
         }
         return $data;
 
@@ -169,6 +171,7 @@ class bidQuery extends bidBase
         $Query->join = 'left join '.$this->bidTable .' as b on b.id = br.bid_id left join '.$this->userTable.' as u on br.reply_user_id = u.id';
         $Query->fields = ' br.*,u.true_name,b.no,b.mode,b.pro_name,b.pro_address,b.begin_time,b.open_time,b.end_time,b.pack_type,b.doc_begin,b.doc_price,b.supply_bail ';
         $Query->page = $page;
+        $Query->pagesize = 10000;//获取所有，一般不会超10000
         $Query->order = 'br.id desc';
         if(!empty($where)){
             $Query->where = $where[0];
@@ -189,17 +192,63 @@ class bidQuery extends bidBase
     public function getReplyDetail($id){
         $Query = new Query($this->bidReplyTable.' as br ');
         $Query->join = 'left join '.$this->bidTable .' as b on b.id = br.bid_id ';
-        $Query->fields = ' br.*,b.no,b.mode,b.pro_name,b.pro_address,b.begin_time,b.open_time,b.end_time,b.pack_type,b.doc_begin,b.doc_price,b.supply_bail ';
+        $Query->fields = ' br.*,b.status as bid_status,b.no,b.mode,b.pro_name,b.pro_address,b.begin_time,b.open_time,b.end_time,b.pack_type,b.doc_begin,b.doc_price,b.supply_bail ';
         $Query->where = 'br.id=:id';
         $Query->bind = array('id'=>$id);
 
 
         $res = $Query->getObj();
-        $res['status_text'] = $this->getReplyStatusText($res['status']);
-        $res['pack_type_text'] = $this->getPackType($res['pack_type']);
-        $res['mode_text'] = $res['mode'] == 'gk' ? '公开招标' : '邀请招标';
+        if(!empty($res)){
+            $res['status_text'] = $this->getReplyStatusText($res['status']);
+            $res['pack_type_text'] = $this->getPackType($res['pack_type']);
+            $res['mode_text'] = $res['mode'] == 'gk' ? '公开招标' : '邀请招标';
+            $res['bid_doc_url'] = \Library\thumb::getOrigImg($res['bid_doc']);
+            //获取投标包件信息
+            $packQuery = new Query($this->bidReplyPackTable .' as rp');
+            $packQuery->join = ' left join '.$this->bidPackageTable.' as bp on rp.pack_id=bp.id';
+            $packQuery->where = 'rp.reply_id = '.$res['id'];
+            $packQuery->fields = 'rp.*,bp.pack_no,bp.product_name,bp.tech_need,bp.spec,bp.unit,bp.num';
+            $res['reply_package'] = $packQuery->find();
 
+        }
         return $res;
+    }
+
+    /**
+     * 获取投标包件列表
+     * @param array $where 查询条件
+     */
+    public function getReplyPackList($where=array())
+    {
+        $packObj = new Query($this->bidReplyPackTable .' as rp');
+        $packObj->join = 'left join '.$this->bidReplyTable.' as br on br.id=rp.reply_id
+                          left join '.$this->userTable.' as u on br.reply_user_id = u.id
+                          left join '.$this->bidPackageTable.' as bp on rp.pack_id=bp.id';
+        if(!empty($where)){
+            $packObj->where = $where[0];
+            if(isset($where[1]))
+                $packObj->bind = $where[1];
+        }
+        $packObj->fields = 'rp.*,bp.product_name,bp.unit,bp.num,br.create_time,br.bid_doc,u.true_name';
+        $data = $packObj->find();
+        foreach($data as $key=>$v){
+            $data[$key]['bid_doc_url'] = \Library\thumb::getOrigImg($v['bid_doc']);
+        }
+        return $data;
+
+
+
+
+    }
+
+    //获取中标会员信息
+    public function getZbUser($where){
+        $packObj = new Query($this->bidPackageTable .' as bp');
+        $packObj->join = 'left join '.$this->userTable.' as u on bp.win_user_id=u.id';
+        $packObj->fields = 'bp.*,u.username,u.true_name';
+        $packObj->where = isset($where[0]) ? $where[0] : 1;
+        $packObj->bind = isset($where[1]) ? $where[1] : array();
+        return $packObj->find();
     }
 
 

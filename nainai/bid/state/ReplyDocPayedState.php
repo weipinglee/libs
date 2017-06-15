@@ -71,10 +71,10 @@ class replyDocPayedState extends stateBase
      }
      public function replySubmitPackage($data,$upload){
         $this->bidObj->beginTrans();
-        if($this->bidObj->addReplyDoc($this->replyID,$upload)){
-         $this->bidObj->replyPackage($this->replyID,$data);
-         $this->bidObj->setReplyStatus($this->replyID,self::REPLY_PACKAGE_SUBMIT);
-        }
+        $this->bidObj->addReplyDoc($this->replyID,$upload);
+        $this->bidObj->replyPackage($this->replyID,$data);
+        $this->bidObj->setReplyStatus($this->replyID,self::REPLY_PACKAGE_SUBMIT);
+
         $res = $this->bidObj->commit();
       if($res['success']==1){
        $res['info'] = '投标成功，等待开标';

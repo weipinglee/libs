@@ -57,4 +57,13 @@ class sellerHandle extends handle
         $bidQuery = new bidQuery();
         return $bidQuery->getReplyDetail($id);
     }
+
+    public function getZbInfo($bid_id,$user_id){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'bp.bid_id=:bid_id and bp.win_user_id=:user_id',
+            array('bid_id'=>$bid_id,'user_id'=>$user_id)
+        );
+        return $bidQuery->getZbUser($where);
+    }
 }

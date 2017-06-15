@@ -744,16 +744,15 @@ class bidOper extends \nainai\bid\bidBase
         foreach($packageData as $key=>$item){
             if(isset($item['pack_id']) && in_array($item['pack_id'],$pack_ids)){
                 $replyPackData[$key]['pack_id'] = $item['pack_id'];//包件id
+                $replyPackData[$key]['pack_no'] = $item['pack_no'];//包件id
                 $replyPackData[$key]['reply_id'] = $reply_id;//投标id
                 $replyPackData[$key]['brand'] = $item['brand'];//品牌
-                $replyPackData[$key]['spec'] = $item['spec'];
-                $replyPackData[$key]['tech_need'] = $item['tech_need'];
-                $replyPackData[$key]['unit'] = $item['unit'];
-                $replyPackData[$key]['num'] = $item['num'];
                 $replyPackData[$key]['unit_price'] = $item['unit_price'];
                 $replyPackData[$key]['freight_fee'] = $item['freight_fee'];
                 $replyPackData[$key]['tran_days'] = $item['tran_days'];
                 $replyPackData[$key]['note'] = $item['note'];
+                $replyPackData[$key]['deliver'] = $item['deliver'];
+                $replyPackData[$key]['quanlity'] = $item['quanlity'];
             }
 
             unset($pack_ids_rev[$item['pack_id']]);
@@ -778,6 +777,25 @@ class bidOper extends \nainai\bid\bidBase
 
 
 
+    }
+
+
+    public function pingbiao($reply_pack_id,$point,$status)
+    {
+         $M = new M($this->bidReplyPackTable);
+            $M->data($point)->where(array('id'=>$reply_pack_id))->update();
+        $replyPackdata = $M->where(array('id'=>$reply_pack_id))->field('reply_id,pack_id')->getObj();
+        if($replyPackdata){
+            $M = new M($this->bidReplyTable);
+            $reply_user_id =  $M->where(array('id'=>$replyPackdata['reply_id']))->getField('reply_user_id');
+            $M = new M($this->bidPackageTable);
+            if($status==1)
+                $data = array('win_user_id'=>$reply_user_id);
+            else $data = -1;
+            $M->where(array('id'=>$replyPackdata['pack_id']))->data($data)->update();
+            return true;
+        }
+        $this->succInfo = tool::getSuccInfo(0,'操作失败');
     }
 
 

@@ -43,13 +43,42 @@ class buyerHandle extends handle
     }
 
 
-    public function getReplyList($page=1){
+    public function getReplyList($bid_id,$page=1){
         $bidQuery = new bidQuery();
         $where = array(
-            'b.user_id =:user_id',
-            array('user_id'=>$this->operUserId)
+            'b.user_id =:user_id and br.bid_id=:bid_id',
+            array('user_id'=>$this->operUserId,'bid_id'=>$bid_id)
 
         );
         return $bidQuery->getReplyList($page,$where);
     }
+
+    public function getReplyPackList($bid_id){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'br.bid_id =:bid_id  ',
+            array('bid_id'=>$bid_id)
+
+        );
+        return $bidQuery->getReplyPackList($where);
+    }
+
+    public function getPackCompareList($pack_ids){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'rp.id in ('.$pack_ids.') '
+
+        );
+        return $bidQuery->getReplyPackList($where);
+    }
+
+    public function getZbUser($bid_id){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'bp.bid_id=:bid_id',
+            array('bid_id'=>$bid_id)
+        );
+        return $bidQuery->getZbUser($where);
+    }
+
 }
