@@ -53,11 +53,22 @@ class sellerHandle extends handle
         return $bidQuery->getReplyList($page,$where);
     }
 
+    /**
+     * 获取投标详情
+     * @param $id
+     * @return array
+     */
     public function getReplyDetail($id){
         $bidQuery = new bidQuery();
         return $bidQuery->getReplyDetail($id);
     }
 
+    /**
+     * 获取某个用户对某个投标的中标详情
+     * @param $bid_id
+     * @param $user_id
+     * @return array
+     */
     public function getZbInfo($bid_id,$user_id){
         $bidQuery = new bidQuery();
         $where = array(
@@ -66,4 +77,18 @@ class sellerHandle extends handle
         );
         return $bidQuery->getZbUser($where);
     }
+
+    /**
+     * 获取审核成功的招标列表
+     * @param $page
+     */
+    public function getBidList($page){
+        $bidQuery = new bidQuery();
+        $where = array(
+            'b.status='.self::BID_RELEASE_VERIFYSUCC
+            );
+        return $bidQuery->getBidList($page,$where);
+    }
+
+
 }
