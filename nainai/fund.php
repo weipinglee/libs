@@ -10,18 +10,41 @@ namespace nainai;
 class fund{
 
     const FUND_AGENT  =  1; //代理账户
+    const FUND_ZX     = 2;  //中信账户
+    const FUND_ZX_EN  = 'zx';
 
+    public static function getFundName($type){
+        switch($type){
+
+            case self::FUND_ZX :
+            case self::FUND_ZX_EN :
+                return '中信账户';
+                break;
+            case self::FUND_AGENT :
+            default : {
+                return '市场代理账户';
+            }
+                break;
+        }
+    }
 
     public static function createFund($id){
 
         switch($id){
 
-
+            case self::FUND_ZX :
+            case self::FUND_ZX_EN :
+                return new \nainai\fund\zx();
+            break;
             case self::FUND_AGENT :
             default : {
                  return new \nainai\fund\agentAccount();
              }
             break;
         }
+    }
+
+    public function get_account($type){
+        return call_user_func_array(array($this,'createFund'),array($type));
     }
 }

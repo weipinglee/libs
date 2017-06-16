@@ -448,7 +448,7 @@ class M{
     public function select()
     {
     	$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
-    	
+
     	if ($this->cache) {
 			$cacheKey = md5($sql);
 			$result = $this->cache->get($cacheKey);
@@ -617,17 +617,27 @@ class M{
 	}
 
 	/**
-	 * ???????
-	 * @param array $rules ???????
-	 * @param int $type 1 : ???? 2??????
-	 * @param array $data ??????????
-	 * @return bool ?????? ???????false???????$this->error???
+	 * 验证数据
+	 * @param array $rules 验证规则
+	 * @param int $type 1 :  插入，2：更新
+	 * @param array $data 要验证的数据
+	 * @return bool
 	 */
 	public function validate($rules,$data=array(),$type=''){
 		$checkData = empty($data) ? $this->tableData : $data;
 		if(!is_object(self::$check))
 			self::$check = new check();
-		return self::$check->validate($checkData,$rules,$this->error,$type,$this->pk);
+		if(is_array(current($data))){//如果验证的数据是二维数组，每个子数组都要验证
+			foreach($data as $val){
+				$res = self::$check->validate($val,$rules,$this->error,$type,$this->pk);
+				if(!$res)
+					return false;
+			}
+			return true;
+
+		}
+		else
+			return self::$check->validate($checkData,$rules,$this->error,$type,$this->pk);
 	}
 
 	/**

@@ -34,14 +34,19 @@ class message{
         'common',
 		'credentials',
 		'repcredentials',
-		'delivery_check'
+		'delivery_check',
+		'bidCancle'
 	);
 	/**
 	 * [__construct 构造方法]
 	 * @param     [type]      $user_id 用户id
 	 */
-	public function __construct($user_id){
+	public function __construct($user_id=0){
 		$this->user_id=$user_id;
+	}
+
+	public function setUserId($user_id){
+		$this->user_id = $user_id;
 	}
 	private $messCode=array(
 		'sendOk'=>array('code'=>1,'info'=>'发送成功'),
@@ -50,8 +55,8 @@ class message{
 		);
 	/**
 	 * [send  发送消息]
-	 * @param   $type    通知类型
-	 * @param   $param 订单id,
+	 * @param   $type  string  通知类型
+	 * @param   $param mixed 订单id,
 	 * @param $short int 是否同步发送短信
 	 * @return    [type]             [description]
 	 */
@@ -344,6 +349,20 @@ class message{
 			);
 
 	}
+
+	/**
+	 * 招标撤回通知投标方
+	 * @param $bid_no
+	 * @return array
+	 */
+	public function bidCancle($bid_no){
+		$title = '招标方撤回招标';
+		$message = '招标号为'.$bid_no.'的招标已被招标方撤回，保证金和标书费用已退还，请知悉';
+		return array(
+			'title'=> $title,
+				'content'=>$message
+		);
+	}
 	/**
 	 * [isReadMessage 获取已读消息]
 	 */
@@ -421,6 +440,8 @@ class message{
 		return $messObj->where($where)->delete();
 
 	}
+
+
 }
 
 ?>
