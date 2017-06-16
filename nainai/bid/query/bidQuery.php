@@ -251,5 +251,17 @@ class bidQuery extends bidBase
         return $packObj->find();
     }
 
+    public function getBidNotice($where)
+    {
+        $noticeObj = new Query($this->bidNoticeTable.' as n');
+        $noticeObj->join = 'left join '.$this->bidTable .' as b on b.id=n.bid_id';
+        $noticeObj->fields = 'n.*';
+        if(!empty($where)){
+            $noticeObj->where = $where[0];
+            $noticeObj->bind = isset($where[1])? $where[1] : array();
+        }
+        return $noticeObj->find();
+    }
+
 
 }

@@ -42,5 +42,6 @@ abstract class bidBase
     protected $bidReplyTable = 'bid_reply';
     protected $bidReplyCertTable = 'bid_reply_cert';
     protected $bidReplyPackTable = 'bid_reply_package';
+    protected $bidNoticeTable = 'bid_notice';
 
 }

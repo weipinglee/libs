@@ -77,6 +77,9 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     public function pbClose($status){}
 
+    public function addBidNotice($title,$content){
+
+    }
 
 
 

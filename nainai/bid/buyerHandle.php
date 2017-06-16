@@ -11,6 +11,14 @@ namespace nainai\bid;
 use \nainai\bid\query\bidQuery;
 class buyerHandle extends handle
 {
+    protected $queryObj = null;
+
+    public function __construct($user_id)
+    {
+        parent::__construct($user_id);
+        $this->queryObj = new bidQuery();
+    }
+
     public function check(){
         $bidObj = new \Library\M($this->bidTable);
         $user_id = $bidObj->where(array('id'=>$this->bidID))->getField('user_id');
@@ -79,6 +87,14 @@ class buyerHandle extends handle
             array('bid_id'=>$bid_id)
         );
         return $bidQuery->getZbUser($where);
+    }
+
+    public function getBidNotice($id){
+        $where = array(
+            'n.bid_id=:bid_id and b.user_id=:user_id',
+            array('bid_id'=>$id,'user_id'=>$this->operUserId)
+        );
+        return $this->queryObj->getBidNotice($where);
     }
 
 }

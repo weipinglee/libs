@@ -103,6 +103,7 @@ class bidOper extends \nainai\bid\bidBase
             'agent_email'  ,//代理邮箱
             'agent_phone' ,//代理电话
             'agent_tax'  ,//代理传真
+            'yq_user',//要求用户id
         );
         $newData = array();
         foreach($bidData as $key=>$val){
@@ -274,6 +275,7 @@ class bidOper extends \nainai\bid\bidBase
     {
         $data = $this->bidModel->where(array('id'=>$bid_id))->fields('user_id,bail')->getObj();
         if(!empty($data) && $data['user_id'] && $data['bail']>0){
+            $this->bidModel->data(array('bail_pay_way'=>$pay_type))->where(array('id'=>$bid_id))->update();
             $fund = new \nainai\fund();
             $fundObj = $fund->createFund($pay_type);
             $active = $fundObj->getActive($data['user_id']);
@@ -366,7 +368,7 @@ class bidOper extends \nainai\bid\bidBase
      */
     protected function getBidDeposit()
     {
-        return 0;
+        return 5;
     }
 
     /**
@@ -380,7 +382,7 @@ class bidOper extends \nainai\bid\bidBase
 
     public function cancleBid($bid_id)
     {
-        if(is_int($bid_id) && $bid_id>0){
+        if( $bid_id>0){
             $this->succInfo = tool::getSuccInfo(0,'操作错误');
             return false;
         }
@@ -503,6 +505,22 @@ class bidOper extends \nainai\bid\bidBase
         }
         return false;
 
+    }
+
+    /**
+     * @param $bid_id
+     * @param $title
+     * @param $content
+     */
+    public function addBidNotice($bid_id,$title,$content)
+    {
+        $noticeObj = new M($this->bidNoticeTable);
+        $data = array('title'=>$title,'content'=>$content);
+        if(!$noticeObj->where(array('id'=>$bid_id))->data($data)->add()){
+            $this->succInfo = tool::getSuccInfo(0,'添加失败');
+            return false;
+        }
+        return true;
     }
 
 

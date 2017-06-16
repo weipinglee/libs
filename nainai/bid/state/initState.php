@@ -87,5 +87,10 @@ class initState extends stateBase
         return $this->errInfo;
     }
 
+    public function addBidNotice($title,$content){
+        $this->bidObj->addBidNotice($this->bidID,$title,$content);
+        return $this->bidObj->getSuccInfo();
+    }
+
 
 }
