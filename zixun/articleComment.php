@@ -200,7 +200,7 @@ class articleComment
      * @return array
      */
     public function addFavorite($comment_id,$user_id){
-        if($this->getComment($comment_id) && is_int($user_id)){
+        if($this->getComment($comment_id)){
             $favObj = new M($this->favorite_table);
             //如果已经评论过
             if($favObj->where(array('comment_id'=>$comment_id,'user_id'=>$user_id))->getField('id')){
