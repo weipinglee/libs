@@ -41,7 +41,7 @@ class articleComment
     protected function getUserInfo($user_id)
     {
         $userObj = new M($this->userinfo_table);
-        if(is_int($user_id) && $user_id){
+        if( $user_id){
             $userData = $userObj->where(array('user_id'=>$user_id))->getObj();
             return $userData;
         }

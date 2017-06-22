@@ -816,6 +816,16 @@ class bidOper extends \nainai\bid\bidBase
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
     }
 
+    public function addBidComment($bid_id,$content,$user_id){
+        $commentObj = new \nainai\bid\comment\bidcomment();
+        if(!$content){
+            $this->succInfo = tool::getSuccInfo(0,'请输入评论内容');
+            return false;
+        }
+        
+        return $commentObj->addComment($bid_id,$content,$user_id);
+    }
+
 
 
 

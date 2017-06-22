@@ -81,6 +81,8 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     }
 
+    abstract public function bidComment($content,$user_id);
+
 
 
 

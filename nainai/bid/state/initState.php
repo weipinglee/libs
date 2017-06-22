@@ -92,5 +92,10 @@ class initState extends stateBase
         return $this->bidObj->getSuccInfo();
     }
 
+    public function bidComment($content,$user_id)
+    {
+        return $this->errInfo;
+    }
+
 
 }

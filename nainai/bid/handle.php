@@ -258,4 +258,9 @@ abstract class handle extends \nainai\bid\state\stateBase
         }
     }
 
+    public function bidComment($content, $user_id)
+    {
+        return $this->stateObj->bidComment($content, $user_id);
+    }
+
 }

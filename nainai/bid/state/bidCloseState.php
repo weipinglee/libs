@@ -80,4 +80,11 @@ class bidCloseState extends stateBase
   return $this->errInfo;
  }
 
+
+
+ public function bidComment($content,$user_id)
+ {
+  return $this->errInfo;
+ }
+
 }

@@ -88,4 +88,8 @@ namespace nainai\bid\state;
          return $this->errInfo;
      }
 
+     public function bidComment($content,$user_id)
+     {
+         return $this->errInfo;
+     }
  }

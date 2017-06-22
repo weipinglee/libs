@@ -99,4 +99,9 @@ class bidStopState extends stateBase
           return $this->bidObj->commit();
      }
 
+     public function bidComment($content,$user_id)
+     {
+          return $this->errInfo;
+     }
+
 }

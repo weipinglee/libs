@@ -104,4 +104,11 @@ class verifySuccState extends stateBase
         $this->bidObj->addBidNotice($this->bidID,$title,$content);
         return $this->bidObj->getSuccInfo();
     }
+
+    public function bidComment($content,$user_id)
+    {
+       $this->bidObj->beginTrans();
+        $this->bidObj->addBidComment($this->bidID,$content,$user_id);
+        return $this->bidObj->commit();
+    }
 }
