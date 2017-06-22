@@ -6,11 +6,22 @@
  * Time: 21:36
  */
 namespace Library;
+require 'PHPExcel/PHPExcel.php';
+require 'PHPExcel/PHPExcel/Reader/Excel2007.php';
 class excel{
 
     private $dir = 'upload/excel';
 
-    public function getExcelData($file=''){
+    /**
+     *
+     * @param string $file 文件地址，如果为空获取上传的文件
+     * @param int $beginRow 开始的行数
+     * @param int $endRow 结束行数，小于开始行则获取不到
+     * @param array $fields 各个栏目对应的字段，如果没有对应，显示栏目字母，如：A栏目对应username
+     * @return array|string
+     * @throws \PHPExcel_Reader_Exception
+     */
+    public function getExcelData($file='',$beginRow=1,$endRow=0,$fields=array()){
 
         if(!$file){
             //获取上传文件
@@ -20,36 +31,37 @@ class excel{
             }
         }
 
-        require 'PHPExcel/PHPExcel.php';
-        require 'PHPExcel/PHPExcel/Reader/Excel2007.php';
-
         $PHPExcel = new \PHPExcel();
         $PHPReader=new \PHPExcel_Reader_Excel2007();
         $PHPExcel=$PHPReader->load($file);
 
         $currentSheet=$PHPExcel->getActiveSheet();
 
-
-        echo '<table>';
-        foreach ($currentSheet->getRowIterator() as $row) {
-            echo '<tr>' . "\n";
-
+        $data = array();
+        foreach ($currentSheet->getRowIterator() as $key=>$row) {
+            if($key<$beginRow)
+                continue;
+            if($endRow>0 && $key>$endRow)
+                break;
             $cellIterator = $row->getCellIterator();
             $cellIterator->setIterateOnlyExistingCells(false); // This loops all cells,
             // even if it is not set.
             // By default, only cells
             // that are set will be
             // iterated.
-            foreach ($cellIterator as $cell) {
-                echo '<td>' . $cell->getValue() . '</td>' . "\n";
+            foreach ($cellIterator as $k=>$cell) {
+                if(isset($fields[$k]) && $fields[$k]){
+                    $data[$key][$fields[$k]] = $cell->getValue();
+                }
+                else{
+                    $data[$key][$k] = $cell->getValue();
+                }
+
             }
 
-            echo '</tr>' . "\n";
         }
-        echo '</table>';
 
-
-       // return $arr;
+        return $data;
     }
 
     /**

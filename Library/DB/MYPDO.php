@@ -143,7 +143,8 @@ class MYPDO {
      * @return [type] [description]
      */
     public function lastInsertId(){
-        self::$wdb->lastInsertId();
+        $this->createDB();
+        return self::$wdb->lastInsertId();
     }
 
     //开启事物
