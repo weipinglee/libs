@@ -15,6 +15,7 @@ use \Library\Query;
 use nainai\bid\bidBase;
 use \Library\M;
 use \Library\tool;
+use \Library\thumb;
 
 class bidQuery extends bidBase
 {
@@ -158,6 +159,21 @@ class bidQuery extends bidBase
         $certs = $Query->find();
         return $certs;
 
+    }
+
+    public function getCertsList($where=array()){
+        $Query = new Query($this->bidReplyCertTable.' as c');
+        $Query->join = 'left join '.$this->bidReplyTable.' as br on c.reply_id = br.id';
+        $Query->fields = 'c.*,br.status';
+        if(!empty($where)){
+            $Query->where = $where[0];
+            $Query->bind = isset($where[1]) ? $where[1] : array();
+        }
+        $certs = $Query->find();
+        foreach($certs as $key=>$val){
+            $certs[$key]['cert_pic'] = thumb::getOrigImg($val['cert_pic']);
+        }
+        return $certs;
     }
 
 

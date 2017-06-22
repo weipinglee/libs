@@ -97,4 +97,15 @@ class buyerHandle extends handle
         return $this->queryObj->getBidNotice($where);
     }
 
+    /**
+     *
+     * @param $reply_id int
+     * @return array
+     */
+    public function getReplyCerts($reply_id)
+    {
+        $where = array('c.reply_id=:reply_id',array('reply_id'=>$reply_id));
+        return $this->queryObj->getCertsList($where);
+    }
+
 }
