@@ -12,6 +12,7 @@ namespace zixun;
 use \Library\M;
 use \Library\tool;
 use \Library\Query;
+use \Library\time;
 
 class articleComment
 {
@@ -20,7 +21,7 @@ class articleComment
 
     protected $userinfo_table = 'user_info';
 
-    protected $article_table = 'artile';
+    protected $article_table = 'article';
 
     protected $favorite_table = 'article_comment_favorite';
 
@@ -80,6 +81,8 @@ class articleComment
             $data = array(
                 'article_id'=> $article_id,
                 'content' => $text,
+				'user_id' => $user_id,
+				'creat_time' => time::getDateTime(),
             );
             if(!empty($userData)){
                 $data['curr_nick'] = $userData['nick'];
@@ -197,7 +200,7 @@ class articleComment
      * @return array
      */
     public function addFavorite($comment_id,$user_id){
-        if($this->getComment($comment_id) && is_int($user_id)){
+        if($this->getComment($comment_id)){
             $favObj = new M($this->favorite_table);
             //如果已经评论过
             if($favObj->where(array('comment_id'=>$comment_id,'user_id'=>$user_id))->getField('id')){
