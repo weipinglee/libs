@@ -82,11 +82,19 @@ class sellerHandle extends handle
      * 获取审核成功的招标列表
      * @param $page
      */
-    public function getBidList($page){
+    public function getBidList($page,$where=array()){
+
         $bidQuery = new bidQuery();
-        $where = array(
-            'b.status='.self::BID_RELEASE_VERIFYSUCC
+        if(empty($where)){
+            $where = array(
+                'b.status='.self::BID_RELEASE_VERIFYSUCC
             );
+        }
+        else{
+            $where[0] = $where[0].' and b.status='.self::BID_RELEASE_VERIFYSUCC;
+
+        }
+
         return $bidQuery->getBidList($page,$where);
     }
 
