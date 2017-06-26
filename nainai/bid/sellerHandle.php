@@ -12,7 +12,7 @@ use \nainai\bid\query\bidQuery;
 class sellerHandle extends handle
 {
     public function check(){
-
+        return false;
     }
 
     public function checkReply()

@@ -92,4 +92,7 @@ namespace nainai\bid\state;
      {
          return $this->errInfo;
      }
+     public function rebackReplyBail($bid_id){
+         return $this->errInfo;
+     }
  }

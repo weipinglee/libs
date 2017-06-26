@@ -11,7 +11,7 @@
 namespace nainai\bid\state;
 
 
-class bidCancleState extends stateBase
+class bidOverState extends stateBase
 {
     public function init($args)
     {
@@ -29,11 +29,7 @@ class bidCancleState extends stateBase
      }
 
      public function bidRerelease($data){
-         $this->bidObj->beginTrans();
-         $this->bidObj->updateBid($data);
-         $this->bidObj->setStatus($this->bidID,self::BID_RELEASE_WAITVERIFY);
-         $res = $this->bidObj->commit();
-         return $res;
+         return $this->errInfo;
      }
 
      public function bidCancle(){
@@ -101,7 +97,9 @@ class bidCancleState extends stateBase
 
 
     public function rebackReplyBail($bid_id){
-        return $this->errInfo;
+        $this->bidObj->beginTrans();
+        $this->bidObj->rebackReplyBail($bid_id);
+        return $this->bidObj->commit();
     }
 
 }

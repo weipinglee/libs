@@ -83,6 +83,13 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function bidComment($content,$user_id);
 
+    /**
+     * 退还指定招标的未中标用户保证金
+     * @param $bid_id int 招标id
+     * @return mixed
+     */
+    abstract public function rebackReplyBail($bid_id);
+
 
 
 

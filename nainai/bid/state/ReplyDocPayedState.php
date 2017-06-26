@@ -96,5 +96,8 @@ class replyDocPayedState extends stateBase
  {
   return $this->errInfo;
  }
+ public function rebackReplyBail($bid_id){
+  return $this->errInfo;
+ }
 
 }

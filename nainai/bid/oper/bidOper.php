@@ -382,7 +382,7 @@ class bidOper extends \nainai\bid\bidBase
 
     public function cancleBid($bid_id)
     {
-        if( $bid_id>0){
+        if( $bid_id<=0){
             $this->succInfo = tool::getSuccInfo(0,'操作错误');
             return false;
         }
@@ -483,6 +483,51 @@ class bidOper extends \nainai\bid\bidBase
         }
         return false;
 
+    }
+
+    /**
+     * 退还未中标用户保证金
+     * @param $bid_id int 招标id
+     */
+    public function rebackReplyBail($bid_id)
+    {
+
+        //获取招标数据
+        $bidData = $this->bidModel->where(array('id'=>$bid_id))->getObj();
+
+        if(!empty($bidData)){
+            //获取中标的用户列表
+            $bidPackObj = new M($this->bidPackageTable);
+            $win_user = $bidPackObj->where(array('bid_id'=>$bidData['id']))->getFields('win_user_id');
+
+            $bid_no = $bidData['no'];
+            $replyObj = new M($this->bidReplyTable);
+            $replyData = $replyObj->where(array('bid_id'=>$bid_id))->select();
+            $fund = new \nainai\fund();
+            //释放投标方保证金
+            foreach($replyData as $key=>$item){
+                if(in_array($item['reply_user_id'],$win_user) && $item['bail_fee']>0 && $item['bail_fee_refund']==0){//保证金大于0 且没有释放
+                    $replyObj->beginTrans();
+                    $fundObj = $fund->createFund($item['bail_pay_way']);
+                    $note = '招标编号为'.$bid_no.'的招标撤销释放投标方保证金';
+                    $resRelease = $fundObj->freezeRelease($item['reply_user_id'],$item['bail_fee'],$note);
+                    if($resRelease===true){
+                        $res2 = false;
+                        while($res2!==true){
+                            if($replyObj->where(array('id'=>$item['id']))->data(array('bail_fee_refund'=>1))->update()){
+                                $res2 = $this->bidModel->commit();
+                            }
+                        }
+                    }
+                    else{
+                        $this->succInfo = tool::getSuccInfo(0,'释放卖方保证金失败');
+                        $this->bidModel->rollBack();
+                        return false;
+                    }
+
+                }
+            }
+        }
     }
 
     /**
@@ -816,6 +861,13 @@ class bidOper extends \nainai\bid\bidBase
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
     }
 
+    /**
+     *
+     * @param $bid_id int 招标id
+     * @param $content string 评论内容
+     * @param $user_id int 评论用户id
+     * @return array|bool
+     */
     public function addBidComment($bid_id,$content,$user_id){
         $commentObj = new \nainai\bid\comment\bidcomment();
         if(!$content){

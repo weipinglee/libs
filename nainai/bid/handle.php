@@ -263,4 +263,10 @@ abstract class handle extends \nainai\bid\state\stateBase
         return $this->stateObj->bidComment($content, $user_id);
     }
 
+    public function rebackReplyBail($bid_id){
+        if($this->check()){
+            return $this->stateObj->rebackReplyBail($bid_id);
+        }
+    }
+
 }

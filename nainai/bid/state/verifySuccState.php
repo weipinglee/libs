@@ -111,4 +111,8 @@ class verifySuccState extends stateBase
         $this->bidObj->addBidComment($this->bidID,$content,$user_id);
         return $this->bidObj->commit();
     }
+
+    public function rebackReplyBail($bid_id){
+        return $this->errInfo;
+    }
 }

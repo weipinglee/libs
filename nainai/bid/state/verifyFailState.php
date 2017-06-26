@@ -95,4 +95,8 @@ class verifyFailState extends stateBase
     {
         return $this->errInfo;
     }
+
+    public function rebackReplyBail($bid_id){
+        return $this->errInfo;
+    }
 }
