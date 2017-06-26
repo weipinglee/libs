@@ -30,6 +30,9 @@ class releaseState extends stateBase
     {
         $newState = $state==1 ? self::BID_RELEASE_VERIFYSUCC : self::BID_RELEASE_VERIFYFAIL;
          $this->bidObj->verifyBid($this->bidID,$newState,$mess);
+        if($state==1){//审核通过，给邀请的用户发送消息
+            $this->bidObj->sendYqMessage($this->bidID);
+        }
         return $this->bidObj->getSuccInfo();
 
     }

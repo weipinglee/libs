@@ -878,6 +878,11 @@ class bidOper extends \nainai\bid\bidBase
         return $commentObj->addComment($bid_id,$content,$user_id);
     }
 
+    public function sendYqMessage($bid_id){
+        return true;
+
+    }
+
 
 
 

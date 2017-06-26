@@ -63,7 +63,13 @@ class message{
 
 	public function send($type,$param=0,$short=1){
 		if(in_array($type, self::$type)){
-			$mess=call_user_func(array(__CLASS__,$type),$param);
+			if(is_array($param)){
+				$mess=call_user_func_array(array(__CLASS__,$type),$param);
+			}
+			else{
+				$mess=call_user_func(array(__CLASS__,$type),$param);
+			}
+
 			$mess['user_id']=$this->user_id;
 			$mess['send_time']= \Library\Time::getDateTime();
 			$messObj=new M('message');
@@ -83,8 +89,8 @@ class message{
 		}
 	}
 
-	public function common($content){
-		$title = '提醒';
+	public function common($content,$title=''){
+		$title = $title ? $title : '提醒';
 		return array(
 			'title'=>$title,
 			'content'=>$content);
@@ -363,6 +369,7 @@ class message{
 				'content'=>$message
 		);
 	}
+
 	/**
 	 * [isReadMessage 获取已读消息]
 	 */
