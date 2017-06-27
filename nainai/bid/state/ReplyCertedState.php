@@ -66,7 +66,8 @@ class replyCertedState extends stateBase
  }
 
  public function replyCertDel($cert_id){
-     return $this->errInfo;
+     $this->bidObj->delReplyCerts($cert_id);
+     return $this->bidObj->getSuccInfo();
  }
 
 

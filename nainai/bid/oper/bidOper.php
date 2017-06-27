@@ -34,7 +34,7 @@ class bidOper extends \nainai\bid\bidBase
     public function __construct()
     {
         $this->bidModel = new M($this->bidTable);
-        $this->succInfo = tool::getSuccInfo();
+        $this->succInfo = tool::getSuccInfo(1,'操作成功');
     }
 
     public function getSuccInfo(){
@@ -58,7 +58,7 @@ class bidOper extends \nainai\bid\bidBase
                 $res = array('success'=>0,'info'=>'操作失败');
         }
         $res['id'] = $id;
-        $res['url'] = $url;
+        $res['returnUrl'] = $url;
         return $res;
     }
 
@@ -625,6 +625,11 @@ class bidOper extends \nainai\bid\bidBase
     }
 
 
+    /**
+     * 删除投标证书
+     * @param $cert_id int 证书id
+     * @return bool
+     */
     public function delReplyCerts($cert_id)
     {
         $certObj = new M($this->bidReplyCertTable);
@@ -882,6 +887,8 @@ class bidOper extends \nainai\bid\bidBase
         return true;
 
     }
+
+
 
 
 

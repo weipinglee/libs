@@ -152,9 +152,10 @@ class bidQuery extends bidBase
      */
     public function getUserReplyCerts($user_id,$bid_id)
     {
-        $Query = new Query($this->bidReplyTable.' as br');
-        $Query->join = 'left join '.$this->bidReplyCertTable.' as c on c.reply_id = br.id';
+        $Query = new Query($this->bidReplyCertTable.' as c');
+        $Query->join = 'left join '.$this->bidReplyTable.' as br on c.reply_id = br.id';
         $Query->fields = 'c.*,br.status';
+        $Query->distinct = 'c.id';
         $Query->where = 'br.bid_id='.$bid_id.' and br.reply_user_id='.$user_id;
         $certs = $Query->find();
         return $certs;
