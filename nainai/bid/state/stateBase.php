@@ -61,7 +61,7 @@ abstract class stateBase extends \nainai\bid\bidBase
 
     abstract public function replyCertsVerify($status);
 
-    abstract public function replyCertDel($cert_id);
+    abstract public function replyCertDel($cert_id,$reply_id);
 
     abstract public function replyCertAdd($reply_id,$cert);
 

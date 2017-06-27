@@ -207,10 +207,10 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     }
 
-    public function replyCertDel($cert_id)
+    public function replyCertDel($cert_id,$reply_id)
     {
         if($this->checkReply()){
-            return $this->stateObj->replyCertDel($cert_id);
+            return $this->stateObj->replyCertDel($cert_id,$reply_id);
         }
         return false;
     }

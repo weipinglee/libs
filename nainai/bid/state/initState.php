@@ -51,7 +51,7 @@ class initState extends stateBase
         return $this->errInfo;
     }
 
-    public function replyCertDel($cert_id){
+    public function replyCertDel($cert_id,$reply_id){
         return $this->errInfo;
     }
 

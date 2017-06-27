@@ -58,7 +58,7 @@ namespace nainai\bid\state;
          return $this->errInfo;
      }
 
-     public function replyCertDel($cert_id){
+     public function replyCertDel($cert_id,$reply_id){
          return $this->errInfo;
      }
 

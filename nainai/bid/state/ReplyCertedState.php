@@ -65,9 +65,11 @@ class replyCertedState extends stateBase
      return $this->errInfo;
  }
 
- public function replyCertDel($cert_id){
+ public function replyCertDel($cert_id,$reply_id){
+     $this->bidObj->beginTrans();
      $this->bidObj->delReplyCerts($cert_id);
-     return $this->bidObj->getSuccInfo();
+     $this->bidObj->setReplyStatus($reply_id,self::REPLY_CREATE);
+     return $this->bidObj->commit();
  }
 
 

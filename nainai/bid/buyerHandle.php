@@ -54,7 +54,7 @@ class buyerHandle extends handle
     public function getReplyList($bid_id,$page=1){
         $bidQuery = new bidQuery();
         $where = array(
-            'b.user_id =:user_id and br.bid_id=:bid_id',
+            'b.user_id =:user_id and br.bid_id=:bid_id and br.status >'.self::REPLY_CREATE,
             array('user_id'=>$this->operUserId,'bid_id'=>$bid_id)
 
         );
