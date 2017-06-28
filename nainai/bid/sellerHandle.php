@@ -43,6 +43,11 @@ class sellerHandle extends handle
 
     }
 
+    /**
+     * 获取用户投过标的列表，不同的招标
+     * @param int $page
+     * @return array
+     */
     public function getReplyList($page=1){
         $bidQuery = new bidQuery();
         $where = array(
@@ -51,6 +56,20 @@ class sellerHandle extends handle
 
         );
         return $bidQuery->getReplyList($page,$where);
+    }
+
+    /**
+     * 获取一个招标所有的投标信息
+     */
+    public function getOneBidReplyList($bid_id)
+    {
+        $bidQuery = new bidQuery();
+        $where = array(
+            'br.bid_id =:bid_id',
+            array('bid_id'=>$bid_id)
+
+        );
+        return $bidQuery->getReplyList(1,$where);
     }
 
     /**

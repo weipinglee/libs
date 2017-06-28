@@ -279,16 +279,22 @@ class bidOper extends \nainai\bid\bidBase
             $fund = new \nainai\fund();
             $fundObj = $fund->createFund($pay_type);
             $active = $fundObj->getActive($data['user_id']);
-            if($active<$data['bail'])
+            if($active<$data['bail']){
                 $this->succInfo = tool::getSuccInfo(0,'账户可用余额不足');
+                return false;
+            }
+
             $res = $fundObj->freeze($data['user_id'],$data['bail'],'招投标支付保证金');
             if(true!==$res){//支付成功
                 $this->succInfo =  tool::getSuccInfo(0,'支付保证金失败');
+                return false;
             }
+            return true;
         }
         else{
             $this->succInfo =  tool::getSuccInfo(0,'操作失败');
         }
+        return false;
 
 
     }
@@ -368,7 +374,7 @@ class bidOper extends \nainai\bid\bidBase
      */
     protected function getBidDeposit()
     {
-        return 5;
+        return 50000;
     }
 
     /**
