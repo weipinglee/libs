@@ -175,6 +175,9 @@ class MYPDO {
 
     //判断是否在事物当中
     public function inTrans(){
+        if(self::$wdb==null){
+            $this->createDB();
+        }
         return self::$wdb->inTransaction();
     }
 

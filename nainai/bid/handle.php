@@ -174,7 +174,7 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function bidCancle()
     {
-        //if( $this->check())
+        if( $this->check())
              return $this->stateObj->bidCancle();
 
     }
@@ -182,7 +182,7 @@ abstract class handle extends \nainai\bid\state\stateBase
     public function bidClose()
     {
         if( $this->check())
-            $this->stateObj->bidClose();
+           return  $this->stateObj->bidClose();
     }
 
 

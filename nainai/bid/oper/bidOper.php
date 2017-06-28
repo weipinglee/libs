@@ -374,7 +374,7 @@ class bidOper extends \nainai\bid\bidBase
      */
     protected function getBidDeposit()
     {
-        return 50000;
+        return 5;
     }
 
     /**
@@ -566,7 +566,7 @@ class bidOper extends \nainai\bid\bidBase
     public function addBidNotice($bid_id,$title,$content)
     {
         $noticeObj = new M($this->bidNoticeTable);
-        $data = array('title'=>$title,'content'=>$content);
+        $data = array('title'=>$title,'content'=>$content,'bid_id'=>$bid_id,'create_time'=>time::getDateTime());
         if(!$noticeObj->where(array('id'=>$bid_id))->data($data)->add()){
             $this->succInfo = tool::getSuccInfo(0,'添加失败');
             return false;
