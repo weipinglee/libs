@@ -25,8 +25,10 @@ class bidcomment extends \zixun\articleComment
         $userObj = new M($this->userinfo_table);
         if ($user_id) {
             $userData = $userObj->where(array('id' => $user_id))->fields('username as nick,head_photo as head_pic')->getObj();
-            if(isset($userData['head_pic']))
+            if(isset($userData['head_pic']) && $userData['head_pic'])
                 $userData['head_pic'] = thumb::getOrigImg($userData['head_pic']);
+            else
+                $userData['head_pic'] = '';
             $userData['birth'] = '';
             $userData['sign'] = '';
             return $userData;
