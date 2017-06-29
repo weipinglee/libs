@@ -139,6 +139,14 @@ class bidQuery extends bidBase
             $packageObj = new M($this->bidPackageTable);
             $data['package'] = $packageObj->where(array('bid_id'=>$id))->select();
             $data['doc'] = \Library\thumb::getOrigImg($data['doc']);
+            $pay_way = $data['pay_way'];
+            if($pay_way!=''){
+                foreach(explode(',',$pay_way) as $val){
+                    $data['pay_way_text'][$val] = \nainai\fund::getFundName($val);
+                }
+            }
+
+
         }
         return $data;
 

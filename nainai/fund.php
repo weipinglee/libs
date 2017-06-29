@@ -1,6 +1,6 @@
 <?php
 /**
- * ×Ê½ð²Ù×÷Àà
+ * èµ„é‡‘æ“ä½œç±»
  * author:weipinglee
  * Date: 2016/4/22
  * Time: 10:11
@@ -9,8 +9,8 @@
 namespace nainai;
 class fund{
 
-    const FUND_AGENT  =  1; //´úÀíÕË»§
-    const FUND_ZX     = 2;  //ÖÐÐÅÕË»§
+    const FUND_AGENT  =  1; //ä»£ç†è´¦æˆ·
+    const FUND_ZX     = 2;  //ä¸­ä¿¡è´¦æˆ·
     const FUND_ZX_EN  = 'zx';
 
     public static function getFundName($type){
@@ -18,11 +18,11 @@ class fund{
 
             case self::FUND_ZX :
             case self::FUND_ZX_EN :
-                return 'ÖÐÐÅÕË»§';
+                return 'ä¸­ä¿¡è´¦æˆ·';
                 break;
             case self::FUND_AGENT :
             default : {
-                return 'ÊÐ³¡´úÀíÕË»§';
+                return 'å¸‚åœºä»£ç†è´¦æˆ·';
             }
                 break;
         }
