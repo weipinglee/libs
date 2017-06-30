@@ -180,9 +180,6 @@ class Article{
 		$index = 0;
 		
 		$reModel1 = new Query('article as a');
-
-
-
 		$bind = array();
 
         //若设置了作者id 则获取指定作者发布文章列表(前台)
@@ -210,20 +207,18 @@ class Article{
 
 		if($where_ids=='')
 			return array();
-		echo $where_ids;
 		$reModel = new Query('article as a');
 		$reModel->distinct = 1;
 		$trade_db = tool::getGlobalConfig('nn');
 		$reModel->join = 'left join article_content as ac on a.id = ac.article_id left join article_cover as aco on aco.article_id = a.id left join '.$trade_db.'.user as u on a.user_id = u.id left join article_category as cc on a.cate_id=cc.id left join article_type as at on a.type=at.id';
-
         $reModel->fields = ($fields ? $fields:'a.*').",GROUP_CONCAT(aco.url) as cover,u.username as author,cc.name as cate_name,ac.content,at.name as type_name";
         $reModel->where = 'a.id in ('.$where_ids.')';
 		$reModel->order = $order;
-		$reModel1->group = 'a.id';
-        $list = $reModel->find();print_r($list);
+		$reModel->group = 'a.id';
+        $list = $reModel->find();
         
         if($page>0 && $device == 'pc'){
-        	$reBar = $reModel->getPageBar();
+        	$reBar = $reModel1->getPageBar();
         }
         foreach ($list as $key => &$value) {
         	$value['author'] = $value['user_type'] == \nainai\Article::TYPE_ADMIN ? '耐耐资讯' : ($value['author'] ? $value['author']:'佚名');
