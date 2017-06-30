@@ -17,7 +17,7 @@ class Keyword{
      */
     public static function commonUse($str){
         // 严格开发模式
-        ini_set('display_errors', 'On');
+       // ini_set('display_errors', 'On');
         ini_set('memory_limit', '64M');
 
         header('Content-Type: text/html; charset=utf-8');
