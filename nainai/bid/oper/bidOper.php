@@ -812,7 +812,7 @@ class bidOper extends \nainai\bid\bidBase
         $pack_type = $this->bidModel->where(array('id'=>$bid_id))->getField('pack_type');
         $packObj = new M($this->bidPackageTable);
         $pack_ids = $packObj->where(array('bid_id'=>$bid_id))->getFields('id');//该招标的所有包件id
-        $pack_ids_rev = array_reverse($pack_ids);
+        $pack_ids_rev = array_flip($pack_ids);
         $replyPackData = array();
 
         foreach($packageData as $key=>$item){
@@ -838,7 +838,7 @@ class bidOper extends \nainai\bid\bidBase
 
         $replyPackObj = new M($this->bidReplyPackTable);
         if($replyPackObj->data($replyPackData)->validate($this->replyPackageRules)){
-            if(!$replyPackObj->adds()){
+            if(!$replyPackObj->data($replyPackData)->adds()){
                 $this->succInfo = tool::getSuccInfo(0,'报价失败');
                 return false;
             }
