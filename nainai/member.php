@@ -220,8 +220,9 @@ class member{
      */
     public function getSecretUrl(){
         return $secret_url = array(
-            'ucenter/ind1ex','ucenter/xxxx','test/form','deposit/sellerdeposit',
+            'deposit/sellerdeposit',
             'managerdeal/dofreeoffer','purchaseorder/geneorderhandle',
+            'bid/bidrelease','bid/replypaydoc'
         );
     }
 
