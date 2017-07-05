@@ -71,8 +71,10 @@ class replyDocPayedState extends stateBase
      }
      public function replySubmitPackage($data,$upload){
         $this->bidObj->beginTrans();
+      $pay_type = 1;
         $this->bidObj->addReplyDoc($this->replyID,$upload);
         $this->bidObj->replyPackage($this->replyID,$data);
+      $this->bidObj->payBidReplyDeposit($this->replyID,$pay_type);
         $this->bidObj->setReplyStatus($this->replyID,self::REPLY_PACKAGE_SUBMIT);
 
         $res = $this->bidObj->commit();

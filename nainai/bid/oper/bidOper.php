@@ -721,7 +721,7 @@ class bidOper extends \nainai\bid\bidBase
     /**
      * 支付标书费用
      * @param $reply_id Int 投保id
-     * @param $pay_type object 支付对象
+     * @param $pay_type int 支付对象id
      * @return bool
      */
     public function payBidDoc($reply_id,$pay_type)
@@ -760,7 +760,7 @@ class bidOper extends \nainai\bid\bidBase
     /**
      * 供应方支付保证金
      * @param $reply_id int 投标id
-     * @param $pay_type object 支付对象
+     * @param $pay_type int 支付对象
      * @return bool
      */
     public function payBidReplyDeposit($reply_id,$pay_type)
@@ -775,7 +775,9 @@ class bidOper extends \nainai\bid\bidBase
         $replyUser = $replyData['reply_user_id'];
         if(isset($bidData['supply_bail']) && $bidData['supply_bail']>0){
             $deposit = $bidData['supply_bail'];
-            $res = $pay_type->freeze($replyUser,$deposit);
+            $fund = new \nainai\fund();
+            $payType = $fund->createFund($pay_type);
+            $res = $payType->freeze($replyUser,$deposit);
             if($res===true){
                 return true;
             }
