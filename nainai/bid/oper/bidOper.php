@@ -771,7 +771,7 @@ class bidOper extends \nainai\bid\bidBase
             $this->succInfo = tool::getSuccInfo(0,'投标不存在');
             return false;
         }
-        $bidData = $this->bidModel->where(array('id'=>$replyData['bid_id']))->getObj();
+        $bidData = $this->bidModel->fields('*')->where(array('id'=>$replyData['bid_id']))->getObj();
         $replyUser = $replyData['reply_user_id'];
         if(isset($bidData['supply_bail']) && $bidData['supply_bail']>0){
             $deposit = $bidData['supply_bail'];
