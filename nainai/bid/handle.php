@@ -82,7 +82,7 @@ abstract class handle extends \nainai\bid\state\stateBase
             $bidObj = new M($this->bidTable);
             $bidData = $bidObj->where(array('id'=>$bid_id))->fields('status,mode')->getObj();
             if(!empty($bidData) ){
-                $this->getOperClass($bidData['mode']);
+                $this->getOperClass($bidData['mode']);//设置招投标操作类
                 //获取状态类
                 switch($bidData['status']){
                     case self::BID_INIT : {
@@ -100,6 +100,7 @@ abstract class handle extends \nainai\bid\state\stateBase
                         break;
                     case self::BID_STOP :
                         $this->stateObj = new \nainai\bid\state\bidStopState();
+                        break;
                     case self::BID_CANCLE :
                         $this->stateObj = new \nainai\bid\state\bidCancleState();
                         break;

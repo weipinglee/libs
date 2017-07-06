@@ -162,6 +162,27 @@ class bidOper extends \nainai\bid\bidBase
     }
 
     /**
+     * 创建指定招标的自动截标事件，后台管理员审核通过时调用
+     * @param $bid_id int  招标id
+     * @return bool
+     */
+    public function createAutostopbidEvent($bid_id){
+        $event_name = 'autoStopBid_'.$bid_id;
+        $stop_time = $this->bidModel->where(array('id'=>$bid_id))->getField('end_time');
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$stop_time.'" ON COMPLETION NOT PRESERVE ENABLE DO begin
+        update '.$this->bidTable.' set status = IF(status='.self::BID_RELEASE_VERIFYSUCC.','.self::BID_STOP.',status) WHERE id='.$bid_id.';
+        end';
+        $res = $this->bidModel->query($sql);
+        if($res){
+           return true;
+        }
+        return false;
+
+
+
+    }
+
+    /**
      * 招标更新
      * @param $bidData array 招标数据
      */
@@ -533,7 +554,10 @@ class bidOper extends \nainai\bid\bidBase
 
                 }
             }
+            return true;
         }
+        return false;
+
     }
 
     /**

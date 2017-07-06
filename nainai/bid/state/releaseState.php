@@ -32,6 +32,7 @@ class releaseState extends stateBase
          $this->bidObj->verifyBid($this->bidID,$newState,$mess);
         if($state==1){//审核通过，给邀请的用户发送消息
             $this->bidObj->sendYqMessage($this->bidID);
+            $this->bidObj->createAutostopbidEvent($this->bidID);
         }
         return $this->bidObj->getSuccInfo();
 
