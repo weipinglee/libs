@@ -20,8 +20,7 @@ class buyerHandle extends handle
     }
 
     public function check(){
-        $bidObj = new \Library\M($this->bidTable);
-        $user_id = $bidObj->where(array('id'=>$this->bidID))->getField('user_id');
+        $user_id = isset($this->bidData['user_id']) ? $this->bidData['user_id'] : 0;;
         if($user_id && $user_id==$this->operUserId)
             return true;
         return false;

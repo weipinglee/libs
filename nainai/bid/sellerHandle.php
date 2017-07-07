@@ -17,8 +17,7 @@ class sellerHandle extends handle
 
     public function checkReply()
     {
-        $bidObj = new \Library\M($this->bidReplyTable);
-        $user_id = $bidObj->where(array('id'=>$this->replyID))->getField('reply_user_id');
+        $user_id = isset($this->replyData['reply_user_id']) ? $this->replyData['reply_user_id'] : 0;
         if($user_id && $user_id==$this->operUserId)
             return true;
         return false;

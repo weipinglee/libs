@@ -2,7 +2,7 @@
 /**
  * @copyright (c) 2017 nainaiwang.com
  * @file handle.php
- * @brief ´¦ÀíÀà
+ * @brief å¤„ç†ç±»
  * @author weipinglee
  * @date 2017-6-5
  * @version 1.0
@@ -18,13 +18,15 @@ abstract class handle extends \nainai\bid\state\stateBase
     public $operUserId = 0;
     public $bidID = 0;
     public $replyID = 0;
+    protected $bidData = array();
+    protected $replyData = array();
 
     public function __construct($user_id=0)
     {
         $this->operUserId = $user_id;
     }
 
-    //ÉèÖÃ×´Ì¬¶ÔÏó
+    //è®¾ç½®çŠ¶æ€å¯¹è±¡
     public function setStateObj($type='bid',$id=0)
     {
         $bid_id= 0;
@@ -37,8 +39,8 @@ abstract class handle extends \nainai\bid\state\stateBase
         elseif($type=='reply'){
             $reply_id = $id;
             $replyObj = new M($this->bidReplyTable);
-            $replyData = $replyObj->where(array('id'=>$id))->fields('bid_id,status')->getObj();
-
+            $replyData = $replyObj->where(array('id'=>$id))->getObj();
+            $this->replyData = $replyData;
             if(!empty($replyData)){
                 $this->getStateObj($replyData['bid_id'],$id,$replyData);
                 $bid_id = $replyData['bid_id'];
@@ -54,11 +56,11 @@ abstract class handle extends \nainai\bid\state\stateBase
     }
 
     /**
-     * »ñÈ¡²Ù×÷Àà
+     * è·å–æ“ä½œç±»
      * @param $mode
      */
     private function getOperClass($mode){
-        //»ñÈ¡²Ù×÷Àà
+        //è·å–æ“ä½œç±»
         switch($mode){
             case 'gk' :
                 $this->operObj = new \nainai\bid\oper\openBid();
@@ -70,20 +72,20 @@ abstract class handle extends \nainai\bid\state\stateBase
     }
 
     /**
-     * ÉèÖÃ×´Ì¬¶ÔÏó
-     * @param $bid_id int ÕĞ±êid
-     * @param $reply_id int Í¶±êid
-     * @param array $replyData Í¶±êÊı¾İ£¬Èç¹û´«Èë¸ÃÖµ£¬Ôò²»±ØÖØ¸´»ñÈ¡Í¶±êÊı¾İ
+     * è®¾ç½®çŠ¶æ€å¯¹è±¡
+     * @param $bid_id int æ‹›æ ‡id
+     * @param $reply_id int æŠ•æ ‡id
      */
-    private function getStateObj($bid_id,$reply_id,$replyData=array()){
+    private function getStateObj($bid_id,$reply_id){
         if(!$bid_id)
             $this->stateObj = new \nainai\bid\state\uninitState();
         else{
             $bidObj = new M($this->bidTable);
-            $bidData = $bidObj->where(array('id'=>$bid_id))->fields('status,mode')->getObj();
+            $bidData = $bidObj->where(array('id'=>$bid_id))->getObj();
+            $this->bidData = $bidData;
             if(!empty($bidData) ){
-                $this->getOperClass($bidData['mode']);//ÉèÖÃÕĞÍ¶±ê²Ù×÷Àà
-                //»ñÈ¡×´Ì¬Àà
+                $this->getOperClass($bidData['mode']);//è®¾ç½®æ‹›æŠ•æ ‡æ“ä½œç±»
+                //è·å–çŠ¶æ€ç±»
                 switch($bidData['status']){
                     case self::BID_INIT : {
                         $this->stateObj = new \nainai\bid\state\initState();
@@ -109,8 +111,9 @@ abstract class handle extends \nainai\bid\state\stateBase
                         break;
                 }
 
-                //Í¶±êid²»Îª0ÇÒÕĞ±ê×´Ì¬Îª³É¹¦£¬ÉèÖÃÍ¶±ê×´Ì¬¶ÔÏó
+                //æŠ•æ ‡idä¸ä¸º0ä¸”æ‹›æ ‡çŠ¶æ€ä¸ºæˆåŠŸï¼Œè®¾ç½®æŠ•æ ‡çŠ¶æ€å¯¹è±¡
                 if($reply_id!=0 && $bidData['status']==self::BID_RELEASE_VERIFYSUCC){
+                    $replyData = $this->replyData;
                     if(empty($replyData)){
                         $replyObj = new M($this->bidReplyTable);
                         $replyData = $replyObj->where(array('id'=>$reply_id))->fields('status,bid_id')->getObj();
@@ -190,7 +193,10 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function replyUploadCerts($reply_user_id,$certs)
     {
-        return $this->stateObj->replyUploadCerts($reply_user_id,$certs);
+        if($reply_user_id!=$this->bidData['user_id']) {//å¦‚æœæŠ•æ ‡ç”¨æˆ·idä¸ç­‰äºæ‹›æ ‡ç”¨æˆ·idï¼Œå¯æŠ•æ ‡
+            return $this->stateObj->replyUploadCerts($reply_user_id, $certs);
+        }
+        return \Library\tool::getSuccInfo(0,'ä¸èƒ½ç»™è‡ªå·±æŠ•æ ‡');
     }
 
     public function replySubmitCert()
