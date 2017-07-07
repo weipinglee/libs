@@ -167,7 +167,7 @@ abstract class handle extends \nainai\bid\state\stateBase
 
     public function verify($state,$mess='')
     {
-        return $this->stateObj->verify($state,$mess='');
+        return $this->stateObj->verify($state,$mess);
 
     }
 
