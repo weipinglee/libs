@@ -880,10 +880,18 @@ class bidOper extends \nainai\bid\bidBase
     }
 
 
+    /**
+     * 针对某个报价评标
+     * @param $reply_pack_id
+     * @param $point
+     * @param $status
+     * @return bool
+     */
     public function pingbiao($reply_pack_id,$point,$status)
     {
          $M = new M($this->bidReplyPackTable);
-            $M->data($point)->where(array('id'=>$reply_pack_id))->update();
+        $update = array_merge($point,array('selected'=>$status));
+         $M->data($update)->where(array('id'=>$reply_pack_id))->update();
         $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();
         if($replyPackdata){
             $M = new M($this->bidReplyTable);
@@ -891,7 +899,7 @@ class bidOper extends \nainai\bid\bidBase
             $M = new M($this->bidPackageTable);
             if($status==1)
                 $data = array('win_user_id'=>$reply_user_id);
-            else $data = -1;
+            else $data = array('win_user_id'=>-1);
             $M->where(array('id'=>$replyPackdata['pack_id']))->data($data)->update();
             return true;
         }

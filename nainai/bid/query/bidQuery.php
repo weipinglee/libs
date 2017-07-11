@@ -254,7 +254,7 @@ class bidQuery extends bidBase
             if(isset($where[1]))
                 $packObj->bind = $where[1];
         }
-        $packObj->fields = 'rp.*,bp.product_name,bp.unit,bp.num,br.create_time,br.bid_doc,u.true_name';
+        $packObj->fields = 'rp.*,bp.product_name,bp.win_user_id,bp.unit,bp.num,br.create_time,br.bid_doc,u.true_name';
         $data = $packObj->find();
         foreach($data as $key=>$v){
             $data[$key]['bid_doc_url'] = \Library\thumb::getOrigImg($v['bid_doc']);
