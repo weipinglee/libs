@@ -801,7 +801,7 @@ class bidOper extends \nainai\bid\bidBase
             $deposit = $bidData['supply_bail'];
             $fund = new \nainai\fund();
             $payType = $fund->createFund($pay_type);
-            $res = $payType->freeze($replyUser,$deposit);
+            $res = $payType->freeze($replyUser,$deposit,'支付投标保证金');
             if($res===true){
                 return true;
             }
@@ -884,7 +884,7 @@ class bidOper extends \nainai\bid\bidBase
     {
          $M = new M($this->bidReplyPackTable);
             $M->data($point)->where(array('id'=>$reply_pack_id))->update();
-        $replyPackdata = $M->where(array('id'=>$reply_pack_id))->field('reply_id,pack_id')->getObj();
+        $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();
         if($replyPackdata){
             $M = new M($this->bidReplyTable);
             $reply_user_id =  $M->where(array('id'=>$replyPackdata['reply_id']))->getField('reply_user_id');
