@@ -305,7 +305,7 @@ class bidOper extends \nainai\bid\bidBase
                 return false;
             }
 
-            $res = $fundObj->freeze($data['user_id'],$data['bail'],'招投标支付保证金');
+            $res = $fundObj->freeze($data['user_id'],$data['bail'],'支付招标保证金');
             if(true!==$res){//支付成功
                 $this->succInfo =  tool::getSuccInfo(0,'支付保证金失败');
                 return false;
