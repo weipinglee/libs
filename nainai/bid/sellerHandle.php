@@ -27,8 +27,8 @@ class sellerHandle extends handle
     {
         $bidQuery = new bidQuery();
         $where = array(
-            'b.status=:status',
-            array('status'=>self::BID_RELEASE_VERIFYSUCC)
+            'b.status = :status or b.status > :status1',//卖方可查看发布成功和成功之后状态的数据
+            array('status'=>self::BID_RELEASE_VERIFYSUCC,'status1'=>3)
 
         );
         return $bidQuery->getBidDetail($id,$where);
