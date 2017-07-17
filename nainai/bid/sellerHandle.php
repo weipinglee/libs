@@ -7,6 +7,7 @@
  */
 
 namespace nainai\bid;
+use Library\Query;
 use \nainai\bid\query\bidQuery;
 
 class sellerHandle extends handle
@@ -88,13 +89,14 @@ class sellerHandle extends handle
      * @param $user_id
      * @return array
      */
-    public function getZbInfo($bid_id,$user_id){
-        $bidQuery = new bidQuery();
-        $where = array(
-            'bp.bid_id=:bid_id and bp.win_user_id=:user_id',
-            array('bid_id'=>$bid_id,'user_id'=>$user_id)
-        );
-        return $bidQuery->getZbUser($where);
+    public function getZbInfo($reply_id,$user_id){
+        $bidObj = new Query($this->bidReplyPackTable.' as brp');
+        $bidObj->join = ' left join '.$this->bidReplyTable.' as bp on brp.pack_id = bp.id ';
+        $bidObj->where = 'brp.reply_id=:reply_id';
+        $bidObj->bind = array('reply_id'=>$reply_id);
+       $bidObj->fields = 'brp.*,bp.win_user_id';
+        return $bidObj->find();
+
     }
 
     /**
