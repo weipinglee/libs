@@ -91,7 +91,7 @@ class sellerHandle extends handle
      */
     public function getZbInfo($reply_id,$user_id){
         $bidObj = new Query($this->bidReplyPackTable.' as brp');
-        $bidObj->join = ' left join '.$this->bidReplyTable.' as bp on brp.pack_id = bp.id ';
+        $bidObj->join = ' left join '.$this->bidPackageTable.' as bp on brp.pack_id = bp.id ';
         $bidObj->where = 'brp.reply_id=:reply_id';
         $bidObj->bind = array('reply_id'=>$reply_id);
        $bidObj->fields = 'brp.*,bp.win_user_id';
