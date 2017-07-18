@@ -25,4 +25,10 @@ class adminHandle extends handle
 
         return $bidQuery->getBidDetail($id);
     }
+
+    public function getBidNotice($bid_id){
+        $bidQuery = new bidQuery();
+        $where = array('n.bid_id = '.$bid_id);
+        return $bidQuery->getBidNotice($where);
+    }
 }

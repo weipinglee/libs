@@ -119,5 +119,11 @@ class sellerHandle extends handle
         return $bidQuery->getBidList($page,$where);
     }
 
+    public function getBidNotice($bid_id){
+        $bidQuery = new bidQuery();
+        $where = array('n.bid_id = '.$bid_id);
+        return $bidQuery->getBidNotice($where);
+    }
+
 
 }

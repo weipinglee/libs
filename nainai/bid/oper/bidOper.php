@@ -395,7 +395,7 @@ class bidOper extends \nainai\bid\bidBase
      */
     protected function getBidDeposit()
     {
-        return 5;
+        return 0;
     }
 
     /**
