@@ -295,7 +295,9 @@ class bidOper extends \nainai\bid\bidBase
     public function payBidDeposit($bid_id,$pay_type)
     {
         $data = $this->bidModel->where(array('id'=>$bid_id))->fields('user_id,bail')->getObj();
-        if(!empty($data) && $data['user_id'] && $data['bail']>0){
+        if(!empty($data) && $data['user_id'] ){
+            if($data['bail']<=0)
+                return true;
             $this->bidModel->data(array('bail_pay_way'=>$pay_type))->where(array('id'=>$bid_id))->update();
             $fund = new \nainai\fund();
             $fundObj = $fund->createFund($pay_type);
