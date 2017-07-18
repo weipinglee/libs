@@ -121,7 +121,7 @@ class bidQuery extends bidBase
         $query->limit = 1;
         if(!empty($where)){
             $query->where = 'b.id = :id and '.$where[0];
-            $query->bind = array_merge(array('id'=>$id),$where[1]);
+            $query->bind = isset($where[1]) ? array_merge(array('id'=>$id),$where[1]) : array('id'=>$id);
         }
         else{
             $query->where = 'b.id = :id';
