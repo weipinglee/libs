@@ -397,7 +397,9 @@ class bidOper extends \nainai\bid\bidBase
      */
     protected function getBidDeposit()
     {
-        return 0;
+        $M = new M('scale_offer');
+        $num = $M->limit(1)->getField('bid_bail');
+        return $num;
     }
 
     /**
