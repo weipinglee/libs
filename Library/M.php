@@ -449,7 +449,7 @@ class M{
     {
     	$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
 
-    	if ($this->cache) {
+    	if ($this->cache && $this->cache->isActive()) {
 			$cacheKey = md5($sql);
 			$result = $this->cache->get($cacheKey);
 			if ($result) {

@@ -167,8 +167,8 @@ class Query
 	 * @return array 返回处理结果
      */
 	private function getSqlResult($sql){
-		//开启缓存
-		if ($this->cache) {
+		//开启缓存,并且缓存可用
+		if ($this->cache && $this->cache->isActive()) {
 			$cacheKey = md5($sql);
 			$result = $this->cache->get($cacheKey);
 			if ($result) {

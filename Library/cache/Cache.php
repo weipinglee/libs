@@ -23,6 +23,8 @@ class Cache {
      */
     protected $handler    ;
 
+    protected $loaded = true;
+
     /**
      * 缓存连接参数
      * @var integer
@@ -41,6 +43,7 @@ class Cache {
             case 'm':
                 $options = $expire ? array('expire'=>$expire) : array();
                 $this->handler = new Memcache($options);
+
                 break;
             case 'r':
                 $this->handler = new Redis();
@@ -48,6 +51,15 @@ class Cache {
                 return false;
                 break;
         }
+        //具体缓存类未加载时 loaded属性设置为false
+        if(!$this->handler->loaded){
+            $this->loaded = false;
+        }
+    }
+
+    //判断缓存是否可用
+    public function isActive(){
+        return $this->loaded;
     }
 
 

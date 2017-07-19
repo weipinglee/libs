@@ -38,13 +38,13 @@ class Thumb
 		if(count($imgArr)>1){
 			$sourcePath = tool::getGlobalConfig(array('rootDir',$imgArr[1])).'/'.trim($imgArr[0],'/');
 			$thumbFileName = $preThumb.basename($imgArr[0]);//缩略图文件名
-			$url = url::getConfigHost($imgArr[1]);
 		}else{
 			$sourcePath = trim($imgSrc,'/');
 			$thumbFileName = $preThumb.basename($imgSrc);
-			$url = url::getBaseUrl();
+
 		}
 
+		$url = url::getBaseUrl();
 		//缩略图目录
 		$thumbDir    = self::getThumbDir().'/';
 		$webThumbDir = self::$thumbDir.'/';

@@ -15,13 +15,15 @@ namespace Library\cache\driver;
  */
 class Memcache extends \Library\cache\Cache {
 
+
     /**
      *
      * @param array $options
      */
     public function __construct($options = array()) {
         if ( !extension_loaded('memcache') ) {
-            return '未开启扩展';
+            $this->loaded = false;
+            return false;
         }
         $options = array_merge(array(
             'servers'       =>  array(array('127.0.0.1',11211)),
@@ -34,8 +36,11 @@ class Memcache extends \Library\cache\Cache {
         $this->options['length'] =  0;//isset($options['length'])?  $options['length']  :   0;
 
          $this->handler      =   new \Memcache();
-         $this->handler->connect('localhost', 11211);
-         $options['lib_options'] && $this->handler->setOptions($options['lib_options']);
+
+        $this->handler->connect('localhost', 11211);
+        $options['lib_options'] && $this->handler->setOptions($options['lib_options']);
+
+
     }
 
     /**
@@ -45,6 +50,8 @@ class Memcache extends \Library\cache\Cache {
      * @return mixed
      */
     public function get($name) {
+        if(!$this->loaded)
+            return false;
         return $this->handler->get($this->options['prefix'].$name);
     }
 
@@ -57,6 +64,8 @@ class Memcache extends \Library\cache\Cache {
      * @return boolean
      */
     public function set($name, $value, $expire = null) {
+        if(!$this->loaded)//缓存不可用时返回false
+            return false;
          if(is_null($expire)) {
              $expire  =  $this->options['expire'];
         }
