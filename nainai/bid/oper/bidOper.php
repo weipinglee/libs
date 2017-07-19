@@ -892,6 +892,7 @@ class bidOper extends \nainai\bid\bidBase
     public function pingbiao($reply_pack_id,$point,$status)
     {
          $M = new M($this->bidReplyPackTable);
+        $status= $status==1 ? 1 : -1;
         $update = array_merge($point,array('selected'=>$status));
          $M->data($update)->where(array('id'=>$reply_pack_id))->update();
         $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();

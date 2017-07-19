@@ -109,6 +109,12 @@ abstract class handle extends \nainai\bid\state\stateBase
                     case self::BID_CLOSE :
                         $this->stateObj = new \nainai\bid\state\bidCloseState();
                         break;
+                    case self::BID_OVER :
+                        $this->stateObj = new \nainai\bid\state\bidOverState();
+                        break;
+                    case self::BID_ABORT :
+                        $this->stateObj = new \nainai\bid\state\bidAbortState();
+                        break;
                 }
 
                 //投标id不为0且招标状态为成功，设置投标状态对象

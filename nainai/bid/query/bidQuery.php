@@ -40,6 +40,12 @@ class bidQuery extends bidBase
                 return '已撤销';
             case self::BID_CLOSE:
                 return '已终止';
+            case self::BID_STOP :
+                return '已截标';
+            case self::BID_ABORT :
+                return '流标';
+            case self::BID_OVER:
+                return '评标结束';
 
         }
         return '未知';
