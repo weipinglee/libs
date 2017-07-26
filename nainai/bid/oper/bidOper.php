@@ -897,8 +897,13 @@ class bidOper extends \nainai\bid\bidBase
         $status= $status==1 ? 1 : -1;
         $update = array_merge($point,array('selected'=>$status));
          $M->data($update)->where(array('id'=>$reply_pack_id))->update();
+
         $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();
+
         if($replyPackdata){
+            if($status==1){//一个选择中标其他设置为未中标
+                $M->data(array('selected'=>-1))->where(array('pack_id'=>$replyPackdata['pack_id'],'id'=>array('neq',$reply_pack_id)))->update();
+            }
             $M = new M($this->bidReplyTable);
             $reply_user_id =  $M->where(array('id'=>$replyPackdata['reply_id']))->getField('reply_user_id');
             $M = new M($this->bidPackageTable);
@@ -909,6 +914,34 @@ class bidOper extends \nainai\bid\bidBase
             return true;
         }
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
+    }
+
+    public function pingbiaoClose($bid_id,$status){
+        $new_status = $status==1 ? self::BID_OVER : self::BID_ABORT;
+        $this->setStatus($bid_id,$new_status);
+        if($status==1){//项目没有流标
+            $bidPackageObj = new M($this->bidPackageTable);
+            $packData = $bidPackageObj->where(array('bid_id'=>$bid_id))->getFields('win_user_id');
+            if(!empty($packData)){
+                $bidReplyObj = new M($this->bidReplyTable);
+                $replyData = $bidReplyObj->where(array('bid_id'=>$bid_id))->fields('id,reply_user_id')->select();
+                if(!empty($replyData)){
+                    foreach($replyData as $item){
+                        if(in_array($item['reply_user_id'],$packData)){//如果投标用户在已中标用户的id数组里，更新状态为已中标
+                            $replyStatus = self::REPLY_SELECTED;
+
+                        }
+                        else{
+                            $replyStatus = self::REPLY_UNSELECTED;
+                        }
+                        $bidReplyObj->where(array('id'=>$item['id']))->data(array('status'=>$replyStatus))->update();
+                    }
+                }
+
+            }
+        }
+
+        return true;
     }
 
     /**
