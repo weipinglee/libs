@@ -185,35 +185,48 @@ class M{
 					}
 					else{
 						if(isset($val[0]) && isset($val[1])){//array('neq','33')?????
-							//?????????
-							switch(strtolower($val[0])){
-								case 'neq' : {
-									$sql .= $key.' <> :'.$key.' AND ';
-								}
-									break;
-								case 'gt' : {
-									$sql .= $key.' > :'.$key.' AND ';
-								}
-									break;
-								case 'lt' : {
-									$sql .= $key.' < :'.$key.' AND ';
-								}
-									break;
-								case 'in' : {
-									$sql .= $key.' in ('.$val[1].' ) AND ';
-
+							$oper = strtolower($val[0]);
+							if(in_array($oper,array('in','notin'))){//in 和notin特殊处理,字符串中,相隔的每个字符都要单独绑定
+								$arr = explode(',',$val[1]);
+								$in = array();
+								foreach($arr as $i=>$v){
+									$in[] = ':'.$key.$i;
+									$this->whereParam[$key.$i] = $v;
 								}
 
-									break;
-								case 'eq' :
-								default : {
-									$sql .= $key.' = :'.$key.' AND ';
+								if($oper=='in')
+									$sql .= $key.' in ( '.implode(',',$in).' ) AND ';
+								elseif($oper=='notin'){
+									$sql .= $key.' not in ( '.implode(',',$in).' ) AND ';
 								}
-									break;
-
+								continue;
 							}
+							else{
+								switch($oper){
+									case 'neq' : {
+										$sql .= $key.' <> :'.$key.' AND ';
+									}
+										break;
+									case 'gt' : {
+										$sql .= $key.' > :'.$key.' AND ';
+									}
+										break;
+									case 'lt' : {
+										$sql .= $key.' < :'.$key.' AND ';
+									}
+										break;
+									case 'eq' :
+									default : {
+										$sql .= $key.' = :'.$key.' AND ';
+									}
+										break;
 
-							$this->whereParam[$key] = $val[1];
+								}
+
+								$this->whereParam[$key] = $val[1];
+							}
+							//?????????
+
 						}
 						else{//array('neq'=>33)?????
 							foreach($val as $ekey=>$v) {

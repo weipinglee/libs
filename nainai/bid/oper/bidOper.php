@@ -886,31 +886,40 @@ class bidOper extends \nainai\bid\bidBase
 
     /**
      * 针对某个报价评标
-     * @param $reply_pack_id
-     * @param $point
-     * @param $status
+     * @param $reply_pack_id int or string 如果是分包，只传一个id，总包的话，多个投标包件id以逗号相连
+     * @param $point array　评分数组
+     * @param $status int 状态 1：中标，0：未中标
      * @return bool
      */
     public function pingbiao($reply_pack_id,$point,$status)
     {
-         $M = new M($this->bidReplyPackTable);
+         $bidReplyPackObj = new M($this->bidReplyPackTable);
         $status= $status==1 ? 1 : -1;
         $update = array_merge($point,array('selected'=>$status));
-         $M->data($update)->where(array('id'=>$reply_pack_id))->update();
+        $bidReplyPackObj->data($update)->where(array('id'=>array('in',$reply_pack_id)))->update();
 
-        $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();
+        $replyPackdata = $bidReplyPackObj->where(array('id'=>array('in',$reply_pack_id)))->fields('reply_id,pack_id')->select();
 
         if($replyPackdata){
-            if($status==1){//一个选择中标其他设置为未中标
-                $M->data(array('selected'=>-1))->where(array('pack_id'=>$replyPackdata['pack_id'],'id'=>array('neq',$reply_pack_id)))->update();
+            $reply_user_id = 0;
+            $bidPackObj = new M($this->bidPackageTable);
+            foreach($replyPackdata as $item){
+                if($status==1){//一个选择中标其他设置为未中标
+                    $bidReplyPackObj->data(array('selected'=>-1))->where(array('pack_id'=>$item['pack_id'],'id'=>array('notin',$reply_pack_id)))->update();
+                }
+
+                if($reply_user_id==0){
+                    $M = new M($this->bidReplyTable);
+                    $reply_user_id =  $M->where(array('id'=>$item['reply_id']))->getField('reply_user_id');
+                }
+
+                if($status==1)
+                    $data = array('win_user_id'=>$reply_user_id);
+                else $data = array('win_user_id'=>-1);
+
+                $bidPackObj->where(array('id'=>$item['pack_id']))->data($data)->update();
             }
-            $M = new M($this->bidReplyTable);
-            $reply_user_id =  $M->where(array('id'=>$replyPackdata['reply_id']))->getField('reply_user_id');
-            $M = new M($this->bidPackageTable);
-            if($status==1)
-                $data = array('win_user_id'=>$reply_user_id);
-            else $data = array('win_user_id'=>-1);
-            $M->where(array('id'=>$replyPackdata['pack_id']))->data($data)->update();
+
             return true;
         }
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
