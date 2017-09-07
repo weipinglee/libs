@@ -162,7 +162,7 @@ class product  {
         array('cate_id','number','商品类型id错误'),
         array('price','currency','商品价格必须是数字'),
         array('quantity','double','供货总量必须是数字'),
-        array('attribute', 'require', '请选择商品属性'),
+       // array('attribute', 'require', '请选择商品属性'),
         array('note', 'require', '商品描述必须填写')
     );
 
