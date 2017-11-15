@@ -87,7 +87,7 @@ class Keyword{
         self::search($keywords);
         
         //用户访问记录添加
-        if(isset($user_id)){
+        if($user_id){
             $res = self::keywordInfo($keywords);
             foreach ($res as $key => $value) {
                 $data []= array('keyword'=>$value['id'],'user_id'=>$user_id,'search_num'=>1,'create_time'=>date('Y-m-d H:i:s',time()));
@@ -95,7 +95,7 @@ class Keyword{
             
             $user_log = new M('user_keywords');
             
-            @$user_log->insertUpdates($data,array('search_num'=>'+1'));
+          // @$user_log->insertUpdates($data,array('`search_num`'=>'+1'));
         }
         return $keywords;
     }

@@ -252,18 +252,18 @@ class Article{
 	 * @param  int $user_id  当前用户id
 	 * @return array
 	 */
-	public function arcInfo($article_id,$user_id = 10){
+	public function arcInfo($article_id,$user_id = 0){
 		$article_id = intval($article_id);
 		if(!$article_id || $article_id <= 0) return array();
 		
 		$arcList = $this->arcList(0,array('id'=>$article_id,'is_ad'=>array('gte',0)),'','a.*',1);
-		
+
 		if(!$arcList) return array();
 		$arcInfo = $arcList[0];
 		$arcInfo['ori_keywords'] = $arcInfo['keywords'];
 		$keywords = Keyword::check($user_id,$arcInfo);
 		$arcInfo['keywords'] = $keywords;
-		
+
 		$arcInfo['keywords_str'] = implode(',',$keywords);
 		
 		// if(DEVICE_TYPE != 'pc')
