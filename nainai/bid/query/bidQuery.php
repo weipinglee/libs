@@ -68,6 +68,10 @@ class bidQuery extends bidBase
                 return '已支付标书费用';
             case self::REPLY_PACKAGE_SUBMIT:
                 return '报价完成，等待开标';
+            case self::REPLY_SELECTED :
+                return '已中标';
+            case self::REPLY_UNSELECTED:
+                return '未中标';
 
         }
         return '未知';

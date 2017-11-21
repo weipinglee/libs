@@ -248,9 +248,9 @@ class safe
     {
         $str = trim($str);
         $str = self::limitLen($str,$limitLen);
-        $str = htmlspecialchars($str,ENT_NOQUOTES);
+        $str = htmlspecialchars($str,ENT_QUOTES);
         $str = str_replace(array("/*","*/"),"",$str);
-        return self::addSlash($str);
+        return $str;
     }
 
     /**

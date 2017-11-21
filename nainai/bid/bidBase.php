@@ -32,7 +32,8 @@ abstract class bidBase
     const REPLY_DOC_PAYED = 5;//已支付标书费用
     const REPLY_DOC_UPLOADED = 6;//上传投标文件
     const REPLY_PACKAGE_SUBMIT = 7;//报价完成
-
+    const REPLY_SELECTED = 8;//已中标
+    const REPLY_UNSELECTED = 9;//未中标
 
 
 

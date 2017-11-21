@@ -94,8 +94,8 @@ class bidStopState extends stateBase
      public function pbClose($status)
      {
           $this->bidObj->beginTrans();
-          $new_status = $status==1 ? self::BID_OVER : self::BID_ABORT;
-          $this->bidObj->setStatus($this->bidID,$new_status);
+
+          $this->bidObj->pingbiaoClose($this->bidID,$status);
           return $this->bidObj->commit();
      }
 

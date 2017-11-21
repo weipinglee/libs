@@ -886,29 +886,71 @@ class bidOper extends \nainai\bid\bidBase
 
     /**
      * 针对某个报价评标
-     * @param $reply_pack_id
-     * @param $point
-     * @param $status
+     * @param $reply_pack_id int or string 如果是分包，只传一个id，总包的话，多个投标包件id以逗号相连
+     * @param $point array　评分数组
+     * @param $status int 状态 1：中标，0：未中标
      * @return bool
      */
     public function pingbiao($reply_pack_id,$point,$status)
     {
-         $M = new M($this->bidReplyPackTable);
+         $bidReplyPackObj = new M($this->bidReplyPackTable);
         $status= $status==1 ? 1 : -1;
         $update = array_merge($point,array('selected'=>$status));
-         $M->data($update)->where(array('id'=>$reply_pack_id))->update();
-        $replyPackdata = $M->where(array('id'=>$reply_pack_id))->fields('reply_id,pack_id')->getObj();
+        $bidReplyPackObj->data($update)->where(array('id'=>array('in',$reply_pack_id)))->update();
+
+        $replyPackdata = $bidReplyPackObj->where(array('id'=>array('in',$reply_pack_id)))->fields('reply_id,pack_id')->select();
+
         if($replyPackdata){
-            $M = new M($this->bidReplyTable);
-            $reply_user_id =  $M->where(array('id'=>$replyPackdata['reply_id']))->getField('reply_user_id');
-            $M = new M($this->bidPackageTable);
-            if($status==1)
-                $data = array('win_user_id'=>$reply_user_id);
-            else $data = array('win_user_id'=>-1);
-            $M->where(array('id'=>$replyPackdata['pack_id']))->data($data)->update();
+            $reply_user_id = 0;
+            $bidPackObj = new M($this->bidPackageTable);
+            foreach($replyPackdata as $item){
+                if($status==1){//一个选择中标其他设置为未中标
+                    $bidReplyPackObj->data(array('selected'=>-1))->where(array('pack_id'=>$item['pack_id'],'id'=>array('notin',$reply_pack_id)))->update();
+                }
+
+                if($reply_user_id==0){
+                    $M = new M($this->bidReplyTable);
+                    $reply_user_id =  $M->where(array('id'=>$item['reply_id']))->getField('reply_user_id');
+                }
+
+                if($status==1)
+                    $data = array('win_user_id'=>$reply_user_id);
+                else $data = array('win_user_id'=>-1);
+
+                $bidPackObj->where(array('id'=>$item['pack_id']))->data($data)->update();
+            }
+
             return true;
         }
         $this->succInfo = tool::getSuccInfo(0,'操作失败');
+    }
+
+    public function pingbiaoClose($bid_id,$status){
+        $new_status = $status==1 ? self::BID_OVER : self::BID_ABORT;
+        $this->setStatus($bid_id,$new_status);
+        if($status==1){//项目没有流标
+            $bidPackageObj = new M($this->bidPackageTable);
+            $packData = $bidPackageObj->where(array('bid_id'=>$bid_id))->getFields('win_user_id');
+            if(!empty($packData)){
+                $bidReplyObj = new M($this->bidReplyTable);
+                $replyData = $bidReplyObj->where(array('bid_id'=>$bid_id))->fields('id,reply_user_id')->select();
+                if(!empty($replyData)){
+                    foreach($replyData as $item){
+                        if(in_array($item['reply_user_id'],$packData)){//如果投标用户在已中标用户的id数组里，更新状态为已中标
+                            $replyStatus = self::REPLY_SELECTED;
+
+                        }
+                        else{
+                            $replyStatus = self::REPLY_UNSELECTED;
+                        }
+                        $bidReplyObj->where(array('id'=>$item['id']))->data(array('status'=>$replyStatus))->update();
+                    }
+                }
+
+            }
+        }
+
+        return true;
     }
 
     /**

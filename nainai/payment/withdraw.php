@@ -77,9 +77,9 @@ class withdraw extends payment{
             $argument['create_time'] = \Library\time::getDateTime();
             $argument['request_no']  = 'zxtx'.self::createOrderNum();
             $argument['status'] = self::APPLY;
-            if($this->payObj->getActive($argument['user_id']) < $argument['amount'])
+            if(bccomp($this->payObj->getActive($argument['user_id']) , $argument['amount'],2)<0)
                 return tool::getSuccInfo(0,'可用余额不足');
-            if($argument['amount']<=0)
+            if(bccomp($argument['amount'],0,2)<=0)
                 return tool::getSuccInfo(0,'提现金额不能为0');
             if($M->data($argument)->add()){
                 return tool::getSuccInfo(1,'申请成功，等待后台处理');
@@ -109,7 +109,7 @@ class withdraw extends payment{
 				if($data['status']!=self::FIRST_SUCCESS)
 				 return tool::getSuccInfo(0,'该状态不能终审');
                 //判断可提现余额是否足够
-                if($this->payObj->getActive($data['user_id']) < $data['amount'])
+                if(bccomp($this->payObj->getActive($data['user_id']) , $data['amount'],2)<0)
                     return tool::getSuccInfo(0,'可提现余额不足');
                 //开始事务
                 $M->beginTrans();

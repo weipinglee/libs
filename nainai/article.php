@@ -19,8 +19,6 @@ class Article{
 
 	const TYPE_USER = 1;//前台用户发布
 	const TYPE_ADMIN = 2;//后台管理员发布
-	
-	public $where = array();
 
 	/**
 	 * 设置关键字搜索字段排序
@@ -114,7 +112,7 @@ class Article{
 			$oper = is_array($value) && isset($value[1]) ? $value[0] : '=';
 			//逻辑  and或or
 			$logic = is_array($value) && isset($value[2]) ? " ".$value[2]." " : ' and ';
-			$where_str = '';
+
 			switch ($oper) {
 				case 'like':
 					if(is_array($value[1])){
@@ -179,8 +177,10 @@ class Article{
 		if(!$order) $order = 'a.update_time desc';
 		$index = 0;
 		
+
 		$reModel1 = new Query('article as a');
 		$bind = array();
+
 
         //若设置了作者id 则获取指定作者发布文章列表(前台)
         if(intval($author_id)>0){

@@ -148,6 +148,12 @@ abstract class handle extends \nainai\bid\state\stateBase
                             case self::REPLY_PACKAGE_SUBMIT :
                                 $this->stateObj = new \nainai\bid\state\replyPackageSubmitState();
                                 break;
+                            case self::REPLY_SELECTED :
+                                $this->stateObj = new \nainai\bid\state\replySelectedState();
+                                break;
+                            case self::REPLY_UNSELECTED:
+                                $this->stateObj = new \nainai\bid\state\replyUnselectedState();
+                                break;
 
                         }
                     }
