@@ -170,6 +170,26 @@ class ping extends account{
 
     }
 
+    private function parseTranMeasage($message){
+        if(1){//响应报文，返回
+
+        }
+        else{//请求报文，返回请求函数和报文内容
+
+        }
+    }
+
+    /**
+     * 作为tcp服务器接收到信息后，做相应的处理
+     * @param $message
+     */
+    public function serverCallback($message)
+    {
+       $res = $this->parseTranMeasage($message);
+        //根据请求函数调用相应的方法，返回报文给tcp服务器
+
+    }
+
 
 
     public function getActive($user_id)
@@ -189,6 +209,7 @@ class ping extends account{
         $res = $this->SendTranMessage($bodyParams,1010);
 
         //拿到tcp返回的结果，处理
+
 
     }
 
