@@ -47,6 +47,8 @@ class product  {
     const OFFER_NG    = 2;
     const OFFER_CANCEL = 4; //取消报盘
     const OFFER_EXPIRE = 5;//报盘过期
+    const OFFER_COMPLETE = 6;//报盘成交，售罄
+
 
 
     public function getModelArray(){
@@ -104,6 +106,9 @@ class product  {
                 break;
             case self::OFFER_EXPIRE :
                 $st = '过期';
+                break;
+            case self::OFFER_COMPLETE :
+                $st = '已成交';
                 break;
             default:
                 $st = '未知';
