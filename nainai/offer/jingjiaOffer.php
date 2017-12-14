@@ -83,8 +83,9 @@ class jingjiaOffer extends product{
             $oldOfferData['max_num'] =  $max_num - $newOfferData['max_num'] > 0 ?   $max_num - $newOfferData['max_num'] : -1;
 
             //插入新的报盘和更改旧报盘
-            $obj->data($newOfferData)->add();
+            $newOfferId = $obj->data($newOfferData)->add();
             $obj->data($oldOfferData)->where(array('id'=>$offer_id))->update();
+
 
         }
         else{
@@ -92,6 +93,7 @@ class jingjiaOffer extends product{
         }
         //提交事务
         if($obj->commit()){
+            $this->createEvent($newOfferId);
             return tool::getSuccInfo();
         }
         else{
@@ -161,6 +163,25 @@ class jingjiaOffer extends product{
 
 
     }
+
+    protected function createEvent($offer_id,$end_time='')
+    {
+        $event_name = 'autoStopJingjia_'.$offer_id;
+        $jingjiaOffer = new M('product_offer');
+        if($end_time==''){
+            $end_time = $jingjiaOffer->where(array('id'=>$offer_id))->getField('end_time');
+        }
+
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
+        CALL jingjiaHandle('.$offer_id.',0);';
+        $res = $jingjiaOffer->query($sql);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+
+
 
 
 }
