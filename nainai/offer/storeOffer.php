@@ -25,6 +25,7 @@ class storeOffer extends product{
         if($quantity<=$productOffer['minimum']){
             $productOffer['minimum'] = $quantity;
         }
+        $productOffer['max_num'] = $quantity;
 
         if ($this->_productObj->validate($this->productOfferRules, $productOffer)) {
             $productOffer['mode'] = self::STORE_OFFER;

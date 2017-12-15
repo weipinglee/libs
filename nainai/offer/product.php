@@ -489,11 +489,11 @@ class product  {
             $res['mode_text'] = $this->getMode($res['mode']);
 
             $res['img'] = empty($res['img']) ? 'no_picture.jpg' : \Library\thumb::get($res['img'],100,100);//获取缩略图
-            $res['left'] = floatval($res['quantity']) - floatval($res['freeze']) - floatval($res['sell']);
+            $res['left'] = min(floatval($res['quantity']) - floatval($res['freeze']) - floatval($res['sell']),$res['max_num']-$res['sell_num']);
 
             $res['divide_txt'] = $this->getDivide($res['divide']);
             if($res['divide']==self::UNDIVIDE)
-                $res['minimum'] = $res['quantity'];
+                $res['minimum'] = $res['max_num'];
         }
 
 
@@ -553,6 +553,7 @@ class product  {
                 $productOffer['product_id'] = $pId;
                 $productOffer['insurance'] = 0;
                 $productOffer['status'] = self::OFFER_APPLY;
+                $productOffer['max_num'] = $productData[0]['quantity'];
                 $id =  $this->_productObj->table('product_offer')->data($productOffer)->add(1);
 
                 if ($id > 0) {

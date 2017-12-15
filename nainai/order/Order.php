@@ -726,7 +726,7 @@ class Order{
 	 * @return true:可以下单 string:错误信息
 	 */
 	public function productNumValid($num,$offer_info,$product=array()){
-		$res = $this->productNumLeft($offer_info['product_id'],$product);
+		$res = $this->productNumLeft($offer_info,$product);
 		if($offer_info['divide'] == \nainai\offer\product::UNDIVIDE && bccomp($num,$res['quantity'],2) != 0)
 			return '此商品不可拆分';
 
@@ -747,15 +747,19 @@ class Order{
 
 	/**
 	 * 获取商品剩余可购数量
-	 * @param  int $product_id 商品id
+	 * @param  array $offerInfo offer信息,包含product_id,id,max_num,sell_num字段
 	 * @return array 
 	 */
-	public function productNumLeft($product_id,$product = array()){
-		$product = $product ? $product : $this->products->where(array('id'=>$product_id))->getObj();
+	public function productNumLeft($offerInfo,$product = array()){
+		if(empty($product)){
+			$product_id = $offerInfo['product_id'];
+			$product = $this->product->fields('quantity,freeze,sell')->where(array('id'=>$product_id))->getObj();
+		}
+
 		$quantity = floatval($product['quantity']); //商品总数量
 		$sell = floatval($product['sell']); //商品已售数量
 		$freeze = floatval($product['freeze']);//商品已冻结数量
-		$product_left = $quantity-$sell-$freeze;//商品剩余数量
+		$product_left = min($quantity-$sell-$freeze,$offerInfo['max_num'] - $offerInfo['sell_num']);//商品剩余数量
 		return array('quantity'=>$quantity,'sell'=>$sell,'freeze'=>$freeze,'left'=>$product_left);
 	}
 
@@ -775,7 +779,15 @@ class Order{
 				if($product_valid !== true)
 					return $product_valid;
 				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>floatval($product['freeze'])+$num))->update();
-				return is_int($res) && $res>0 ? true : ($this->products->getError() ? $this->products->getError() : '数据未修改');
+
+				//更新报盘数据
+				$update = array('sell_num'=>$offer_info['sell_num'] + $num);
+				if(bccomp($offer_info['sell_num']+$num,$offer_info['max_num'],2)==0){
+					$update['status'] = 6;//如果商品已售完，更改状态为成交状态
+				}
+				$res1 = $this->offer->where(array('id'=>$offer_info['id']))->data($update)->update();
+
+				return is_int($res) && $res>0 && intval($res1)>0? true : ($this->products->getError() ? $this->products->getError() : '数据未修改');
 			}
 			return '无效产品';
 		}
@@ -794,7 +806,12 @@ class Order{
 			$freeze = floatval($product['freeze']);//已冻结商品数量
 			if($freeze >= $num){
 				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>($freeze-$num)))->update();
-				return is_int($res) && $res>0 ? true : ($this->products->getError() ? $this->products->getError() : '数据未修改');
+				$update = array('sell_num'=>$offer_info-$num);
+				if($offer_info['status']==6){//如果报盘状态为已成交，再把它改成正常交易状态
+					$update['status'] = 1;
+				}
+				$res1 = $this->offer->where(array('id'=>$offer_info['id']))->data($update)->update();
+				return is_int($res) && $res>0 && intval($res1) ? true : ($this->products->getError() ? $this->products->getError() : '数据未修改');
 			}else{
 				return '冻结商品数量有误';
 			}

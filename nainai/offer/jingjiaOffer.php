@@ -70,7 +70,7 @@ class jingjiaOffer extends product{
             $newOfferData['minstep'] = 0;
             //计算新报盘和旧报盘的最大购买数量，如果旧报盘剩余量为0，则max_num字段设为-1,表示不可购买
             if($newOfferData['max_num']>0){
-                $max_num = min($newOfferData['max_num'],$proLeft);
+                $max_num = min($newOfferData['max_num']-$newOfferData['sell_num'],$proLeft);
             }
             else{
                 $max_num = $proLeft;
@@ -86,7 +86,7 @@ class jingjiaOffer extends product{
                 return tool::getSuccInfo(0,'结束时间必须大于开始时间');
             }
             $newOfferData['max_num'] = $offerData['max_num'];
-            $oldOfferData['max_num'] =  $max_num - $newOfferData['max_num'] > 0 ?   $max_num - $newOfferData['max_num'] : -1;
+            $oldOfferData['max_num'] =  $max_num - $newOfferData['max_num'] ;
 
             //插入新的报盘和更改旧报盘
             $newOfferId = $obj->data($newOfferData)->add();
