@@ -48,6 +48,7 @@ class product  {
     const OFFER_CANCEL = 4; //取消报盘
     const OFFER_EXPIRE = 5;//报盘过期
     const OFFER_COMPLETE = 6;//报盘成交，售罄
+    const OFFER_WAITINGTRADE = 7;//已确定买家，待交易
 
 
 
