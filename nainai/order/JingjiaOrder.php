@@ -19,7 +19,8 @@ class JingjiaOrder {
 	 * @return boolean  true:通过 false:未通过
 	 */
 	public function offerExist($offer_id){
-		$res = $this->offer->where(array('id'=>$offer_id))->fields('status,is_del,expire_time')->getObj();
+		$offer = new M('product_offer');
+		$res = $offer->where(array('id'=>$offer_id))->fields('status,is_del,expire_time')->getObj();
 
 		return !empty($res) && $res['status'] == 7 && $res['is_del'] == 0 && time() < strtotime($res['expire_time'])? true : false;
 

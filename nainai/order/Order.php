@@ -753,14 +753,14 @@ class Order{
 	public function productNumLeft($offerInfo,$product = array()){
 		if(empty($product)){
 			$product_id = $offerInfo['product_id'];
-			$product = $this->product->fields('quantity,freeze,sell')->where(array('id'=>$product_id))->getObj();
+			$product = $this->products->fields('quantity,freeze,sell')->where(array('id'=>$product_id))->getObj();
 		}
 
 		$quantity = floatval($product['quantity']); //商品总数量
 		$sell = floatval($product['sell']); //商品已售数量
 		$freeze = floatval($product['freeze']);//商品已冻结数量
 		$product_left = min($quantity-$sell-$freeze,$offerInfo['max_num'] - $offerInfo['sell_num']);//商品剩余数量
-		return array('quantity'=>$quantity,'sell'=>$sell,'freeze'=>$freeze,'left'=>$product_left);
+		return array('quantity'=>$offerInfo['max_num'],'sell'=>$sell,'freeze'=>$freeze,'left'=>$product_left);
 	}
 
 	/**
