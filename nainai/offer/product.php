@@ -111,6 +111,9 @@ class product  {
             case self::OFFER_COMPLETE :
                 $st = '已成交';
                 break;
+            case self::OFFER_WAITINGTRADE :
+                $st = '竞价交易待成交';
+                break;
             default:
                 $st = '未知';
                 break;
