@@ -151,7 +151,7 @@ class M{
 			$this->lock = ' lock in share mode';
 		}
 		elseif(strtolower($lock)=='update'){
-			$this->lock = ' FOR　UPDATE';
+			$this->lock = ' FOR UPDATE ';
 		}
 		return $this;
 
