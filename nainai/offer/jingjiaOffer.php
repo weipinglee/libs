@@ -66,6 +66,7 @@ class jingjiaOffer extends product{
             $newOfferData['price_r'] = $offerData['price_r'];
             $newOfferData['divide'] = 0;
             $newOfferData['minimum'] = 0;
+            $newOfferData['sell_num'] = 0;
             $newOfferData['minstep'] = 0;
             //计算新报盘和旧报盘的最大购买数量
             if($newOfferData['max_num']>0){
@@ -156,6 +157,9 @@ class jingjiaOffer extends product{
             if($price>=$res['price_r']){//报价高于设置的最高价，调用用户定义的mysql程序，更改offer状态
                 $sql = 'CALL jingjiaHandle('.$offer_id.','.$user_id.','.$price.')';
                 $offerObj->query($sql);
+                $message = new \nainai\message($user_id);
+                $message->jingjiaWin($res['pro_name']);
+
             }
             if($offerObj->commit()){
                 return tool::getSuccInfo();

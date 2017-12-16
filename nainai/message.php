@@ -35,7 +35,8 @@ class message{
 		'credentials',
 		'repcredentials',
 		'delivery_check',
-		'bidCancle'
+		'bidCancle',
+		'jingjiaWin'
 	);
 	/**
 	 * [__construct 构造方法]
@@ -446,6 +447,20 @@ class message{
 		$where=array('id'=>$id);
 		return $messObj->where($where)->delete();
 
+	}
+
+	/**
+	 * 竞价成功
+	 * @param $pro_name
+	 * @return array
+	 */
+	public function jingjiaWin($pro_name){
+		$title='交易提醒';
+		$message='您对竞价商品'.$pro_name.'的出价已经胜出，请尽快完成交易';
+		return array(
+				'title'=>$title,
+				'content'=>$message
+		);
 	}
 
 
