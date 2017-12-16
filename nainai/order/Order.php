@@ -95,7 +95,7 @@ class Order{
 	public function offerExist($offer_id){
 		if($this->sub_mode_obj)//使用子报盘模式的判断方法
 			return $this->sub_mode_obj->offerExist($offer_id);
-		$res = $this->offer->where(array('id'=>$offer_id))->fields('status,is_del,expire_time')->getObj();
+		$res = $this->offer->where(array('id'=>$offer_id))->lock('update')->fields('status,is_del,expire_time')->getObj();
 
 		return !empty($res) && $res['status'] == 1 && $res['is_del'] == 0 && time() < strtotime($res['expire_time'])? true : false;
 	}

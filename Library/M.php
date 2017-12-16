@@ -40,6 +40,8 @@ class M{
 	private $error   = '';
 
 	private $cache = '';
+
+	private $lock = '';
 	
 	public function __construct($tableName) {
 		$this->db = DbFactory::getInstance();
@@ -143,6 +145,18 @@ class M{
 		}
 	}
 
+
+	public function lock($lock=''){
+		if(strtolower($lock)=='share'){
+			$this->lock = ' lock in share mode';
+		}
+		elseif(strtolower($lock)=='update'){
+			$this->lock = ' FOR　UPDATE';
+		}
+		return $this;
+
+	}
+
 	/**
 	 *???????
 	 *
@@ -153,6 +167,7 @@ class M{
 		$this->whereParam = array();
 		$this->fields   = '*';
 		$this->group    = '';
+		$this->lock = '';
 		$this->order    = '';
 		$this->limit    = ' LIMIT 500';
 		$this->error = '';
@@ -460,7 +475,7 @@ class M{
      */
     public function select()
     {
-    	$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
+    	$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit .$this->lock;
 
     	if ($this->cache && $this->cache->isActive()) {
 			$cacheKey = md5($sql);
@@ -485,7 +500,7 @@ class M{
      */
     public function getObj(){
         $this->limit(1);
-        $sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
+        $sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit.$this->lock ;
 
         $res =  $this->db->exec($sql,$this->whereParam,'SELECT');
         return empty($res) ? array() : $res[0];
@@ -498,7 +513,7 @@ class M{
      */
 	public function getField($field){
 		$this->limit(1)->fields($field);
-		$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit ;
+		$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->order.$this->limit.$this->lock ;
 		$res =  $this->db->exec($sql,$this->whereParam,'SELECT');
 		if(!empty($res))return $res[0][$field];
 		return false;
@@ -510,7 +525,7 @@ class M{
 	 */
 	public function getFields($field){
 		$this->fields($field);
-		$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->limit ;
+		$sql = 'SELECT '.$this->fields.' FROM '.$this->tableName. $this->whereStr.$this->limit .$this->lock;
 
 		$res =  $this->db->exec($sql,$this->whereParam,'SELECT');
 		

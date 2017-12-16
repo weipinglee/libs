@@ -16,7 +16,8 @@ class market{
     protected $actions = array(
         'deal' => array(
             'index/trade/doreport',
-            'index/trade/buyerpay'
+            'index/trade/buyerpay',
+            'index/trade/jingjiabaojia'
 
         ),
         'user' => array(
@@ -27,6 +28,7 @@ class market{
             'index/managerdeal/dostoreoffer',
             'index/managerdeal/dodeputeoffer',
             'index/managerstore/dostoresign',
+            'index/managerdeal/addNewtrade',
             'index/ucenter/dodealcert',
             'index/ucenter/dostorecert',
             'index/managerstore/doupdatestore',
