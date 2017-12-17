@@ -89,7 +89,7 @@ class PurchaseOffer extends product {
 	 */
 	public function getOfferProductList($page, $pagesize, $where='', $bind=array()){
 		$query = new Query('product_offer as c');
-		$query->fields = 'c.id, a.name, b.name as cname, a.quantity, c.price, c.expire_time, c.status, a.user_id, c.apply_time,c.price_l,c.price_r';
+		$query->fields = 'c.id, a.name, b.name as cname, a.quantity, a.unit,c.price, c.expire_time, c.status, a.user_id, c.apply_time,c.price_l,c.price_r';
 		$query->join = '  LEFT JOIN products as a ON c.product_id=a.id LEFT JOIN product_category as b ON a.cate_id=b.id ';
 		$query->page = $page;
 		$query->pagesize = $pagesize;

@@ -364,7 +364,8 @@ class certificate{
 			if($this->db_name)
 				$table = $this->db_name.'.'.$table;
             $status = $obj->table($table)->where(array('user_id'=>$user_id))->getField('status');
-            $result[$type] = $status==self::CERT_SUCCESS ? 1 : ($status==self::CERT_FIRST_OK?1:0);
+            //$result[$type] = $status==self::CERT_SUCCESS ? 1 : ($status==self::CERT_FIRST_OK?1:0);
+            $result[$type] = $status==self::CERT_SUCCESS ? 1 : 0;
         }
         return $result;
     }
