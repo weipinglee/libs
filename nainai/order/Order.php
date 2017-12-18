@@ -33,6 +33,7 @@ class Order{
 
 	const ORDER_ENTRUST = 3;//委托报盘
 	const ORDER_STORE = 4;//仓单报盘订单
+	const ORDER_FREESTORE = 5;//入库单报盘订单
 
 	const PAYMENT_AGENT = 1;//代理账户
 	const PAYMENT_BANK = 2;//银行签约账户
@@ -1457,7 +1458,7 @@ class Order{
 					break;
 				case self::CONTRACT_BUYER_RETAINAGE:
 					if(empty($value['proof'])){
-						$title = $value['mode'] == self::ORDER_FREE ? '支付全款' : '支付尾款';
+						$title = $value['mode'] == self::ORDER_FREE || $value['mode'] == self::ORDER_FREESTORE ? '支付全款' : '支付尾款';
 						$href = url::createUrl("/Order/buyerRetainage?order_id={$value['id']}");
 						$action []= array('action'=>$title,'url'=>$href);
 					}else{

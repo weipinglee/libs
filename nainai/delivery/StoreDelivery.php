@@ -87,6 +87,42 @@ class StoreDelivery extends Delivery{
 	}
 
 	/**
+	 * 卖方确认出库，用于入库单报盘的出库确认
+	 * @param $delivery_id int 配送单id
+	 * @param $seller_id int 卖家id
+	 * @return array
+	 */
+	public function sellerCheckOut($delivery_id,$seller_id){
+		//获取提货id对应报盘信息
+		$query = new Query('product_delivery as pd');
+		$query->join = 'left join product_offer as po on pd.offer_id = po.id left join order_sell as o on o.id=pd.order_id';
+		$query->fields = 'pd.*,po.id as offer_id,po.user_id,po.mode,po.type,o.order_no';
+		$query->where = 'pd.id=:id';
+		$query->bind = array('id'=>$delivery_id);
+		$res = $query->getObj();
+
+		if($res['user_id'] != $seller_id) $error = '当前操作用户有误';
+		if($res['mode'] != order\Order::ORDER_FREESTORE) $error = '订单类型须为仓单订单';
+
+		if($res['status'] != parent::DELIVERY_APPLY) $error =  '提货状态错误';
+		if(!isset($error)){
+			$deliveryData['id'] = $delivery_id;
+			$deliveryData['status'] = parent::DELIVERY_MANAGER_CHECKOUT;//提货状态置为等待仓库管理员确认出库
+			try {
+				$this->delivery->beginTrans();
+				$this->deliveryUpdate($deliveryData);
+				if($this->delivery->commit())
+					return tool::getSuccInfo();
+			} catch (PDOException $e) {
+				$error = $e->getMessage();
+				$this->delivery->rollBack();
+			}
+		}
+
+		return tool::getSuccInfo(0,$error);
+	}
+
+	/**
 	 * 卖方支付仓库管理费用
 	 * @param  int $delivery_id 提货表id	
 	 * @param  int $user_id     当前操作用户id
@@ -207,7 +243,7 @@ class StoreDelivery extends Delivery{
 		$query->join = 'left join product_offer as po on o.offer_id = po.id left join products as p on po.product_id = p.id left join product_category as pc on p.cate_id = pc.id left join product_delivery as pd on pd.order_id = o.id left join store_products as sp on p.id = sp.product_id left join store_list as sl on sp.store_id = sl.id';
 		$query->fields = 'o.*,p.name as product_name,pc.name as cate_name,sl.name as store_name,pd.create_time as delivery_time,p.unit,pd.num as delivery_num,pd.id as delivery_id, pd.expect_time, po.accept_area, po.price, p.produce_area, p.attribute,po.expire_time,p.quantity,pd.delivery_man,pd.phone,pd.idcard,pd.plate_number,pd.remark, po.user_id as seller_id';
 		$relation = $is_checked ? '> ' : '= ';
-		$sql_where = 'o.mode='.\nainai\order\Order::ORDER_STORE.' and pd.status '.$relation.\nainai\delivery\Delivery::DELIVERY_ADMIN_CHECK;
+		$sql_where = '(o.mode='.\nainai\order\Order::ORDER_STORE.' or o.mode='.\nainai\order\Order::ORDER_FREESTORE.') and pd.status '.$relation.\nainai\delivery\Delivery::DELIVERY_ADMIN_CHECK;
 		if($where) $sql_where .= ' and '.$where;
 		
 		$query->where = $sql_where;
@@ -300,7 +336,7 @@ class StoreDelivery extends Delivery{
 			return $this->deliveryUpdate($deliveryData);
 		}
 		$delivery = $query->getObj();
-		if($delivery && $delivery['status'] == parent::DELIVERY_ADMIN_CHECK && $delivery['mode'] == order\Order::ORDER_STORE){
+		if($delivery && $delivery['status'] == parent::DELIVERY_ADMIN_CHECK && ($delivery['mode'] == order\Order::ORDER_STORE || $delivery['mode'] == order\Order::ORDER_FREESTORE)){
 			//计算货物余量
 			$left = $this->orderNumLeft($delivery['order_id'],true,true);
 			if(is_float($left)){

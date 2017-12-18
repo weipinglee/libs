@@ -36,6 +36,7 @@ class product  {
     const DEPOSIT_OFFER = 2;
     const DEPUTE_OFFER  = 3;
     const STORE_OFFER = 4;
+    const FREESTORE_OFFER = 5;
 
     private $_errorInfo = '';
 
@@ -55,6 +56,7 @@ class product  {
             self::STORE_OFFER => $this->getMode(self::STORE_OFFER),
             self::DEPUTE_OFFER => $this->getMode(self::DEPUTE_OFFER),
             self::PURCHASE_OFFER => $this->getMode(self::PURCHASE_OFFER),
+            self::FREESTORE_OFFER => $this->getMode(self::FREESTORE_OFFER),
 
         );
     }
@@ -136,6 +138,9 @@ class product  {
                 break;
             case self::DEPUTE_OFFER :
                 $mode_txt = '委托报盘';
+                break;
+            case self::FREESTORE_OFFER :
+                $mode_txt = '入库单报盘';
                 break;
             default:
                 $mode_txt = '未知';
