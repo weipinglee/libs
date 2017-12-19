@@ -26,6 +26,8 @@ class Order{
 	const CONTRACT_SELLER_VERIFY = 7; //卖家确认  包含买方扣减款项
 	const CONTRACT_COMPLETE = 8;//合同完成
 
+	const CONTRACT_ADMIN_CHECK = 9;//后台出库确认
+
 	//订单类型常量定义 
 	const ORDER_PURCHASE = 0;//采购报盘
 	const ORDER_FREE = 1;//自由报盘订单
@@ -1386,7 +1388,7 @@ class Order{
 					break;
 				case self::CONTRACT_BUYER_RETAINAGE:
 					if(empty($value['proof'])){
-						$title = $value['mode'] == self::ORDER_FREE ? '等待支付全款' : '等待支付尾款';
+						$title = $value['mode'] == self::ORDER_FREE || $value['mode'] == self::ORDER_FREESTORE? '等待支付全款' : '等待支付尾款';
 					}else{
 						$title = '确认线下凭证';
 						$href  = url::createUrl('/Order/confirmProofPage?order_id='.$value['id']);
@@ -1419,6 +1421,8 @@ class Order{
 				case self::CONTRACT_COMPLETE:
 					$title = '合同已完成';
 					break;
+				case self::CONTRACT_ADMIN_CHECK://TODO:
+					break;
 				default:
 					$title = '无效状态';
 					break;
@@ -1447,7 +1451,9 @@ class Order{
 				case self::CONTRACT_SELLER_DEPOSIT:   
 					$title = in_array($value['mode'],array(self::ORDER_DEPOSIT,self::ORDER_PURCHASE)) ? '等待卖家支付保证金' : '等待卖家支付委托金';
 					$action []= array('action'=>$title);
-					$_after_time = time::_after_time($value['pay_deposit_time'],3600);
+					$time = new time();
+
+					$_after_time = $time->_after_time($value['pay_deposit_time'],3600);
 					if($_after_time === true){
 						$action []= array('action'=>'取消合同','confirm' => 1,'url'=>url::createUrl("/Order/cancelContract?order_id={$value['id']}"));
 					}
@@ -1497,6 +1503,9 @@ class Order{
 					$title = '确认合同结束';
 					$href = url::createUrl("/Order/contractComplete?order_id={$value['id']}");
 					$action []= array('action'=>$title,'url'=>$href,'confirm'=>1);
+					break;
+				case self::CONTRACT_ADMIN_CHECK ://TODO
+
 					break;
 				default:
 					$title = '未知状态';

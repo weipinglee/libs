@@ -13,10 +13,10 @@ use \Library\url;
 use \Library\time;
 
 use nainai\order;
-class StoreDelivery extends Delivery{
+class FreestoreDelivery extends Delivery{
 	
 	public function __construct(){
-		parent::__construct(order\Order::ORDER_STORE);
+		parent::__construct(order\Order::ORDER_FREESTORE);
 		$this->orderObj = new \nainai\order\Order();
 	}
 
@@ -336,7 +336,7 @@ class StoreDelivery extends Delivery{
 			return $this->deliveryUpdate($deliveryData);
 		}
 		$delivery = $query->getObj();
-		if($delivery && $delivery['status'] == parent::DELIVERY_ADMIN_CHECK && $delivery['mode'] == order\Order::ORDER_STORE ){
+		if($delivery && $delivery['status'] == parent::DELIVERY_ADMIN_CHECK && $delivery['mode'] == order\Order::ORDER_FREESTORE){
 			//计算货物余量
 			$left = $this->orderNumLeft($delivery['order_id'],true,true);
 			if(is_float($left)){
@@ -349,23 +349,21 @@ class StoreDelivery extends Delivery{
 				}else{
 					//货物余量小于等于20% 提货流程结束 
 					$deliveryData['status'] = parent::DELIVERY_COMPLETE;
-					$contract_status = order\Order::CONTRACT_DELIVERY_COMPLETE;
+					$contract_status = order\Order::CONTRACT_ADMIN_CHECK;
 				}
 				try {
 					$order = new M('order_sell');
 					$order->beginTrans();
 					$this->deliveryUpdate($deliveryData);
-					if($contract_status==order\Order::CONTRACT_DELIVERY_COMPLETE){
-						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>$contract_status));
 
-						$buyer = $delivery['type'] == \nainai\offer\product::TYPE_SELL ? $delivery['user_id'] : $delivery['offer_user'];
-						$mess_buyer = new \nainai\message($buyer);
-						$jump_url = "<a href='".url::createUrl('/delivery/deliBuyList@user')."'>跳转到提单列表</a>";
-						$content = '(合同'.$delivery['order_no'].',已提货完成,请您及时进行质量确认)'.$jump_url;
-						$mess_buyer->send('common',$content);
-
-					}
-
+					if($contract_status==order\Order::CONTRACT_ADMIN_CHECK)
+						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>order\Order::CONTRACT_DELIVERY_COMPLETE));
+					
+					//$buyer = $delivery['type'] == \nainai\offer\product::TYPE_SELL ? $delivery['user_id'] : $delivery['offer_user'];
+					//$mess_buyer = new \nainai\message($buyer);
+					//$jump_url = "<a href='".url::createUrl('/delivery/deliBuyList@user')."'>跳转到提单列表</a>";
+					//$content = '(合同'.$delivery['order_no'].',已提货完成,请您及时进行质量确认)'.$jump_url;
+				//	$mess_buyer->send('common',$content);
 					$order->commit();	
 				} catch (\PDOException $e) {
 					$order->rollBack();

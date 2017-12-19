@@ -40,10 +40,10 @@ class Delivery{
 				$title = '卖方已发货，等待买方确认 （保证金）';
 				break;
 			case self::DELIVERY_MANAGER_CHECKOUT:
-				$title = '卖方支付仓库费,等待仓库管理员确认出库（仓单）';
+				$title = '等待仓库管理员确认出库';
 				break;
 			case self::DELIVERY_ADMIN_CHECK:
-				$title = '等待后台管理员审核（仓单）';
+				$title = '等待后台管理员审核';
 				break;
 			case self::DELIVERY_AGAIN:
 				$title = '余量大于20% 需再次提货';
@@ -119,7 +119,7 @@ class Delivery{
 		$query->pagesize = 10;
 		$data = $query->find();
 		$pageBar =  $query->getPageBar();
-		
+
 		$this->deliveryStatus($data,$is_seller);
 		// foreach ($arr as $key => $v) {
 		// 	array_splice($data, $key,0,array($v));
@@ -137,7 +137,7 @@ class Delivery{
 			$value['delivery_id'] = empty($value['delivery_id']) ? '-' : $value['delivery_id'];
 			$value['delivery_num'] = number_format($value['delivery_num'],2);
 			$value['num'] = number_format($value['num'],2);
-			$value['store_name'] = $value['mode'] == order\Order::ORDER_STORE ? (empty($value['store_name']) ? '无效仓库' : $value['store_name']) : '-';
+			$value['store_name'] = $value['mode'] == order\Order::ORDER_STORE || $value['mode'] == order\Order::ORDER_FREESTORE ? (empty($value['store_name']) ? '无效仓库' : $value['store_name']) : '-';
 			switch ($value['status']) {
 				case -1:
 					if(!$is_seller){
@@ -201,7 +201,13 @@ class Delivery{
 			}
 			// $this->addNewDelivery($value);
 			$is_seller = intval($is_seller);
-			$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfo?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+			if($is_seller){
+				$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfoseller?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+			}
+			else{
+				$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfo?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+
+			}
 			$value['action'] = $action;
 			$value['title'] = $title;
 			$value['href'] = $href;
@@ -339,9 +345,13 @@ class Delivery{
 						$res = $this->deliveryUpdate($deliveryData);
 						$mess_seller = new \nainai\message($seller);
 						$jump_url = "<a href='".url::createUrl('/contract/sellerDetail?id='.$deliveryData['order_id'].'@user')."'>跳转到合同详情页</a>";
-						if($order_info['mode'] == \nainai\order\Order::ORDER_STORE){
-							$content = '(合同'.$order_info['order_no'].'买方已申请提货，请您及时进行确认并支付仓库费，并通知仓库管理员进行发货处理。)'.$jump_url;
-							$mess_seller->send('common',$content);
+						if($order_info['mode'] == \nainai\order\Order::ORDER_STORE) {
+							$content = '(合同' . $order_info['order_no'] . '买方已申请提货，请您及时进行确认并支付仓库费，并通知仓库管理员进行发货处理。)' . $jump_url;
+							$mess_seller->send('common', $content);
+						}elseif($order_info['mode'] == \nainai\order\Order::ORDER_FREESTORE){
+								$content = '(合同'.$order_info['order_no'].'买方已申请提货，请您及时进行确认出库，并通知仓库管理员进行发货处理。)'.$jump_url;
+								$mess_seller->send('common',$content);
+
 						}else{
 							$content = '(合同'.$order_info['order_no'].'买方已申请提货，请您及时进行发货处理。)'.$jump_url;
 							$mess_seller->send('common',$content);
