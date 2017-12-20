@@ -86,6 +86,39 @@ class store{
     }
 
     /**
+     * 生成随机的仓单号,仓单号组成规则：仓库代码+市场代码+日期+序号
+     * @param $store_id int 仓库id
+     * @param $market_id int 市场id
+     * @return string 仓单号
+     */
+    public function createSignno($store_id,$market_id){
+        $storeObj = new M($this->storeProduct);
+
+        $storeObj->where(array('store_id'=>$store_id,'_string'=>' LEFT(sign_time,10)="'.\Library\time::getDateTime('Y-m-d').'" '));
+        $num = $storeObj->getField('count(*)');
+        $num = sprintf("%'.03d", $num+1);
+
+        //获取仓库代码
+        $storeModel = new M('store_list');
+        $code = $storeModel->where(array('id'=>$store_id))->getField('code');
+
+        if(empty($code))
+            $code = '';
+        if($code==''){
+            return tool::getSuccInfo(0,'请先在后台设置仓库编号，然后再生成仓单');
+        }
+
+        //获取市场代码
+        $cateModel = new M('product_category');
+        $market_code = $cateModel->where(array('id'=>$market_id))->getField('code');
+        if(!$market_code)
+            return tool::getSuccInfo(0,'请先在后台设置市场编号，然后再生成仓单');
+
+        $mid = \Library\time::getDateTime('Ymd');
+        $sign_no = $code.$market_code.$mid.$num;
+        return $sign_no;
+    }
+    /**
      * 获取仓单详情
      * @param  [Int] $id [仓单id]
      * @param int $user_id 仓库管理员id
@@ -94,7 +127,7 @@ class store{
     public function getManagerStoreDetail($id,$user_id){
         $store_id = $this->getManagerStoreId($user_id);//根据$user_id获取
         $query = new Query('store_products as a');
-        $query->fields = 'a.id as sid,a.user_id,a.cang_pos,a.sign_time,a.user_time,a.market_time,a.store_unit,a.check_org,a.check_no,a.confirm,a.product_id,a.status,a.package,a.package_unit,a.package_num,a.package_weight, b.name as pname, c.name as cname, b.attribute, b.produce_area, b.create_time, b.quantity, b.unit, b.id as pid,  d.name as sname, b.note, a.store_pos, a.in_time, a.rent_time, a.quality, a.store_price,a.package_units,a.msg,a.admin_msg';
+        $query->fields = 'a.id as sid,a.sign_no,a.user_id,a.cang_pos,a.sign_time,a.user_time,a.market_time,a.store_unit,a.check_org,a.check_no,a.confirm,a.product_id,a.status,a.package,a.package_unit,a.package_num,a.package_weight, b.name as pname, c.name as cname, b.attribute, b.produce_area, b.create_time, b.quantity, b.unit, b.id as pid,  d.name as sname, b.note, a.store_pos, a.in_time, a.rent_time, a.quality, a.store_price,a.package_units,a.msg,a.admin_msg';
         $query->join = ' LEFT JOIN products as b ON a.product_id = b.id LEFT JOIN product_category  as c  ON b.cate_id=c.id LEFT JOIN store_list as d ON a.store_id=d.id';
         $query->where = ' a.id=:id AND a.store_id=:store_id';
         $query->bind = array('id' => $id,'store_id'=>$store_id);
@@ -436,6 +469,9 @@ class store{
         //验证商品数据和仓单数据
         if($productObj->proValidate($productData) && $storeProductObj->validate($this->storeProductRules,$storeData)){
             $storeProductObj->beginTrans();
+            $storeData['sign_no'] = $this->createSignno($storeData['store_id'],$productData[0]['market_id']);
+            if(is_array($storeData['sign_no']))
+                return $storeData['sign_no'];
             $pId = $storeProductObj->table('products')->data($productData[0])->add(1);
             $imgData = $productData[1];
             if (intval($pId) > 0) {
