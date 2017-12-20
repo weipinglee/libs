@@ -1254,7 +1254,7 @@ class Order{
 
 		$res['img_thumb'] = \Library\thumb::get($res['img'],50,50);
 
-		if($res['mode'] == self::ORDER_STORE){
+		if($res['mode'] == self::ORDER_STORE || $res['mode'] == self::ORDER_FREESTORE){
 			$query = new Query('store_list as s');
 			$query->join = 'left join store_products as sp on s.id = sp.store_id';
 			$query->where = 'sp.product_id = :product_id';
