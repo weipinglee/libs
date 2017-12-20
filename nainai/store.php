@@ -488,9 +488,9 @@ class store{
                 $storeData['status'] = self::STOREMANAGER_SIGN;
                 $id = $storeProductObj->table($this->storeProduct)->data($storeData)->add(1);
                 if ($id > 0) {
-                            
-
+                            $param['type'] = '';
                             $param['name'] = $productData[0]['name'];
+                            $param['sign_no'] = $storeData['sign_no'];
                             $obj = new \nainai\message($storeData['user_id']);
                             $obj->send('store', $param);
                 }
