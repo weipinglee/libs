@@ -336,6 +336,7 @@ class FreestoreDelivery extends Delivery{
 			return $this->deliveryUpdate($deliveryData);
 		}
 		$delivery = $query->getObj();
+
 		if($delivery && $delivery['status'] == parent::DELIVERY_ADMIN_CHECK && $delivery['mode'] == order\Order::ORDER_FREESTORE){
 			//计算货物余量
 			$left = $this->orderNumLeft($delivery['order_id'],true,true);
