@@ -345,20 +345,22 @@ class FreestoreDelivery extends Delivery{
 				if($left > 0.20){
 					//货物余量大于20% 本次提货结束 等待买家进行第二次提货
 					$deliveryData['status'] = parent::DELIVERY_AGAIN;
-					$contract_status = order\Order::CONTRACT_EFFECT;
+					$contract_status = 0;
 				}else{
 					//货物余量小于等于20% 提货流程结束 
 					$deliveryData['status'] = parent::DELIVERY_COMPLETE;
-					$contract_status = order\Order::CONTRACT_ADMIN_CHECK;
+					$contract_status = 1;
 				}
 				try {
 					$order = new M('order_sell');
 					$order->beginTrans();
 					$this->deliveryUpdate($deliveryData);
 
-					if($contract_status==order\Order::CONTRACT_ADMIN_CHECK)
-						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>order\Order::CONTRACT_DELIVERY_COMPLETE));
-					
+					if($contract_status==1){
+						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>order\Order::CONTRACT_COMPLETE));
+
+					}
+
 					//$buyer = $delivery['type'] == \nainai\offer\product::TYPE_SELL ? $delivery['user_id'] : $delivery['offer_user'];
 					//$mess_buyer = new \nainai\message($buyer);
 					//$jump_url = "<a href='".url::createUrl('/delivery/deliBuyList@user')."'>跳转到提单列表</a>";

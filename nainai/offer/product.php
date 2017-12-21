@@ -443,6 +443,7 @@ class product  {
 
         //获取所属分类
         $detail['cate'] = $this->getParents($detail['cate_id']);
+        $detail['cate_chain'] = '';
         foreach ($detail['cate'] as $key => $value) {
             $detail['cate_chain'] .= $value['name'].'/';    
         }
