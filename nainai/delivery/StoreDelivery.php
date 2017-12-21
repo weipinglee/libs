@@ -27,8 +27,13 @@ class StoreDelivery extends Delivery{
 	 */
 	public function storeFees($delivery_id){
 		$query = new Query('product_delivery as pd');
-		$query->join = 'left join product_offer as po on pd.offer_id = po.id left join store_products as sp on sp.product_id = po.product_id left join store_list as sl on sp.store_id = sl.id left join products as p on po.product_id = p.id left join order_sell as o on pd.order_id = o.id LEFT JOIN product_category as ca ON p.cate_id=ca.id';
-		$query->fields = 'pd.*,p.img,pd.num as delivery_num,sp.store_price,sp.store_unit,sp.in_time,sp.rent_time,sl.name as store_name,p.name,p.unit,o.amount,po.price,o.num, po.product_id, pd.status as pstatus, pd.admin_msg, po.user_id as seller_id, p.quantity,p.produce_area,p.attribute, po.expire_time,po.accept_area, ca.name as cate_name';
+		$query->join = 'left join product_offer as po on pd.offer_id = po.id
+		                left join store_products as sp on sp.product_id = po.product_id
+		                left join store_list as sl on sp.store_id = sl.id
+		                left join products as p on po.product_id = p.id
+		                left join order_sell as o on pd.order_id = o.id
+		                LEFT JOIN product_category as ca ON p.cate_id=ca.id';
+		$query->fields = 'pd.*,p.img,pd.num as delivery_num,sp.store_price,sp.store_pos,sp.store_unit,sp.in_time,sp.rent_time,sl.name as store_name,p.name,p.unit,o.amount,po.price,o.num, po.product_id,po.weight_type, pd.status as pstatus, pd.admin_msg, po.user_id as seller_id, p.quantity,p.produce_area,p.attribute, po.expire_time,po.accept_area, ca.name as cate_name';
 		$query->where = 'pd.id=:id';
 		$query->bind = array('id'=>$delivery_id);
 		$res = $query->getObj();
@@ -184,11 +189,11 @@ class StoreDelivery extends Delivery{
 	}
 
 	/**
-	 * 获取仓库管理员所有待审核提货订单
-	 * @param  int $page    当前页
-	 * @param  int $user_id 管理员id
-	 * @return array    列表
-	 */
+ * 获取仓库管理员所有提货订单
+ * @param  int $page    当前页
+ * @param  int $user_id 管理员id
+ * @return array    列表
+ */
 	public function storeCheckList($page,$user_id){
 		$query = new Query('product_delivery as pd');
 		$query->join = 'left join order_sell as o on pd.order_id = o.id
@@ -198,7 +203,7 @@ class StoreDelivery extends Delivery{
 						left join store_list as sl on sl.id = sp.store_id
 						left join user as u on u.id = o.user_id
 						left join products as p on p.id = po.product_id';
-		
+
 		$query->fields = 'pd.id,o.order_no,pd.num as delivery_num,sl.name as store_name,o.num as order_num,u.type,p.name as product_name,p.unit';
 		$query->where = 'sm.user_id=:user_id';
 		$query->bind = array('user_id'=>$user_id);
@@ -212,18 +217,50 @@ class StoreDelivery extends Delivery{
 	}
 
 	/**
+	 * 获取仓库管理员所有待审核提货订单
+	 * @param  int $page    当前页
+	 * @param  int $user_id 管理员id
+	 * @return array    列表
+	 */
+	public function storeOutList($page,$user_id){
+		$query = new Query('product_delivery as pd');
+		$query->join = 'left join order_sell as o on pd.order_id = o.id
+						left join product_offer as po on pd.offer_id = po.id
+						left join store_products as sp on sp.product_id = po.product_id
+						left join store_manager as sm on sm.store_id = sp.store_id
+						left join store_list as sl on sl.id = sp.store_id
+						left join user as u on u.id = o.user_id
+						left join products as p on p.id = po.product_id';
+
+		$query->fields = 'pd.id,pd.status,o.order_no,pd.num as delivery_num,sl.name as store_name,o.num as order_num,u.type,p.name as product_name,p.unit';
+		$query->where = 'sm.user_id=:user_id';
+		$query->bind = array('user_id'=>$user_id);
+		$query->order = 'pd.create_time desc';
+		$query->page = $page;
+		$query->distinct = 'distinct';
+		$query->pagesize = 10;
+		$res = $query->find();
+		foreach($res as &$val){
+			$val['status_txt'] = $this->getStatus($val['status']);
+		}
+		$pageBar =  $query->getPageBar();
+		return array('data'=>$res,'bar'=>$pageBar);
+	}
+
+	/**
 	 * 仓库管理员确认出库
-	 * @param  int $delivery_id 提货表Id
+	 * @param  array $data 提货表数据
 	 * @param int $user_id 用户id
 	 * @return array $res  返回结果信息
 	 */
-	public function managerCheckout($delivery_id,$user_id=0){
+	public function managerCheckout($data,$user_id=0){
+		$delivery_id = $data['id'];
 		$delivery = $this->deliveryInfo($delivery_id);
 		$can = $this->checkStoreManager($delivery_id,$user_id);//检验是否是自己的仓单生成的提货单
 		if($delivery && $can && $delivery['status'] == parent::DELIVERY_MANAGER_CHECKOUT){
 			$deliveryData['id'] = $delivery_id;
 			$deliveryData['status'] = parent::DELIVERY_ADMIN_CHECK;//等待后台管理员进行审核
-			
+			$deliveryData = array_merge($deliveryData,$data);
 			return $this->deliveryUpdate($deliveryData);
 		}else{
 			return tool::getSuccInfo(0,'无效订单');
