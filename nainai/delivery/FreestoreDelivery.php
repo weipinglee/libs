@@ -357,8 +357,8 @@ class FreestoreDelivery extends Delivery{
 					$order->beginTrans();
 					$this->deliveryUpdate($deliveryData);
 
-					if($contract_status==1){
-						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>order\Order::CONTRACT_COMPLETE));
+					if($contract_status==1){//提货完成，将订单状态改成等待确认交易完结
+						$this->orderObj->orderUpdate(array('id'=>$delivery['order_id'],'contract_status'=>order\Order::CONTRACT_ADMIN_CHECK));
 
 					}
 

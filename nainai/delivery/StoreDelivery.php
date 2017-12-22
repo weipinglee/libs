@@ -276,8 +276,13 @@ class StoreDelivery extends Delivery{
 	 * @param int $is_checked 0:未审核 1:已审核
 	 */
 	public function storeOrderList($page = 1,$where = '',$is_checked = 0){
-		$query = new \Library\searchQuery('order_sell as o');
-		$query->join = 'left join product_offer as po on o.offer_id = po.id left join products as p on po.product_id = p.id left join product_category as pc on p.cate_id = pc.id left join product_delivery as pd on pd.order_id = o.id left join store_products as sp on p.id = sp.product_id left join store_list as sl on sp.store_id = sl.id';
+		$query = new \Library\searchQuery('product_delivery as pd');
+		$query->join = 'left join order_sell as o on pd.order_id = o.id
+		                left join product_offer as po on o.offer_id = po.id
+		                left join products as p on po.product_id = p.id
+		                left join product_category as pc on p.cate_id = pc.id
+		                left join store_products as sp on p.id = sp.product_id
+		                left join store_list as sl on sp.store_id = sl.id';
 		$query->fields = 'o.*,po.product_id,po.weight_type,p.name as product_name,pc.name as cate_name,sl.name as store_name,pd.create_time as delivery_time,p.unit,pd.num as delivery_num,pd.out_time,pd.act_num,pd.act_bang,pd.id as delivery_id, pd.expect_time, po.accept_area, po.price, p.produce_area, p.attribute,po.expire_time,p.quantity,sp.store_pos,pd.delivery_man,pd.status,pd.phone,pd.idcard,pd.plate_number,pd.remark, po.user_id as seller_id';
 		$relation = $is_checked ? '> ' : '= ';
 		$sql_where = '(o.mode='.\nainai\order\Order::ORDER_STORE.' or o.mode='.\nainai\order\Order::ORDER_FREESTORE.') and pd.status '.$relation.\nainai\delivery\Delivery::DELIVERY_ADMIN_CHECK;
@@ -293,7 +298,8 @@ class StoreDelivery extends Delivery{
 		}
 		$query->downExcel($list['list'], 'order_sellapply', '待审核出库');
 		return $list;
-	}	
+	}
+
 
 	/**
 	 * 获取后台审核订单详细信息

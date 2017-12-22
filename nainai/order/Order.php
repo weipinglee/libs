@@ -26,7 +26,7 @@ class Order{
 	const CONTRACT_SELLER_VERIFY = 7; //卖家确认  包含买方扣减款项
 	const CONTRACT_COMPLETE = 8;//合同完成
 
-	const CONTRACT_ADMIN_CHECK = 9;//后台出库确认
+	const CONTRACT_ADMIN_CHECK = 9;//等待后台确认交易完结确认单
 
 	//订单类型常量定义 
 	const ORDER_PURCHASE = 0;//采购报盘
@@ -1552,6 +1552,9 @@ class Order{
 				case self::CONTRACT_COMPLETE:
 					$title = '合同已完成';
 					break;
+				case self::CONTRACT_ADMIN_CHECK:
+					$title = '等待确认交易完结单';
+					break;
 				default:
 					$title = '未知状态';
 					break;
@@ -1656,6 +1659,23 @@ class Order{
 		$orderTotal=$model->fields('count(id) as num')->where($where)->bind($bind)->getObj();
 		$memcache->set('orderTotal'.$date,serialize($orderTotal));
 		return $orderTotal;
+	}
+
+	/**
+	 * 交易完结确认动作
+	 * @param $order_id int 订单状态
+	 * @param $status int 确认结果，1：通过，0：不通过
+	 *
+	 */
+	public function dotradeComplate($order_id,$status)
+	{
+		//判断合同弄状态是否是9
+
+		//更改合同状态为完成
+
+		//给交易双方发送信息
+
+		return tool::getSuccInfo();
 	}
 
 
