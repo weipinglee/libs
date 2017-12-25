@@ -1248,10 +1248,11 @@ class Order{
 		$query->where = 'do.id=:id';
 		$query->bind = array('id'=>$id);
 		$res = $query->getObj();
+
 		if(empty($res)){
 			return array();
 		}
-
+		$res['cancle'] = 0;
 		$res['img_thumb'] = \Library\thumb::get($res['img'],50,50);
 
 		if($res['mode'] == self::ORDER_STORE || $res['mode'] == self::ORDER_FREESTORE){
@@ -1264,6 +1265,12 @@ class Order{
 			$res['store_name'] = $data['store_name'];
 			$res['store_area'] = $data['area'];
 			$res['store_address'] = $data['address'];
+
+			//未在1一个小时内上传支付凭证，返回可取消标示
+			if($res['contract_status']==3 && $res['proof']=='' && time()-\Library\time::getTime($res['create_time'])>3600){
+				$res['cancle'] = 1;
+			}
+
 		}else{
 			$res['store_name'] = '-';
 		}
@@ -1692,6 +1699,21 @@ class Order{
 		}
 		return tool::getSuccInfo(0,'操作失败');
 
+	}
+
+	public function cancleOrder($order_id,$user_id)
+	{
+		$info = $this->orderInfo($order_id);
+		$obj = null;
+		if($info['mode']==self::ORDER_FREE){
+			$obj = new FreeOrder();
+		}
+		elseif($info['mode']==self::ORDER_FREESTORE){
+			$obj = new FreestoreOrder();
+		}
+		if($obj!=null){
+			return $obj->cancleOrder($order_id,$user_id);
+		}
 
 
 	}

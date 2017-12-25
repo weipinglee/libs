@@ -60,6 +60,54 @@ class FreeOrder extends Order{
 		}
 		return $res;
 	}
+
+	public function cancleOrder($order_id,$user_id)
+	{
+		$info = $this->orderInfo($order_id);
+		$offerInfo = $this->offerInfo($info['offer_id']);
+		if(!empty($info)){
+			$orderData['id'] = $order_id;
+			$tmp = $this->sellerUserid($order_id);
+			if($offerInfo['type'] == \nainai\offer\product::TYPE_SELL){
+				$seller = $tmp;
+				$buyer = intval($info['user_id']);
+			}else{
+				$seller = intval($info['user_id']);
+				$buyer = $tmp;
+			}
+			if($user_id!=$seller){
+				return tool::getSuccInfo(0,'订单不存在');
+			}
+			$mess_buyer = new \nainai\message($buyer);
+			$mess_seller = new \nainai\message($seller);
+			if($info['mode']!=self::ORDER_FREE)
+				return tool::getSuccInfo(0,'订单不存在');
+			if($info['contract_status'] != self::CONTRACT_BUYER_RETAINAGE)
+				return tool::getSuccInfo(0,'合同状态有误');
+			$orderData = array();
+			$orderData['id'] = $order_id;
+			$orderData['contract_status'] = self::CONTRACT_CANCEL;
+			$upd_res = $this->orderUpdate($orderData);
+
+			//将商品数量解冻
+			$pro_res = $this->productsFreezeRelease($offerInfo,$info['num']);
+
+
+			$res = $upd_res['success'] == 1  && $pro_res === true ? true : $upd_res['info'].$pro_res;
+
+			if($res === true){
+				$content = '合同'.$info['order_no'].'由于买方未按时上传支付凭证已取消。';
+				$mess_buyer->send('common',$content);
+
+				$mess_seller->send('common',$content);
+				return tool::getSuccInfo();
+			}
+			return tool::getSuccInfo(0,'操作失败');
+		}
+		else{
+			return tool::getSuccInfo(0,'订单不存在');
+		}
+	}
 }
 
 
