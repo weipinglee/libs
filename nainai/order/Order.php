@@ -377,7 +377,7 @@ class Order{
 
 	//根据订单id获取订单内容	
 	public function orderInfo($order_id){
-		return empty($order_id) ? array() : $this->order->where(array('id'=>$order_id))->fields()->getObj();
+		return empty($order_id) ? array() : $this->order->where(array('id'=>$order_id))->getObj();
 	}
 
 	//根据报盘id获取相应信息
@@ -1670,12 +1670,30 @@ class Order{
 	public function dotradeComplate($order_id,$status)
 	{
 		//判断合同弄状态是否是9
+        $orderData = $this->orderInfo($order_id);
+		if($orderData['contract_status']==self::CONTRACT_ADMIN_CHECK){
+			//更改合同状态为完成
+			$update = array('id'=>$order_id,'contract_status'=>self::CONTRACT_COMPLETE);
+			$res = $this->orderUpdate($update);
+			if($res['success']==1){
+				//给交易双方发送信息
+				$offer = new M('product_offer');
+                $buyer_id = $orderData['user_id'];
+				$seller_id = $offer->where(array('id'=>$orderData['offer_id']))->getField('user_id');
+				$message = new \nainai\message($buyer_id);
+				$param = array('content'=>'您有一笔合同已经完成，合同号：'.$orderData['order_no'].'交易完结确认单生成，请您及时查看。','title'=>'交易提醒');
+				$message->send('common',$param);
+				$message = new \nainai\message($seller_id);
+				$message->send('common',$param);
 
-		//更改合同状态为完成
+				return tool::getSuccInfo();
+			}
 
-		//给交易双方发送信息
+		}
+		return tool::getSuccInfo(0,'操作失败');
 
-		return tool::getSuccInfo();
+
+
 	}
 
 

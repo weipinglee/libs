@@ -64,7 +64,13 @@ class message{
 	public function send($type,$param=0,$short=1){
 		if(in_array($type, self::$type)){
 			if(is_array($param)){
-				$mess=call_user_func_array(array(__CLASS__,$type),array($param));
+				if($type=='common'){
+					$mess=call_user_func_array(array(__CLASS__,$type),$param);
+				}
+				else{
+					$mess=call_user_func_array(array(__CLASS__,$type),array($param));
+				}
+
 			}
 			else{
 				$mess=call_user_func(array(__CLASS__,$type),$param);
