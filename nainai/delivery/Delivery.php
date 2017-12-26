@@ -166,7 +166,7 @@ class Delivery{
 						elseif($value['mode'] == order\Order::ORDER_FREESTORE){
 							//确认出库
 							$href = url::createUrl("/storeDelivery/storeOutPage?id={$value['delivery_id']}");
-							$action []= array('name'=>'确认出库','url'=>$href);
+							$action []= array('name'=>'确认','url'=>$href);
 						}
 					}
 					break;
@@ -349,7 +349,7 @@ class Delivery{
 							$content = '(合同' . $order_info['order_no'] . '买方已申请提货，请您及时进行确认并支付仓库费，并通知仓库管理员进行发货处理。)' . $jump_url;
 							$mess_seller->send('common', $content);
 						}elseif($order_info['mode'] == \nainai\order\Order::ORDER_FREESTORE){
-								$content = '(合同'.$order_info['order_no'].'买方已申请提货，请您及时进行确认出库，并通知仓库管理员进行发货处理。)'.$jump_url;
+								$content = '(合同'.$order_info['order_no'].'买方已申请提货，请您及时进行确认。)'.$jump_url;
 								$mess_seller->send('common',$content);
 
 						}else{
