@@ -1719,4 +1719,55 @@ class Order{
 	}
 
 
+	/**
+	 * 入库单列表
+	 * @param $page
+	 * @return array
+	 */
+    public function rukuList($page,$user_id)
+	{
+		$orderObj = new Query('order_sell as o');
+		$orderObj->join = 'left join product_offer as po on o.offer_id=po.id
+		                   left join products as p on po.product_id=p.id
+		                   left join store_products as s on s.product_id=p.id
+		                   left join store_list as sl on s.store_id=sl.id';
+		$orderObj->fields = 'o.id,o.jiesuan_prove,o.num,p.id as product_id,p.unit,p.name,p.market_id,p.attribute,sl.name as store_name';
+		$orderObj->where = 'o.user_id='.$user_id.' and (o.mode='.self::ORDER_FREESTORE.' or o.mode='.self::ORDER_STORE.')';
+		$orderObj->page=$page;
+		$orderObj->pagesize = 20;
+		$productObj = new \nainai\offer\product();
+		$data = $orderObj->find();
+		foreach($data as &$val){
+			$val['product'] = $productObj->getProductDetails($val['product_id']);
+		}
+        $bar = $orderObj->getPageBar();
+		return array('list'=>$data,'bar'=>$bar);
+	}
+
+	/**
+	 * 入库单列表
+	 * @param $page
+	 * @return array
+	 */
+	public function rukuDetail($order_id,$user_id)
+	{
+		$orderObj = new Query('order_sell as o');
+		$orderObj->join = 'left join product_offer as po on o.offer_id=po.id
+		                   left join products as p on po.product_id=p.id
+		                   left join store_products as s on s.product_id=p.id
+		                   left join store_list as sl on s.store_id=sl.id';
+		$orderObj->fields = 'o.id,o.jiesuan_prove,o.num,p.id as product_id,p.unit,p.name,p.market_id,p.attribute,sl.name as store_name,s.*';
+		$orderObj->where = 'o.id='.$order_id.' and o.user_id='.$user_id.' and (o.mode='.self::ORDER_FREESTORE.' or o.mode='.self::ORDER_STORE.')';
+		$orderObj->limit = 1;
+		$productObj = new \nainai\offer\product();
+		$data = $orderObj->find();
+		foreach($data as &$val){
+			$val['product'] = $productObj->getProductDetails($val['product_id']);
+		}
+		return $data;
+	}
+
+
+
+
 }
