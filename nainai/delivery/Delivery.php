@@ -460,6 +460,24 @@ class Delivery{
 		}
 	}
 
+	/**
+	 * 卖方自动确认出库信息
+	 * @param $delivery_id
+	 * @return bool
+	 */
+	public function createCheckOutEvent($delivery_id)
+	{
+		$model = new M('product_delivery');
+		$event_name = 'deliverySellerCheck_'.$delivery_id;
+		$execute_time = \Library\time::getDateTime('Y-m-d H:i:s',time()+60);
+		$sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$execute_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
+		call deliverySellerCheck('.$delivery_id.');';
+		$res = $model->query($sql);
+		if($res){
+			return true;
+		}
+		return false;
+	}
 
 
 

@@ -127,6 +127,8 @@ class StoreDelivery extends Delivery{
 		return tool::getSuccInfo(0,$error);
 	}
 
+
+
 	/**
 	 * 卖方支付仓库管理费用
 	 * @param  int $delivery_id 提货表id	

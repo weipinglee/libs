@@ -1672,16 +1672,16 @@ class Order{
 	/**
 	 * 交易完结确认动作
 	 * @param $order_id int 订单状态
-	 * @param $status int 确认结果，1：通过，0：不通过
+	 * @param $data array 要更新的数据
 	 *
 	 */
-	public function dotradeComplate($order_id,$status)
+	public function dotradeComplate($order_id,$data)
 	{
 		//判断合同弄状态是否是9
         $orderData = $this->orderInfo($order_id);
 		if($orderData['contract_status']==self::CONTRACT_ADMIN_CHECK){
 			//更改合同状态为完成
-			$update = array('id'=>$order_id,'contract_status'=>self::CONTRACT_COMPLETE);
+			$update = array('id'=>$order_id,'contract_status'=>self::CONTRACT_COMPLETE,'complate_prove'=>$data['complate_prove']);
 			$res = $this->orderUpdate($update);
 			if($res['success']==1){
 				//给交易双方发送信息
