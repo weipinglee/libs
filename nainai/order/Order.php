@@ -416,7 +416,7 @@ class Order{
 				$amount = floatval($info['amount']);
 				$buyerDeposit = floatval($info['pay_deposit']);
 				$retainage = $amount - $buyerDeposit;
-				$sim_oper = in_array($info['mode'],array(self::ORDER_FREE));
+				$sim_oper = in_array($info['mode'],array(self::ORDER_FREE,self::ORDER_FREESTORE));
 				if($retainage>0){
 					try {
 						$this->order->beginTrans();
@@ -463,7 +463,7 @@ class Order{
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$jump_url = "<a href='".url::createUrl('/contract/sellerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
-								$content = $sim_oper ? '(合同'.$info['order_no'].',买方已支付货款,请您及时进行凭证确认,并关注资金动态。)'.$jump_url:'(合同'.$info['order_no'].',买家已支付尾款。请您及时确认并关注资金动态)'.$jump_url;
+								$content = $sim_oper ? '买家已上传支付凭证，请您及时进行收款查看并确认凭证。'.$jump_url:'(合同'.$info['order_no'].',买家已支付尾款。请您及时确认并关注资金动态)'.$jump_url;
 								$mess->send('common',$content);
 								$log_res = $this->payLog($order_id,$user_id,0,'买家上传线下支付凭证');
 								$res = $log_res === true ? $this->order->commit() : $log_res;
