@@ -1429,6 +1429,7 @@ class Order{
 					$title = '合同已完成';
 					break;
 				case self::CONTRACT_ADMIN_CHECK://TODO:
+					$title = '等待后台交易完结确认';
 					break;
 				default:
 					$title = '无效状态';

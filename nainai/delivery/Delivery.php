@@ -94,6 +94,12 @@ class Delivery{
 		return $res;
 	}
 
+	public function deliveryInfoByOrder($order_id){
+		$res =  empty($order_id) ? array() : $this->delivery->where(array('order_id'=>$order_id))->getObj();
+		$res['num'] = number_format($res['num'],2);
+		return $res;
+	}
+
 
 
 	/**
@@ -110,7 +116,7 @@ class Delivery{
 		$t2 = $is_seller ? 'po' : 'off';
 		$query = new Query('order_sell as po');
 		$query->join = 'left join product_delivery as pd on po.id = pd.order_id left join product_offer as off on po.offer_id = off.id left join products as p on off.product_id = p.id left join store_products as sp on sp.product_id = off.product_id left join store_list as sl on sl.id = sp.store_id';
-		$query->where = '(('.$t.'.user_id=:user_id and off.type=1) or ('.$t2.'.user_id = :tmp_id and off.type=2)) and po.mode in ('.order\Order::ORDER_DEPOSIT.','.order\Order::ORDER_STORE.','.order\Order::ORDER_PURCHASE.','.order\Order::ORDER_FREESTORE.') and po.contract_status in ('.order\Order::CONTRACT_COMPLETE.','.order\Order::CONTRACT_EFFECT.','.order\Order::CONTRACT_VERIFY_QAULITY.','.order\Order::CONTRACT_DELIVERY_COMPLETE.')';
+		$query->where = '(('.$t.'.user_id=:user_id and off.type=1) or ('.$t2.'.user_id = :tmp_id and off.type=2)) and po.mode in ('.order\Order::ORDER_DEPOSIT.','.order\Order::ORDER_STORE.','.order\Order::ORDER_PURCHASE.','.order\Order::ORDER_FREESTORE.') and po.contract_status in ('.order\Order::CONTRACT_COMPLETE.','.order\Order::CONTRACT_ADMIN_CHECK.','.order\Order::CONTRACT_EFFECT.','.order\Order::CONTRACT_VERIFY_QAULITY.','.order\Order::CONTRACT_DELIVERY_COMPLETE.')';
 		$query->fields = 'po.*,pd.num as delivery_num,pd.create_time as delivery_time,pd.status,pd.id as delivery_id,p.name,p.unit,sl.name as store_name';
 		$query->order = 'pd.create_time desc';
 		// $query->order = 'po.order_no,pd.status asc';
