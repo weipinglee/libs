@@ -174,7 +174,7 @@ class jingjiaOffer extends product{
         );
         $insertRes = $baojiaObj->data($insertData)->add();
         if($insertRes){
-            if($price>=$res['price_r']){//报价高于设置的最高价，调用用户定义的mysql程序，更改offer状态
+            if($res['price_r']>0 && $price>=$res['price_r']){//报价高于设置的最高价，调用用户定义的mysql程序，更改offer状态
                 $sql = 'CALL jingjiaHandle('.$offer_id.','.$user_id.','.$price.')';
                 $offerObj->query($sql);
                 $message = new \nainai\message($user_id);
