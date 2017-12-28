@@ -37,7 +37,7 @@ class jingjiaOffer extends product{
         $obj = new \Library\M('product_offer');
         $obj->beginTrans();
         $offer_id = intval($offer_id);
-        $query = 'select * from product_offer where id='.$offer_id.' and status='.self::OFFER_OK.' AND user_id='.$user_id.' FOR UPDATE';
+        $query = 'select * from product_offer where id='.$offer_id.' and status='.self::OFFER_OK.' AND user_id='.$user_id.' and mode=4  FOR UPDATE';
         $newOfferData = $obj->query($query);//从旧的报盘中查询出数据作为新的报盘数据
         $oldOfferData = array();
         if(isset($newOfferData[0])){
@@ -68,6 +68,7 @@ class jingjiaOffer extends product{
             $newOfferData['minimum'] = 0;
             $newOfferData['sell_num'] = 0;
             $newOfferData['minstep'] = 0;
+            $newOfferData['jing_stepprice'] = $offerData['jing_stepprice'];
             //计算新报盘和旧报盘的最大购买数量
             if($newOfferData['max_num']>0){
                 $max_num = min($newOfferData['max_num']-$newOfferData['sell_num'],$proLeft);
@@ -115,8 +116,9 @@ class jingjiaOffer extends product{
      * @param $offer_id int 报盘id
      * @param $price float 提报的价格
      * @param $user_id int 报价的用户id
+     * @param $pay_way int 支付方式，默认代理账户
      */
-    public function baojia($offer_id,$price,$user_id)
+    public function baojia($offer_id,$price,$user_id,$pay_way=1)
     {
         $offerObj = new M('product_offer');
         //获取符合条件的报盘
@@ -136,22 +138,40 @@ class jingjiaOffer extends product{
         //判断价格是否合适
         $baojiaObj = new M('product_jingjia');
         $baojiaData = $baojiaObj->where(array('offer_id'=>$offer_id))->fields('max(price) as max')->getObj();
-        //没有报价且价格低于设置的最低价时不能报价
-        if(!isset($baojiaData['max']) && $price<$res['price_l']){
-            return tool::getSuccInfo(0,'您的报价低于卖家设置的最低价，不能报价');
+        //获取报价的基础价
+        $minPrice = isset($baojiaData['max']) ? $baojiaData['max'] : $res['price_l'];
+        if(!isset($baojiaData['max']) && $price<=$res['price_l']){
+            return tool::getSuccInfo(0,'您的报价不能低于卖家设置的最低价，请重新出价');
         }
-        //出价低于其他用户的出价不能报价
-        if(isset($baojiaData['max']) && $price<=$baojiaData['max']){
-            return tool::getSuccInfo(0,'您的报价低于其他竞价者的出价，请重新出价');
+        if(isset($baojiaData['max']) && $price <=$baojiaData['max']){
+            return tool::getSuccInfo(0,'您的报价不能低于当前报价的最高价，请重新出价');
+        }
+        if($res['jing_stepprice']>0 && ($price-$minPrice)%$res['jing_stepprice']!=0){
+            return tool::getSuccInfo(0,'报价必须按照'.$res['jing_stepprice'].'的倍数递增');
         }
 
+
+        $offerObj->beginTrans();
+        $fund = new \nainai\fund();
+
+        //该用户上一个报价的自己进行释放，并将旧的报价记录更新为已释放
+        $oldBaojia = $baojiaObj->where(array('offer_id'=>$offer_id,'is_freeze'=>0))->fields('*')->order('id desc')->getObj();
+        if(isset($oldBaojia['price']) && $oldBaojia['price']>0){
+            $oldfundObj = $fund->createFund($oldBaojia['pay_way']);
+            $oldfundObj->freezeRelease($oldBaojia['user_id'],$oldBaojia['price'],'释放参加竞价交易报价的金额');
+            $baojiaObj->where(array('id'=>$oldBaojia['id']))->data(array('is_freeze'=>1))->update();
+        }
+        //冻结该用户新的金额
+        $fundObj = $fund->createFund($pay_way);
+        $fundObj->freeze($user_id,$price,'参加竞价交易报价冻结金额');
         $insertData = array(
             'user_id'=>$user_id,
             'offer_id'=>$offer_id,
             'price' => $price,
-            'time' => time::getDateTime()
+            'time' => time::getDateTime(),
+            'is_freeze'=>0,
+            'pay_way' => $pay_way
         );
-        $offerObj->beginTrans();
         $insertRes = $baojiaObj->data($insertData)->add();
         if($insertRes){
             if($price>=$res['price_r']){//报价高于设置的最高价，调用用户定义的mysql程序，更改offer状态
