@@ -986,6 +986,7 @@ class Order{
 								$error = '无效支付方式';
 							}
 
+
 							if(!$error){
 								$this->order->commit();
 								return tool::getSuccInfo();
