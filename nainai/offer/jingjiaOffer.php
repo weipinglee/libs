@@ -140,8 +140,8 @@ class jingjiaOffer extends product{
         $baojiaData = $baojiaObj->where(array('offer_id'=>$offer_id))->fields('max(price) as max')->getObj();
         //获取报价的基础价
         $minPrice = isset($baojiaData['max']) ? $baojiaData['max'] : $res['price_l'];
-        if(!isset($baojiaData['max']) && $price<=$res['price_l']){
-            return tool::getSuccInfo(0,'报价需要高于卖方设置的最低价，请重新出价');
+        if(!isset($baojiaData['max']) && $price<$res['price_l']){
+            return tool::getSuccInfo(0,'您的报价低于卖方设置的最低价，请重新出价');
         }
         if(isset($baojiaData['max']) && $price <=$baojiaData['max']){
             return tool::getSuccInfo(0,'您的报价不能低于当前报价的最高价，请重新出价');
