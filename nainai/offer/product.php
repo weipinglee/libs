@@ -215,7 +215,7 @@ class product  {
     }
 
     public function getErrorMessage(){
-        return $this->_errorInfo;
+        return $this->_productObj->getError();
     }
 
     public function setErrorMessage($mess){

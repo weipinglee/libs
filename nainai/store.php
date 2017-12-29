@@ -471,6 +471,7 @@ class store{
         else{
             $resInfo = Tool::getSuccInfo(0,is_string($res) ? $res : '系统繁忙，请稍后再试');
         }
+
         return $resInfo;
 
 

@@ -154,24 +154,30 @@ class jingjiaOffer extends product{
         $offerObj->beginTrans();
         $fund = new \nainai\fund();
 
-        //该用户上一个报价的自己进行释放，并将旧的报价记录更新为已释放
+        //冻结该用户新的金额
+        $fundObj = $fund->createFund($pay_way);
+        $amount = bcmul($price,$res['max_num'],2);
+        $payRes = $fundObj->freeze($user_id,$amount,'参加竞价交易报价冻结金额');
+        if($payRes!==true){
+            $offerObj->rollBack();
+            return tool::getSuccInfo(0,'账户内资金不足，请充值后再报价');
+        }
+        //上一个报价冻结的金额进行释放，并将该记录更新为已释放
         $oldBaojia = $baojiaObj->where(array('offer_id'=>$offer_id,'is_freeze'=>0))->fields('*')->lock('update')->order('id desc')->getObj();
         if(isset($oldBaojia['price']) && $oldBaojia['price']>0){
             $oldfundObj = $fund->createFund($oldBaojia['pay_way']);
             $oldfundObj->freezeRelease($oldBaojia['user_id'],$oldBaojia['amount'],'释放参加竞价交易报价的金额');
             $baojiaObj->where(array('id'=>$oldBaojia['id']))->data(array('is_freeze'=>1))->update();
         }
-        //冻结该用户新的金额
-        $fundObj = $fund->createFund($pay_way);
-        $amount = bcmul($price,$res['max_num'],2);
-        $fundObj->freeze($user_id,$amount,'参加竞价交易报价冻结金额');
+      //插入报价数据
         $insertData = array(
             'user_id'=>$user_id,
             'offer_id'=>$offer_id,
             'price' => $price,
             'time' => time::getDateTime(),
             'is_freeze'=>0,
-            'pay_way' => $pay_way
+            'pay_way' => $pay_way,
+            'amount'=>$amount
         );
         $insertRes = $baojiaObj->data($insertData)->add();
         if($insertRes){
