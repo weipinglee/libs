@@ -240,7 +240,7 @@ class certificate{
             if(!in_array($k,$reCert))
                 continue;
             $m->table($val);
-            $m->data(array('status'=>self::CERT_INIT))->where(array('user_id'=>$user_id))->update();
+            $m->data(array('status'=>self::CERT_APPLY))->where(array('user_id'=>$user_id))->update();
         }
 
     }

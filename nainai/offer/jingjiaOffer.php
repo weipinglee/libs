@@ -121,10 +121,15 @@ class jingjiaOffer extends product{
     public function baojia($offer_id,$price,$user_id,$pay_way=1)
     {
         $offerObj = new M('product_offer');
+
         //获取符合条件的报盘
-        $res = $offerObj->where(array('id'=>$offer_id,'sub_mode'=>$this->jingjiaMode,'status'=>self::OFFER_OK))->getObj();
+        $res = $offerObj->where(array('id'=>$offer_id,'sub_mode'=>$this->jingjiaMode))->getObj();
         if(empty($res)){
-            return tool::getSuccInfo(0,'该报盘不存在或已成交');
+            return tool::getSuccInfo(0,'该报盘不存在');
+        }
+
+        if($res['status']!=1){
+            return tool::getSuccInfo(0,'该报盘已成交');
         }
         if($user_id==$res['user_id'])
             return tool::getSuccInfo(0,'不能给自己的报盘报价');
@@ -150,8 +155,11 @@ class jingjiaOffer extends product{
             return tool::getSuccInfo(0,'报价必须按照'.$res['jing_stepprice'].'的倍数递增');
         }
 
-
         $offerObj->beginTrans();
+        //对相应的竞价报盘行锁定，同一竞价的多个会话的报价必须串行执行
+        $offerObj->where(array('id'=>$offer_id))->lock('update')->getObj();
+
+
         $fund = new \nainai\fund();
 
         //冻结该用户新的金额
