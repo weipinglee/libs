@@ -37,7 +37,7 @@ class jingjiaOffer extends product{
         $obj = new \Library\M('product_offer');
         $obj->beginTrans();
         $offer_id = intval($offer_id);
-        $query = 'select * from product_offer where id='.$offer_id.' and status='.self::OFFER_OK.' AND user_id='.$user_id.' and mode=4  FOR UPDATE';
+        $query = 'select * from product_offer where id='.$offer_id.' and status='.self::OFFER_OK.' AND user_id='.$user_id.' and (mode=4 or mode=2 ) FOR UPDATE';
         $newOfferData = $obj->query($query);//从旧的报盘中查询出数据作为新的报盘数据
         $oldOfferData = array();
         if(isset($newOfferData[0])){

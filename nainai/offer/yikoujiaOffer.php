@@ -146,6 +146,7 @@ class yikoujiaOffer extends product{
         if($data['status']==self::OFFER_COMPLETE){
             return tool::getSuccInfo(0,'该一口价报盘已售罄');
         }
+        return tool::getSuccInfo();
     }
 
     public function afterTrade($offer_id){
