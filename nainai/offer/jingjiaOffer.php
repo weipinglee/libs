@@ -86,7 +86,7 @@ class jingjiaOffer extends product{
             if(time::getTime($newOfferData['end_time'])<=time::getTime($newOfferData['start_time'])){
                 return tool::getSuccInfo(0,'结束时间必须大于开始时间');
             }
-            
+
             $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;
             $newOfferData['max_num'] = $offerData['max_num'];
             //插入新的报盘和更改旧报盘
