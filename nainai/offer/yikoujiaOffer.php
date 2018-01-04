@@ -129,7 +129,7 @@ class yikoujiaOffer extends product{
 
     public function beforeTrade($offer_id,$user_id=0){
         $jingjiaOffer = new M('product_offer');
-        $data = $jingjiaOffer->where(array('id'=>$offer_id))->fields('start_time,end_time,status')->getObj();
+        $data = $jingjiaOffer->where(array('id'=>$offer_id))->lock('update')->fields('start_time,end_time,status')->getObj();
         if(empty($data))
             return tool::getSuccInfo(0,'该报盘不存在');
 
