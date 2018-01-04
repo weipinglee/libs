@@ -77,9 +77,10 @@ class yikoujiaOffer extends product{
             if(time::getTime($newOfferData['end_time'])<=time::getTime($newOfferData['start_time'])){
                 return tool::getSuccInfo(0,'结束时间必须大于开始时间');
             }
-            $newOfferData['max_num'] = $offerData['max_num'];
+
             $newOfferData['sell_num'] = 0;
-            $oldOfferData['max_num'] =  $max_num - $newOfferData['max_num'] ;
+            $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;
+            $newOfferData['max_num'] = $offerData['max_num'];
 
             //插入新的报盘和更改旧报盘
             $newOfferId = $obj->data($newOfferData)->add();
@@ -138,15 +139,15 @@ class yikoujiaOffer extends product{
         //判断是否处于交易时间内
         $now = time::getTime();
         if($now<time::getTime($data['start_time']) ){
-            return tool::getSuccInfo(0,'该一口价报盘还未开始');
+            return tool::getSuccInfo(0,'该抢购报盘还未开始');
         }
 
         if($now>time::getTime($data['end_time'])){
-            return tool::getSuccInfo(0,'该一口价报盘已结束');
+            return tool::getSuccInfo(0,'该抢购报盘已结束');
         }
 
         if($data['status']==self::OFFER_COMPLETE){
-            return tool::getSuccInfo(0,'该一口价报盘已售罄');
+            return tool::getSuccInfo(0,'该抢购报盘已售罄');
         }
         return tool::getSuccInfo();
     }
