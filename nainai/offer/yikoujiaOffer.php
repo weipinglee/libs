@@ -59,6 +59,7 @@ class yikoujiaOffer extends product{
             $newOfferData['divide'] = 0;
             $newOfferData['minimum'] = 0;
             $newOfferData['minstep'] = 0;
+
             //计算新报盘和旧报盘的最大购买数量
             if($newOfferData['max_num']>0){
                 $max_num = min($newOfferData['max_num']-$newOfferData['sell_num'],$proLeft);
@@ -77,6 +78,7 @@ class yikoujiaOffer extends product{
                 return tool::getSuccInfo(0,'结束时间必须大于开始时间');
             }
             $newOfferData['max_num'] = $offerData['max_num'];
+            $newOfferData['sell_num'] = 0;
             $oldOfferData['max_num'] =  $max_num - $newOfferData['max_num'] ;
 
             //插入新的报盘和更改旧报盘
