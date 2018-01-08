@@ -23,7 +23,7 @@ class certificate{
     const CERT_SUCCESS =   2; //后台确认认证通过
     const CERT_FAIL    =   3; //后台拒绝认证
 	private $db_name = '';
-    
+
     private $check_other = 0;//是否校验其他认证
 
     protected static $certType = '';
