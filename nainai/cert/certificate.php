@@ -23,6 +23,8 @@ class certificate{
     const CERT_SUCCESS =   2; //后台确认认证通过
     const CERT_FAIL    =   3; //后台拒绝认证
 	private $db_name = '';
+    
+    private $check_other = 0;//是否校验其他认证
 
     protected static $certType = '';
     public static $certTable = array(
@@ -101,6 +103,9 @@ class certificate{
      * @return array 需要重新认证的类型数组
      */
     public function checkOtherCert($accData){
+        if(!$this->check_other){
+            return array();
+        }
         $user_id = $this->user_id;
         $certType = self::$certType;
         $certClass = self::$certClass;
