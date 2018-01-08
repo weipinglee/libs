@@ -66,9 +66,10 @@ class jingjiaOffer extends product{
             $newOfferData['price_r'] = $offerData['price_r'];
             $newOfferData['divide'] = 0;
             $newOfferData['minimum'] = 0;
-            $newOfferData['sell_num'] = 0;
             $newOfferData['minstep'] = 0;
             $newOfferData['jing_stepprice'] = $offerData['jing_stepprice'];
+
+
             //计算新报盘和旧报盘的最大购买数量
             if($newOfferData['max_num']>0){
                 $max_num = min($newOfferData['max_num']-$newOfferData['sell_num'],$proLeft);
@@ -76,6 +77,7 @@ class jingjiaOffer extends product{
             else{
                 $max_num = $proLeft;
             }
+
 
             if($offerData['max_num']>$max_num){
                 return tool::getSuccInfo(0,'参与活动的商品量不能大于原报盘剩余量');
@@ -87,8 +89,9 @@ class jingjiaOffer extends product{
                 return tool::getSuccInfo(0,'结束时间必须大于开始时间');
             }
 
-            $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;
-            $newOfferData['max_num'] = $offerData['max_num'];
+            $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;//原报盘最大数量减去竞价报盘的数量
+            $newOfferData['max_num'] = $offerData['max_num'];//竞价报盘的数量等于参数传递的数量
+            $newOfferData['sell_num'] = 0;//新的竞价报盘的已售数量为0
             //插入新的报盘和更改旧报盘
             $newOfferId = $obj->data($newOfferData)->add();
             $obj->data($oldOfferData)->where(array('id'=>$offer_id))->update();
