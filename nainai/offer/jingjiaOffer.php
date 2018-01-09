@@ -65,9 +65,11 @@ class jingjiaOffer extends product{
            $newOfferData['price_l'] = $offerData['price_l'];
             $newOfferData['price_r'] = $offerData['price_r'];
             $newOfferData['divide'] = 0;
+            $newOfferData['price'] = 0;
             $newOfferData['minimum'] = 0;
             $newOfferData['minstep'] = 0;
             $newOfferData['jing_stepprice'] = $offerData['jing_stepprice'];
+            $newOfferData['status'] = 0;
 
 
             //计算新报盘和旧报盘的最大购买数量

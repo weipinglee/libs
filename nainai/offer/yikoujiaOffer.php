@@ -59,6 +59,7 @@ class yikoujiaOffer extends product{
             $newOfferData['divide'] = 0;
             $newOfferData['minimum'] = 0;
             $newOfferData['minstep'] = 0;
+            $newOfferData['status'] = 0;
 
             //计算新报盘和旧报盘的最大购买数量
             if($newOfferData['max_num']>0){
