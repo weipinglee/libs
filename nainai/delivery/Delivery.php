@@ -152,7 +152,7 @@ class Delivery{
 					if(!$is_seller){
 						$title = '已申请提货';
 					}else{
-						$title = '买家申请提货';echo $value['mode'];
+						$title = '买家申请提货';
 						if($value['order']['mode'] != order\Order::ORDER_STORE){
 							//卖家发货（保证金提货）
 							// $href = url::createUrl("/depositDelivery/sellerConsignment?id={$value['delivery_id']}&action_confirm=1&info=确认发货");
