@@ -187,9 +187,11 @@ class DepositOrder extends Order{
 						if($info['amount'] === $info['pay_deposit']){
 							//全款 合同生效 等待提货
 							$orderData['contract_status'] = self::CONTRACT_EFFECT;
+							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,请您及时操作。';
 						}else{
 							//定金 等待支付尾款
 							$orderData['contract_status'] = self::CONTRACT_BUYER_RETAINAGE;
+							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,请您及时支付尾款。';
 						}
 
 						$upd_res = $this->orderUpdate($orderData);
@@ -211,7 +213,7 @@ class DepositOrder extends Order{
 							$res = $account->freeze($seller,$seller_deposit,$note);
 							
 							$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
-							$content = '合同'.$info['order_no'].'报价方已支付保证金,请您及时支付尾款。'.$jump_url;
+							$content = $msg_txt.$jump_url;
 							$mess_buyer->send('common',$content);
 						}
 					}else{

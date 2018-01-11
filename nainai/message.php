@@ -283,22 +283,22 @@ class message{
 
 		if ($param['type'] == \nainai\offer\product::TYPE_BUY) {
 			if ($param['status'] == \nainai\offer\product::OFFER_OK) {
-				$message = '您好，您的“' .$param['name']. '”报盘信息已通过审核。<a href="' .\Library\url::createUrl('/purchase/lists@user'). '">跳转到采购列表</a>';
+				$message = '您好，您的“' .$param['mode_txt'].' '.$param['name']. '”报盘信息已通过审核。<a href="' .\Library\url::createUrl('/purchase/lists@user'). '">跳转到采购列表</a>';
 			}else{
-				$message = '很遗憾，您的“' .$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/purchase/lists@user'). '">跳转到采购列表</a>';
+				$message = '很遗憾，您的“' .$param['mode_txt'].' '.$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/purchase/lists@user'). '">跳转到采购列表</a>';
 			}
 		}else{
 			if ($param['mode'] == \nainai\offer\product::FREE_OFFER) {
 				if ($param['status'] == \nainai\offer\product::OFFER_OK) {
-					$message = '您好，您的“' .$param['name']. '”报盘信息已通过审核。已收取您' .$param['offer_fee']. '元的报盘费。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
+					$message = '您好，您的“' .$param['mode_txt'].' '.$param['name']. '”报盘信息已通过审核。已收取您' .$param['offer_fee']. '元的报盘费。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
 				}else{
-					$message = '很遗憾，您的“' .$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
+					$message = '很遗憾，您的“' .$param['mode_txt'].' '.$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
 				}
 			}else {
 				if ($param['status'] == \nainai\offer\product::OFFER_OK) {
-					$message = '您好，您的“' .$param['name']. '”报盘信息已通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
+					$message = '您好，您的“' .$param['mode_txt'].' '.$param['name']. '”报盘信息已通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
 				}else{
-					$message = '很遗憾，您的“' .$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
+					$message = '很遗憾，您的“'.$param['mode_txt'].' ' .$param['name']. '”报盘信息未通过审核。<a href="' .\Library\url::createUrl('/managerdeal/productlist@user'). '">跳转到销售列表</a>';
 				}
 			}
 		}

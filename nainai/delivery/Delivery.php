@@ -137,7 +137,7 @@ class Delivery{
 			$value['delivery_id'] = empty($value['delivery_id']) ? '-' : $value['delivery_id'];
 			$value['delivery_num'] = number_format($value['delivery_num'],2);
 			$value['num'] = number_format($value['num'],2);
-			$value['store_name'] = $value['mode'] == order\Order::ORDER_STORE ? (empty($value['store_name']) ? '无效仓库' : $value['store_name']) : '-';
+			$value['store_name'] = $value['order']['mode'] == order\Order::ORDER_STORE ? (empty($value['store_name']) ? '无效仓库' : $value['store_name']) : '-';
 			switch ($value['status']) {
 				case -1:
 					if(!$is_seller){
@@ -152,8 +152,8 @@ class Delivery{
 					if(!$is_seller){
 						$title = '已申请提货';
 					}else{
-						$title = '买家申请提货';
-						if($value['mode'] != order\Order::ORDER_STORE){
+						$title = '买家申请提货';echo $value['mode'];
+						if($value['order']['mode'] != order\Order::ORDER_STORE){
 							//卖家发货（保证金提货）
 							// $href = url::createUrl("/depositDelivery/sellerConsignment?id={$value['delivery_id']}&action_confirm=1&info=确认发货");
 							$href = url::createUrl("/delivery/consignment?id={$value['id']}&delivery_id={$value['delivery_id']}");
