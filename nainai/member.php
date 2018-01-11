@@ -222,7 +222,7 @@ class member{
         return $secret_url = array(
             'deposit/sellerdeposit',
             'managerdeal/dofreeoffer','purchaseorder/geneorderhandle',
-            'bid/bidrelease','bid/replypaydoc','bid/replyGivePrice'
+            'bid/bidrelease','bid/replypaydoc','bid/replyGivePrice','/storeDelivery/storeFees'
         );
     }
 
