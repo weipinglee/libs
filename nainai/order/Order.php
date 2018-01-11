@@ -974,7 +974,7 @@ class Order{
 									$error = $retainage_res === true ? '' : $retainage_res;
 
 									$mess_seller = new \nainai\message($seller);
-									$content = '(合同'.$order['order_no'].',买方已进行质量确认,您将收到该合同60%的货款。请您关注资金动态)';
+									$content = '(合同'.$order['order_no'].',您已进行质量确认,您将收到该合同60%的货款。请您关注资金动态)';
 									$mess_seller->send('common',$content);
 
 									$mess_buyer = new \nainai\message($buyer);
