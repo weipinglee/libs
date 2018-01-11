@@ -196,7 +196,13 @@ class Delivery{
 			}
 			// $this->addNewDelivery($value);
 			$is_seller = intval($is_seller);
-			$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfo?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+			if($is_seller){
+				$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfoseller?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+
+			}
+			else{
+				$action []= array('name'=>'查看','url'=>url::createUrl("/delivery/deliveryInfo?delivery_id={$value['delivery_id']}&title={$title}&order_no={$value['order_no']}&is_seller={$is_seller}"));
+			}
 			$value['action'] = $action;
 			$value['title'] = $title;
 			$value['href'] = $href;
