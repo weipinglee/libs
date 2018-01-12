@@ -137,6 +137,11 @@ class Delivery{
 			$value['delivery_id'] = empty($value['delivery_id']) ? '-' : $value['delivery_id'];
 			$value['delivery_num'] = number_format($value['delivery_num'],2);
 			$value['num'] = number_format($value['num'],2);
+			$mode = 0;
+			if(isset($value['mode']))
+				$mode = $value['mode'];
+			elseif(isset($value['order']['mode']))
+				$mode = $value['order']['mode'];
 			$value['store_name'] = $value['order']['mode'] == order\Order::ORDER_STORE ? (empty($value['store_name']) ? '无效仓库' : $value['store_name']) : '-';
 			switch ($value['status']) {
 				case -1:
@@ -153,14 +158,14 @@ class Delivery{
 						$title = '已申请提货';
 					}else{
 						$title = '买家申请提货';
-						if($value['mode'] != order\Order::ORDER_STORE){
+						if($mode != order\Order::ORDER_STORE){
 							//卖家发货（保证金提货）
 							// $href = url::createUrl("/depositDelivery/sellerConsignment?id={$value['delivery_id']}&action_confirm=1&info=确认发货");
 							$href = url::createUrl("/delivery/consignment?id={$value['id']}&delivery_id={$value['delivery_id']}");
 							$action []= array('name'=>'发货','url'=>$href);
 						}else{
 							//支付仓库费用（仓单提货）
-							$href = url::createUrl("/storeDelivery/storeFeesPage?id={$value['delivery_id']}");
+							$href = url::createUrl("/Delivery/storeFeesPage?id={$value['delivery_id']}");
 							$action []= array('name'=>'支付仓库费用（余额）','url'=>$href);
 						}
 					}
