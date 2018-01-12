@@ -110,6 +110,7 @@ class StoreDelivery extends Delivery{
 		if(!isset($error)){
 			$deliveryData['id'] = $delivery_id;
 			$deliveryData['status'] = parent::DELIVERY_MANAGER_CHECKOUT;//提货状态置为等待仓库管理员确认出库
+			$deliveryData['jiesuan_time'] = time::getDateTime();
 			try {
 				$this->delivery->beginTrans();
 				$upd_res = $this->deliveryUpdate($deliveryData);
@@ -191,7 +192,7 @@ class StoreDelivery extends Delivery{
 		if($delivery && $can && $delivery['status'] == parent::DELIVERY_MANAGER_CHECKOUT){
 			$deliveryData['id'] = $delivery_id;
 			$deliveryData['status'] = parent::DELIVERY_ADMIN_CHECK;//等待后台管理员进行审核
-			
+			$deliveryData['out_time'] = time::getDateTime();
 			return $this->deliveryUpdate($deliveryData);
 		}else{
 			return tool::getSuccInfo(0,'无效订单');
@@ -209,7 +210,7 @@ class StoreDelivery extends Delivery{
 	public function storeOrderList($page = 1,$where = '',$is_checked = 0){
 		$query = new \Library\searchQuery('order_sell as o');
 		$query->join = 'left join product_offer as po on o.offer_id = po.id left join products as p on po.product_id = p.id left join product_category as pc on p.cate_id = pc.id left join product_delivery as pd on pd.order_id = o.id left join store_products as sp on p.id = sp.product_id left join store_list as sl on sp.store_id = sl.id';
-		$query->fields = 'o.*,p.name as product_name,pc.name as cate_name,sl.name as store_name,pd.create_time as delivery_time,p.unit,pd.num as delivery_num,pd.id as delivery_id, pd.expect_time, po.accept_area, po.price, p.produce_area, p.attribute,po.expire_time,p.quantity,pd.delivery_man,pd.phone,pd.idcard,pd.plate_number,pd.remark, po.user_id as seller_id';
+		$query->fields = 'o.*,p.name as product_name,pc.name as cate_name,sl.name as store_name,pd.create_time as delivery_time,p.unit,pd.num as delivery_num,pd.id as delivery_id, pd.expect_time, po.accept_area, po.price, p.produce_area, p.attribute,po.expire_time,p.quantity,pd.delivery_man,pd.phone,pd.idcard,pd.plate_number,pd.remark,pd.out_time,pd.jiesuan_time, po.user_id as seller_id';
 		$relation = $is_checked ? '> ' : '= ';
 		$sql_where = 'o.mode='.\nainai\order\Order::ORDER_STORE.' and pd.status '.$relation.\nainai\delivery\Delivery::DELIVERY_ADMIN_CHECK;
 		if($where) $sql_where .= ' and '.$where;
