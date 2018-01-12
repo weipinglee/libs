@@ -70,7 +70,7 @@ class StoreOrder extends Order{
 						$mess->send('common',$content);
 
 						$mess_seller = new \nainai\message($offerInfo['user_id']);
-						$content = $type == 0 ? '合同'.$info['order_no'].',买方已支付定金,等待其支付尾款' : '合同'.$info['order_no'].'已支付全款,等待其提货申请';
+						$content = $type == 0 ? '合同'.$info['order_no'].',买方已支付定金,等待其支付尾款' : '合同'.$info['order_no'].'已支付全款,等待买家提货申请';
 						$mess_seller->send('common',$content);
 						$log_res = $this->payLog($order_id,$user_id,0,'买方支付预付款--'.($type == 0 ? '定金' : '全款'));
 						$res = $log_res === true ? true : $log_res;

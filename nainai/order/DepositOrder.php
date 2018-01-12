@@ -187,7 +187,7 @@ class DepositOrder extends Order{
 						if($info['amount'] === $info['pay_deposit']){
 							//全款 合同生效 等待提货
 							$orderData['contract_status'] = self::CONTRACT_EFFECT;
-							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,请您及时操作。';
+							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,等待买方提货申请。';
 						}else{
 							//定金 等待支付尾款
 							$orderData['contract_status'] = self::CONTRACT_BUYER_RETAINAGE;
