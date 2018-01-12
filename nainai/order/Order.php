@@ -772,14 +772,13 @@ class Order{
 	final public function productsFreeze($offer_info,$num){
 		$num = floatval($num);
 		if($offer_info && is_array($offer_info) && $num > 0){
-			$product = $this->products->where(array('id'=>$offer_info['product_id']))->getObj();
+			$product = $this->products->fields('*')->where(array('id'=>$offer_info['product_id']))->getObj();
 
 			if($product){
 				$product_valid = $this->productNumValid($num,$offer_info,$product);
 				if($product_valid !== true)
 					return $product_valid;
-				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>floatval($product['freeze'])+$num))->update();
-
+				$res = $this->products->where(array('id'=>$offer_info['product_id']))->data(array('freeze'=>floatval($product['freeze'])+$num))->update();
 				//更新报盘数据
 				$update = array('sell_num'=>$offer_info['sell_num'] + $num);
 				if(bccomp($offer_info['sell_num']+$num,$offer_info['max_num'],2)==0){
@@ -802,8 +801,9 @@ class Order{
 	final protected function productsFreezeRelease($offer_info,$num){
 		$num = floatval($num);
 		if($offer_info && is_array($offer_info) && $num > 0){
-			$product = $this->products->where(array('id'=>$offer_info['product_id']))->getObj();
+			$product = $this->products->fields('*')->where(array('id'=>$offer_info['product_id']))->getObj();
 			$freeze = floatval($product['freeze']);//已冻结商品数量
+
 			if($freeze >= $num){
 				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>($freeze-$num)))->update();
 				$update = array('sell_num'=>$offer_info-$num);
@@ -829,7 +829,7 @@ class Order{
 	final protected function productsFreezeToSell($offer_info,$num){
 		$num = floatval($num);
 		if($offer_info && is_array($offer_info) && $num > 0){
-			$product = $this->products->where(array('id'=>$offer_info['product_id']))->getObj();
+			$product = $this->products->fields('*')->where(array('id'=>$offer_info['product_id']))->getObj();
 			$freeze = floatval($product['freeze']);//已冻结商品数量
 			$sell = floatval($product['sell']);//已冻结商品数量
 			if($freeze >= $num){
