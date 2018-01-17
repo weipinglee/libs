@@ -31,7 +31,17 @@ class zx extends account{
         $this->attachAccount = new attachAccount();
      }
 
-     public function curl($xml){
+    public function createMessageProduct()
+    {
+        // TODO: Implement createMessageProduct() method.
+    }
+
+    public function createCommunicateProduct()
+    {
+        // TODO: Implement createCommunicateProduct() method.
+    }
+
+    public function curl($xml){
         $check_sign = $this->signStatus();
         if($check_sign!==true) {
             return tool::getSuccInfo(0,$check_sign.',无法交易');
