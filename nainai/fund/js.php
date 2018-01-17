@@ -83,10 +83,10 @@ class js extends account{
         $signReturn = '';
         $xmlReturn = common::desEncryp($xmlReturn);
         if(common::verify($xmlReturn,$signReturn)){//验签成功
-            return $this->parseTranMeasage($xmlReturn);
+            return $this->messageObj->parse($xmlReturn);
         }
         else{
-            return tool::getSuccInfo(0,'验签失败');
+            return '验签失败';
         }
 
 
@@ -96,10 +96,45 @@ class js extends account{
      * 解析响应报文
      * @param string $message 待解析的响应报文
      */
-    private function parseTranMeasage($message)
+    public function parseResult($result)
     {
-        return $this->messageObj->parse($message);
+        //请求失败返回错误信息
+        if(isset($result['message']['head']['resp_code']) && $result['message']['head']['resp_code']!='000000000000'){
+            return $result['message']['head']['resp_msg'];
+        }
+        else{//成功的情况
+            $res = $this->parseXmlArr($result['message']);
+            $res['success'] = 1;//成功标志
+            return $res;
+        }
+
     }
+
+    /**
+     * 对有属性的xml字段进行解析，pin=true的字段解密，目前直接返回
+     * @param $arr
+     * @return array
+     */
+    private function parseXmlArr($arr){
+        $res = array();
+        foreach($arr as $key=>$val){
+            if(is_array($val)&&isset($val['value'])){
+                $res[$key] = $val['value'];
+                if(isset($val['pin'])&& $val['pin']=='true'){
+                    $res[$key] = $val['value'];//加密的进行解密
+                }
+            }
+            elseif(!is_array($val)){
+                $res[$key] = $val;
+            }
+            else{
+                $res[$key] = $this->parseXmlArr($val);
+             }
+
+        }
+        return $res;
+    }
+
 
 
     public function getActive($user_id)
@@ -156,7 +191,16 @@ class js extends account{
         );
 
 
+        //得到响应报文并转化为数组
         $res = $this->SendTranMessage($bodyParams,$code);
+        $parseRes = $this->parseResult($res);
+        if(is_array($parseRes)){
+            return true;
+        }
+        else if(is_string($parseRes)){
+            return $parseRes;
+        }
+        return false;
 
 
     }

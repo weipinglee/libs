@@ -38,8 +38,14 @@ class xml extends message
 
     }
 
+    /**
+     * 将字符串xml按照层级解析成数组
+     * @param $message
+     * @return array
+     */
     public function parse($message)
     {
+       // $tags = '';
         $parser = xml_parser_create();
         xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
         xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
@@ -145,10 +151,10 @@ class xml extends message
                 //close类型的元素，递归获取下级元素
                 if($tag['type']=='close'){
                     if(is_array($res[$name])){
-                        $res[$name]['value'] = $this->parse($tempArr);
+                        $res[$name]['value'] = $this->xmlDataTrans($tempArr);
                     }
                     else{
-                        $res[$name] = $this->parse($tempArr);
+                        $res[$name] = $this->xmlDataTrans($tempArr);
                     }
 
                     $tempArr = array();
