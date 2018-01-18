@@ -31,7 +31,7 @@ class http extends communicate
          curl_setopt($ch,CURLOPT_POSTFIELDS,$param);
          $output = curl_exec($ch);
          if(curl_errno($ch)){
-             print curl_errno($ch);
+             return \Library\tool::getSuccInfo(0,curl_error($ch));
          }
 
           $output = iconv($this->encoding,'UTF-8',$output);
