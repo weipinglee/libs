@@ -443,7 +443,7 @@ class Order{
 							if($upd_res['success'] == 1){
 								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
 								
-								// $mess->send('buyerRetainage',$info['order_no']);
+								 $mess->send('buyerRetainage',$info['order_no']);
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
 									$content = '(合同'.$info['order_no'].'买家已支付尾款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
@@ -806,7 +806,7 @@ class Order{
 
 			if($freeze >= $num){
 				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>($freeze-$num)))->update();
-				$update = array('sell_num'=>$offer_info-$num);
+				$update = array('sell_num'=>$offer_info['sell_num'] - $num);
 				if($offer_info['status']==6){//如果报盘状态为已成交，再把它改成正常交易状态
 					$update['status'] = 1;
 				}

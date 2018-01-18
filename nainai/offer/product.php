@@ -157,6 +157,20 @@ class product  {
         return $mode_txt;
     }
 
+    public function getSubmode($mode){
+        switch($mode){
+            case 1 :
+                $mode_txt = '竞价报盘';
+                break;
+            case 2 :
+                $mode_txt = '抢购';
+                break;
+            default :
+                $mode_txt = '';
+        }
+        return $mode_txt;
+    }
+
     public function getStatusArray(){
         return array(
             self::OFFER_APPLY => $this->getStatus(self::OFFER_APPLY),
