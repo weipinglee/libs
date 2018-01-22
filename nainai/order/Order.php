@@ -442,7 +442,7 @@ class Order{
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
-								
+
 								 $mess->send('buyerRetainage',$info['order_no']);
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
@@ -726,6 +726,8 @@ class Order{
 	 * @return true:可以下单 string:错误信息
 	 */
 	public function productNumValid($num,$offer_info,$product=array()){
+		if($offer_info['type']==2)//采购报盘返回真
+			return true;
 		$res = $this->productNumLeft($offer_info,$product);
 		if($offer_info['divide'] == \nainai\offer\product::UNDIVIDE && bccomp($num,$res['quantity'],2) != 0)
 			return '此商品不可拆分';
