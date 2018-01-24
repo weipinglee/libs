@@ -1145,9 +1145,9 @@ class Order{
 			$value['account'] = number_format(floatval($value['amount']) - floatval($value['reduce_amount']),2);
 			$value['amount'] = number_format(floatval($value['amount']),2);
 			$value['num'] = number_format(floatval($value['num']),2);
-			$value['buyer_name'] = $value['mode'] == \nainai\offer\product::TYPE_SELL ? $value['do_username'] : $value['po_username'];
+			$value['buyer_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL ? $value['do_username'] : $value['po_username'];
 
-			$value['seller_name'] = $value['mode'] == \nainai\offer\product::TYPE_SELL  ? $value['po_username'] : $value['do_username'];
+			$value['seller_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL  ? $value['po_username'] : $value['do_username'];
 
 		}
 
