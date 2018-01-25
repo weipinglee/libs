@@ -71,16 +71,9 @@ class jingjiaOffer extends product{
             $newOfferData['jing_stepprice'] = $offerData['jing_stepprice'];
             $newOfferData['status'] = 0;
 
-
             //计算新报盘和旧报盘的最大购买数量
-            if($newOfferData['max_num']>0){
-                $max_num = min($newOfferData['max_num']-$newOfferData['sell_num'],$proLeft);
-            }
-            else{
-                $max_num = $proLeft;
-            }
-
-
+            $max_num = $newOfferData['max_num']-$newOfferData['sell_num'];
+           
             if($offerData['max_num']>$max_num){
                 return tool::getSuccInfo(0,'参与活动的商品量不能大于原报盘剩余量');
             }
