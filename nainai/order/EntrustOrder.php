@@ -221,20 +221,11 @@ class entrustOrder extends Order{
 					
 				}elseif($pay === true){
 					//卖方支付委托金
-					
+					$weituoData =  $this->getWeituojin($seller,$offerInfo,$info);
+					$seller_deposit = $weituoData['amount'];
 					if(is_int($seller)){
-						//获取卖方委托金数值 
-						$obj = new \nainai\system\EntrustSetting();
-						$percent = $obj->getRate($offerInfo['cate_id']);
-						$member = new \nainai\member();
-						$is_vip = $member->is_vip($seller);
-
-						// $percent = $this->entrustFee($order_id);
-						// if( empty($percent) )
-						// 	return tool::getSuccInfo(0,'委托金设置错误,请联系客服人员');
-						$seller_deposit = $is_vip ? 0 : ($percent['type'] == 0 ? number_format($info['amount'] * $percent['value'] / 100,2) : $percent['value']);
 						//冻结卖方帐户委托金
-						$note = '支付合同'.$info['order_no'].'委托金 '.$seller_deposit;	
+						$note = '支付合同'.$info['order_no'].'委托金 '.$seller_deposit.'元';
 						
 						$orderData['seller_deposit_payment'] = $payment;
 						$orderData['seller_deposit'] = $seller_deposit;
@@ -305,6 +296,36 @@ class entrustOrder extends Order{
 			$res = '无效订单id';
 		}
 		return $res === true ? tool::getSuccInfo() : tool::getSuccInfo(0,$res ? $res : '未知错误');
+	}
+
+	/**
+	 * 获取订单的委托金
+	 * @param int $seller_id 卖方id
+	 * @param  array|int $offerInfo array为报盘信息，整数为报盘id
+	 * @param array $orderInfo 订单信息
+	 * @return array 委托金数据
+	 */
+	public function getWeituojin($seller_id,$offerInfo,$orderInfo)
+	{
+		//获取卖方委托金数值
+		$obj = new \nainai\system\EntrustSetting();
+		if(!is_array($offerInfo)){
+			$offerObj = new Query('product_offer as o');
+			$offerObj->join = 'left join products as p on o.product_id=p.id';
+			$offerObj->fields = 'o.*,p.cate_id,p.unit';
+			$offerObj->where = 'o.id='.$offerInfo;
+			$offerInfo = $offerObj->getObj();
+			if(empty($offerInfo))
+				return array('amount'=>0);
+		}
+        $return = array();
+		$percent = $obj->getRate($offerInfo['cate_id']);
+		$member = new \nainai\member();
+		$is_vip = $member->is_vip($seller_id);
+        $return['type'] = $percent['type'] ;
+		$return['amount'] = $is_vip ? 0 : ($percent['type'] == 0 ? number_format($orderInfo['amount'] * $percent['value'] / 100,2) : number_format($percent['value']*$orderInfo['num'],2));
+	    $return['info'] = $percent['type']==0 ? '委托金为合同总金额的'.$percent['value'].'/%' : '委托金为每'.$offerInfo['unit'].$percent['value'].'元';
+	    return $return;
 	}
 	
 }
