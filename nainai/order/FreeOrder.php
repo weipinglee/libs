@@ -102,12 +102,12 @@ class FreeOrder extends Order{
 							// $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
-								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
+								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付全款');
 
 								$mess->send('buyerRetainage',$info['order_no']);
 								$mess_buyer = new \nainai\message($buyer);
 
-								$content = '(合同'.$info['order_no'].'买家已支付尾款，请您关注资金动态。交收流程请您在线下进行操作。)';
+								$content = '(合同'.$info['order_no'].'买家已支付全款，请您关注资金动态。交收流程请您在线下进行操作。)';
 
 								$mess_buyer->send('common',$content);
 								$res = $log_res;
