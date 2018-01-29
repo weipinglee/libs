@@ -98,7 +98,7 @@ class FreeOrder extends Order{
 						if($payment == 'online'){
 							//冻结买家帐户余额
 							$orderData['pay_retainage'] = $retainage;
-							$orderData['contract_status'] = self::CONTRACT_COMPLETE ;//payment为1  合同状态置为生效 委托报盘则置为已完成
+							$orderData['contract_status'] = self::CONTRACT_FREE_VERIFY ;//等待卖家确认收款
 							// $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
@@ -119,12 +119,10 @@ class FreeOrder extends Order{
 								$account = $this->base_account->get_account($account);
 								if(!is_object($account)) return tool::getSuccInfo(0,$account);
 								$acc_res = $account->freeze($buyer,$retainage,$note);
-								if($acc_res===true){
-									$pay_res = $account->freezePay($buyer,$seller,$retainage,'解冻支付合同'.$info['order_no'].'款项￥'.number_format($retainage,2));
-								}
+
 							}
 
-							if($res === true && $acc_res===true && $pay_res==true) $res = $this->order->commit();
+							if($res === true && $acc_res===true ) $res = $this->order->commit();
 						}elseif($payment == 'offline'){
 							$orderData['proof'] = $proof;
 							$upd_res = $this->orderUpdate($orderData);
@@ -156,6 +154,44 @@ class FreeOrder extends Order{
 		}
 
 		return $res === true ? tool::getSuccInfo() : tool::getSuccInfo(0,$res ? $res : '未知错误');
+	}
+
+	/**
+	 * 确认线上支付成功
+	 * @param $order_id
+	 * @param $user_id
+	 * @return array
+	 */
+	public function confirmPay($order_id,$user_id){
+		if($this->orderComplain($order_id)) return tool::getSuccInfo(0,'申述处理中');
+		$info = $this->orderInfo($order_id);
+		$offerInfo = $this->offerInfo($info['offer_id']);
+        if(empty($info))
+			return tool::getSuccInfo(0,'订单不存在');
+		$this->order->beginTrans();
+		if($info['contract_status'] != self::CONTRACT_FREE_VERIFY){
+			return tool::getSuccInfo(0,'合同状态有误');
+		}
+
+		$seller_tmp = $this->sellerUserid($order_id);
+		$seller = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $seller_tmp : intval($info['user_id']);
+		$buyer  = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller_tmp;
+		if($seller != $user_id)
+			return tool::getSuccInfo(0,'订单卖家信息有误');
+
+		$account = $this->base_account->createFund($info['retainage_payment']);
+		$res = $account->freezePay($buyer,$seller,$info['amount'],'收到合同'.$info['order_no'].'的款项￥'.$info['amount']);
+        if($res===true){
+			$data = array('contract_status'=>self::CONTRACT_COMPLETE,'id'=>$info['id']);
+			$res1 = $this->orderUpdate($data);
+			if(isset($res1['success']) && $res1['success']==1 && $this->order->commit()){
+				return tool::getSuccInfo();
+			}
+			$this->order->rollBack();
+            $res = '操作失败';
+		}
+
+		return tool::getSuccInfo(0,$res);
 	}
 
 }

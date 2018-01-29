@@ -25,6 +25,7 @@ class Order{
 	const CONTRACT_VERIFY_QAULITY = 6;//买家已确认货物质量（保证金/仓单） 提货
 	const CONTRACT_SELLER_VERIFY = 7; //卖家确认  包含买方扣减款项
 	const CONTRACT_COMPLETE = 8;//合同完成
+	const CONTRACT_FREE_VERIFY=9;//等待卖家确认自由报盘订单收款
 
 	//订单类型常量定义 
 	const ORDER_PURCHASE = 0;//采购报盘
@@ -1455,6 +1456,11 @@ class Order{
 				case self::CONTRACT_COMPLETE:
 					$title = '合同已完成';
 					break;
+				case self::CONTRACT_FREE_VERIFY :
+					$title = '确认收款';
+					$href = url::createUrl("/order/confirmPayPage?order_id={$value['id']}");
+					$action []= array('action'=>$title,'url'=>$href);
+					break;
 				default:
 					$title = '无效状态';
 					break;
@@ -1534,6 +1540,9 @@ class Order{
 					$href = url::createUrl("/Order/contractComplete?order_id={$value['id']}");
 					$action []= array('action'=>$title,'url'=>$href,'confirm'=>1);
 					break;
+				case self::CONTRACT_FREE_VERIFY:
+					$title = '等待卖家确认收款';
+                    break;
 				default:
 					$title = '未知状态';
 					break;
