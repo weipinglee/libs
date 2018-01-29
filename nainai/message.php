@@ -36,7 +36,8 @@ class message{
 		'repcredentials',
 		'delivery_check',
 		'bidCancle',
-		'jingjiaWin'
+		'jingjiaWin',
+		'buyerRetainage'
 	);
 	/**
 	 * [__construct 构造方法]

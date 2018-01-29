@@ -442,8 +442,8 @@ class Order{
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
-								
-								// $mess->send('buyerRetainage',$info['order_no']);
+
+								 $mess->send('buyerRetainage',$info['order_no']);
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
 									$content = '(合同'.$info['order_no'].'买家已支付尾款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
@@ -726,6 +726,8 @@ class Order{
 	 * @return true:可以下单 string:错误信息
 	 */
 	public function productNumValid($num,$offer_info,$product=array()){
+		if($offer_info['type']==2)//采购报盘返回真
+			return true;
 		$res = $this->productNumLeft($offer_info,$product);
 		if($offer_info['divide'] == \nainai\offer\product::UNDIVIDE && bccomp($num,$res['quantity'],2) != 0)
 			return '此商品不可拆分';
@@ -806,7 +808,7 @@ class Order{
 
 			if($freeze >= $num){
 				$res = $this->products->where(array('id'=>$product['id']))->data(array('freeze'=>($freeze-$num)))->update();
-				$update = array('sell_num'=>$offer_info-$num);
+				$update = array('sell_num'=>$offer_info['sell_num'] - $num);
 				if($offer_info['status']==6){//如果报盘状态为已成交，再把它改成正常交易状态
 					$update['status'] = 1;
 				}
@@ -1129,7 +1131,7 @@ class Order{
 		$query = new \Library\searchQuery('order_sell as do');
 		$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join user as u2 on po.user_id = u2.id left join products as p on po.product_id = p.id left join company_info as ci on do.user_id = ci.user_id left join product_category as pc on p.cate_id = pc.id left join store_products as sp on sp.product_id = p.id left join store_list as sl on sp.store_id = sl.id left join person_info as pi on pi.user_id = do.user_id';
 		if($where)$query->where = $where;
-		$query->fields = 'po.type,u2.username as po_username,po.mode,u.username as do_username,do.*,p.name as product_name,p.img,p.unit,ci.company_name,pc.percent,sl.name as store_name,pi.true_name';
+		$query->fields = 'po.type,u2.username as po_username,po.mode,po.sub_mode,u.username as do_username,do.*,p.name as product_name,p.img,p.unit,ci.company_name,pc.percent,sl.name as store_name,pi.true_name';
 		// $query->bind  = array_merge($bind,array('user_id'=>$user_id));
 
 		 $query->order = "do.id desc";
@@ -1137,16 +1139,18 @@ class Order{
 		$this->adminContractStatus($data['list']);
 		$product = new \nainai\offer\product();
 		foreach ($data['list'] as $key => &$value) {
-			$value['type_txt'] = $product->getMode($value['type']);
-			$value['mode_txt'] = $product->gettype($value['mode']);
+			$value['type_txt'] = $product->getType($value['type']);
+			$value['mode_txt'] = $product->getMode($value['mode']);
+			$value['submode_txt'] = $product->getSubmode($value['sub_mode']);
 			$value['account'] = number_format(floatval($value['amount']) - floatval($value['reduce_amount']),2);
 			$value['amount'] = number_format(floatval($value['amount']),2);
 			$value['num'] = number_format(floatval($value['num']),2);
-			$value['buyer_name'] = $value['mode'] == \nainai\offer\product::TYPE_SELL ? $value['do_username'] : $value['po_username'];
+			$value['buyer_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL ? $value['do_username'] : $value['po_username'];
 
-			$value['seller_name'] = $value['mode'] == \nainai\offer\product::TYPE_SELL  ? $value['po_username'] : $value['do_username'];
+			$value['seller_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL  ? $value['po_username'] : $value['do_username'];
 
 		}
+
 		$query->downExcel($data['list'], 'order_sell', '合同列表');
 		// tool::pre_dump($data['list'][0]);exit;
 		// tool::pre_dump($data);

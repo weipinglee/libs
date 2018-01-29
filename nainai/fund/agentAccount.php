@@ -24,7 +24,17 @@ class agentAccount extends account{
        );
 
 
-     /**
+    public function createMessageProduct()
+    {
+        // TODO: Implement createMessageProduct() method.
+    }
+
+    public function createCommunicateProduct()
+    {
+        // TODO: Implement createCommunicateProduct() method.
+    }
+
+    /**
       * 生成流水数据
       * @param int $user_id 用户id
       * @param float $num 更改金额

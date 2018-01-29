@@ -31,9 +31,13 @@ class deputeOffer extends product{
      * @param array $productData  商品数据
      * @param array $offerData 报盘数据
      */
-    public function doOffer($productData,$offerData){
+    public function doOffer($productData,$offerData,$offer_id=0){
         $offerData['mode'] = self::DEPUTE_OFFER;
         $this->_productObj->beginTrans();
+        if($offer_id){//删除旧的id
+            $this->delOffer($offer_id,$this->user_id);
+        }
+
         $offerData['user_id'] = $this->user_id;
         $insert = $this->insertOffer($productData,$offerData);
 

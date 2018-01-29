@@ -7,7 +7,7 @@ class commonUpload{
 
 	private $dir = 'upload';
 
-	private $allowType = array('doc','xls');
+	private $allowType = array('doc','xls','pdf');
 
 	//构造函数
 	function __construct($dir = '')
