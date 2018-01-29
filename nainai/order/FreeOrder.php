@@ -60,6 +60,104 @@ class FreeOrder extends Order{
 		}
 		return $res;
 	}
+
+	/**
+	 * 买家支付尾款
+	 * @param  int  $order_id 订单id
+	 * @param  int  $user_id  当前操作用户id
+	 * @param  string  $payment  线上/线下支付
+	 * @param  string  $proof    线下支付凭证图片
+	 * @param  int $account  线上支付方式
+	 * @return array  操作信息
+	 */
+	public function buyerRetainage($order_id,$user_id,$payment='online',$proof = '',$account=0){
+		if($this->orderComplain($order_id)) return tool::getSuccInfo(0,'申述处理中');
+		$info = $this->orderInfo(intval($order_id));
+		$offerInfo = $this->offerInfo($info['offer_id']);
+		if(is_array($info) && isset($info['contract_status'])){
+			$seller = $this->sellerUserid($order_id);
+			$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller;
+			$seller = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $seller : intval($info['user_id']);
+			if($info['contract_status'] == self::CONTRACT_BUYER_RETAINAGE || $info['contract_status'] == self::CONTRACT_NOTFORM){
+				if($buyer != $user_id)
+					return tool::getSuccInfo(0,'订单买家信息有误');
+
+				$amount = floatval($info['amount']);
+				$buyerDeposit = floatval($info['pay_deposit']);
+				$retainage = $amount - $buyerDeposit;
+				$sim_oper = in_array($info['mode'],array());
+				if($retainage>0){
+					try {
+						$this->order->beginTrans();
+						$orderData['id'] = $order_id;
+						$orderData['retainage_payment'] = $account;
+						$payment = $sim_oper ? 'offline' : $payment;
+						//自由与委托报盘只接受线下凭证
+						$mess = new \nainai\message($seller);
+						// var_dump($retainage);exit;
+						if($payment == 'online'){
+							//冻结买家帐户余额
+							$orderData['pay_retainage'] = $retainage;
+							$orderData['contract_status'] = self::CONTRACT_COMPLETE ;//payment为1  合同状态置为生效 委托报盘则置为已完成
+							// $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
+							$upd_res = $this->orderUpdate($orderData);
+							if($upd_res['success'] == 1){
+								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
+
+								$mess->send('buyerRetainage',$info['order_no']);
+								$mess_buyer = new \nainai\message($buyer);
+
+								$content = '(合同'.$info['order_no'].'买家已支付尾款，请您关注资金动态。交收流程请您在线下进行操作。)';
+
+								$mess_buyer->send('common',$content);
+								$res = $log_res;
+							}else{
+								$res = $upd_res['info'];
+							}
+							if($res === true ){
+								$note = '冻结合同'.$info['order_no'].'款项￥'.number_format($retainage,2);
+								$account = $this->base_account->get_account($account);
+								if(!is_object($account)) return tool::getSuccInfo(0,$account);
+								$acc_res = $account->freeze($buyer,$retainage,$note);
+								if($acc_res===true){
+									$pay_res = $account->freezePay($buyer,$seller,$retainage,'解冻支付合同'.$info['order_no'].'款项￥'.number_format($retainage,2));
+								}
+							}
+
+							if($res === true && $acc_res===true && $pay_res==true) $res = $this->order->commit();
+						}elseif($payment == 'offline'){
+							$orderData['proof'] = $proof;
+							$upd_res = $this->orderUpdate($orderData);
+							if($upd_res['success'] == 1){
+								$jump_url = "<a href='".url::createUrl('/contract/sellerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
+								$content = $sim_oper ? '(合同'.$info['order_no'].',买方已支付货款,请您及时进行凭证确认,并关注资金动态。)'.$jump_url:'(合同'.$info['order_no'].',买家已支付尾款,等待其提货申请)'.$jump_url;
+								$mess->send('common',$content);
+								$log_res = $this->payLog($order_id,$user_id,0,'买家上传线下支付凭证');
+								$res = $log_res === true ? $this->order->commit() : $log_res;
+							}else{
+								$res = $upd_res['info'];
+							}
+						}else{
+							$this->order->rollBack();
+							$res = '无效支付方式';
+						}
+					} catch (PDOException $e) {
+						$res = $e->getMessage();
+						$this->order->rollBack();
+					}
+				}else{
+					$res = '合同金额有误';
+				}
+			}else{
+				$res = '合同状态有误';
+			}
+		}else{
+			$res = '无效订单';
+		}
+
+		return $res === true ? tool::getSuccInfo() : tool::getSuccInfo(0,$res ? $res : '未知错误');
+	}
+
 }
 
 

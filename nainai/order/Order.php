@@ -413,6 +413,7 @@ class Order{
 		$info = $this->orderInfo(intval($order_id));
 		$offerInfo = $this->offerInfo($info['offer_id']);
 		$is_entrust = $info['mode'] == self::ORDER_ENTRUST ? 1 : 0;
+		$is_free = $info['mode'] == self::ORDER_FREE ? 1 : 0;
 		if(is_array($info) && isset($info['contract_status'])){
 			$seller = $this->sellerUserid($order_id);
 			$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller;
@@ -424,7 +425,7 @@ class Order{
 				$amount = floatval($info['amount']);
 				$buyerDeposit = floatval($info['pay_deposit']);
 				$retainage = $amount - $buyerDeposit;
-				$sim_oper = in_array($info['mode'],array(self::ORDER_FREE));
+				$sim_oper = in_array($info['mode'],array());
 				if($retainage>0){
 					try {
 						$this->order->beginTrans();
@@ -447,7 +448,10 @@ class Order{
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
 									$content = '(合同'.$info['order_no'].'买家已支付尾款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
-								}else{
+								}elseif($is_free==1){
+									$content = '(合同'.$info['order_no'].'买家已支付尾款，请您关注资金动态。交收流程请您在线下进行操作。)';
+								}
+								else{
 									$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
 									$content = '(合同'.$info['order_no'].'已生效，您可以申请提货了。)'.$jump_url;
 								}
