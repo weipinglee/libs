@@ -25,6 +25,7 @@ class Order{
 	const CONTRACT_VERIFY_QAULITY = 6;//买家已确认货物质量（保证金/仓单） 提货
 	const CONTRACT_SELLER_VERIFY = 7; //卖家确认  包含买方扣减款项
 	const CONTRACT_COMPLETE = 8;//合同完成
+	const CONTRACT_FREE_VERIFY=9;//等待卖家确认自由报盘订单收款
 
 	//订单类型常量定义 
 	const ORDER_PURCHASE = 0;//采购报盘
@@ -413,6 +414,7 @@ class Order{
 		$info = $this->orderInfo(intval($order_id));
 		$offerInfo = $this->offerInfo($info['offer_id']);
 		$is_entrust = $info['mode'] == self::ORDER_ENTRUST ? 1 : 0;
+		$is_free = $info['mode'] == self::ORDER_FREE ? 1 : 0;
 		if(is_array($info) && isset($info['contract_status'])){
 			$seller = $this->sellerUserid($order_id);
 			$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller;
@@ -424,7 +426,7 @@ class Order{
 				$amount = floatval($info['amount']);
 				$buyerDeposit = floatval($info['pay_deposit']);
 				$retainage = $amount - $buyerDeposit;
-				$sim_oper = in_array($info['mode'],array(self::ORDER_FREE));
+				$sim_oper = in_array($info['mode'],array());
 				if($retainage>0){
 					try {
 						$this->order->beginTrans();
@@ -447,7 +449,10 @@ class Order{
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
 									$content = '(合同'.$info['order_no'].'买家已支付尾款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
-								}else{
+								}elseif($is_free==1){
+									$content = '(合同'.$info['order_no'].'买家已支付尾款，请您关注资金动态。交收流程请您在线下进行操作。)';
+								}
+								else{
 									$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
 									$content = '(合同'.$info['order_no'].'已生效，您可以申请提货了。)'.$jump_url;
 								}
@@ -1451,6 +1456,11 @@ class Order{
 				case self::CONTRACT_COMPLETE:
 					$title = '合同已完成';
 					break;
+				case self::CONTRACT_FREE_VERIFY :
+					$title = '确认收款';
+					$href = url::createUrl("/order/confirmPayPage?order_id={$value['id']}");
+					$action []= array('action'=>$title,'url'=>$href);
+					break;
 				default:
 					$title = '无效状态';
 					break;
@@ -1530,6 +1540,9 @@ class Order{
 					$href = url::createUrl("/Order/contractComplete?order_id={$value['id']}");
 					$action []= array('action'=>$title,'url'=>$href,'confirm'=>1);
 					break;
+				case self::CONTRACT_FREE_VERIFY:
+					$title = '等待卖家确认收款';
+                    break;
 				default:
 					$title = '未知状态';
 					break;
