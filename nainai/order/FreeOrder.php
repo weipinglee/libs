@@ -49,7 +49,7 @@ class FreeOrder extends Order{
 			$bankinfo = $this->userBankInfo($seller);
 
 			$mess_buyer = new \nainai\message($buyer);
-			$content = '合同'.$orderData['order_no'].'已形成,请您尽快完成线下支付,并上传支付凭证';
+			$content = '合同'.$orderData['order_no'].'已形成,请您尽快完成支付';
 			$mess_buyer->send('common',$content);
 
 			$mess_seller = new \nainai\message($seller);
@@ -180,7 +180,7 @@ class FreeOrder extends Order{
 			return tool::getSuccInfo(0,'订单卖家信息有误');
 
 		$account = $this->base_account->createFund($info['retainage_payment']);
-		$res = $account->freezePay($buyer,$seller,$info['amount'],'收到合同'.$info['order_no'].'的款项￥'.$info['amount']);
+		$res = $account->freezePay($buyer,$seller,$info['amount'],'合同'.$info['order_no'].'的款项￥'.$info['amount']);
         if($res===true){
 			$data = array('contract_status'=>self::CONTRACT_COMPLETE,'id'=>$info['id']);
 			$res1 = $this->orderUpdate($data);
