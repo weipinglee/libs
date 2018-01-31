@@ -71,6 +71,7 @@ class jingjiaOffer extends product{
             $newOfferData['jing_stepprice'] = $offerData['jing_stepprice'];
             $newOfferData['status'] = 0;
 
+
             //计算新报盘和旧报盘的最大购买数量
             $max_num = $newOfferData['max_num']-$newOfferData['sell_num'];
            
@@ -87,6 +88,12 @@ class jingjiaOffer extends product{
             $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;//原报盘最大数量减去竞价报盘的数量
             $newOfferData['max_num'] = $offerData['max_num'];//竞价报盘的数量等于参数传递的数量
             $newOfferData['sell_num'] = 0;//新的竞价报盘的已售数量为0
+
+            //场内竞价生成口令
+            $newOfferData['jingjia_mode'] = $offerData['jingjia_mode'];
+            if($offerData['jingjia_mode']==1){
+                $newOfferData['jingjia_pass'] = rand(1000,9999);
+            }
             //插入新的报盘和更改旧报盘
             $newOfferId = $obj->data($newOfferData)->add();
             $obj->data($oldOfferData)->where(array('id'=>$offer_id))->update();
@@ -255,6 +262,24 @@ class jingjiaOffer extends product{
 
     public function afterTrade($offer_id){
 
+    }
+
+    /**
+     * 校验场内竞价的口令是否正确
+     * @param int $offer_id
+     * @param string $pass 口令
+     * @return bool 是否正确
+     */
+    public function checkPass($offer_id,$pass){
+        $jingjiaOffer = new M('product_offer');
+        $data = $jingjiaOffer->where(array('id'=>$offer_id))->fields('jingjia_mode,jingjia_pass')->getObj();
+        if(empty($data)){
+            return false;
+        }
+        if($data['jingjia_mode']==0 || $data['jingjia_pass']==$pass){
+            return true;
+        }
+        return false;
     }
 
 
