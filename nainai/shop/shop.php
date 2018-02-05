@@ -7,6 +7,7 @@
  */
 
 namespace nainai\shop;
+use \Library\M;
 class shop{
 
       public static function info($user_id){
