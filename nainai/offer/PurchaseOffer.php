@@ -37,6 +37,7 @@ class PurchaseOffer extends product {
 		if($offer_id){//删除旧的id
 			$this->delOffer($offer_id,$this->user_id);
 		}
+		$offerData['max_num'] = $productData[0]['quantity'];
 		if ($this->_productObj->validate($this->productRules,$productData) && $this->_productObj->validate($this->productOfferRules, $offerData)){
 
 			$pId = $this->_productObj->table('products')->data($productData[0])->add();
