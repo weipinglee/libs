@@ -8,7 +8,7 @@ namespace Library;
 use \Library\Session\Driver\Db;
 use \Library\url;
 use nainai\riskMgt\userRisk;
-
+use nainai\sso\NNcas;
 class checkRight{
 
 
@@ -84,6 +84,15 @@ class checkRight{
         $sessLogin = session::get('login');
         $isLogin = false;
 
+//        if($sessLogin==null){//if user don't have a local session,check whether he has a server-end login state
+//            $ssoObj = new NNcas();
+//            if($ssoObj->checkServerLogin()){//if user have login on global environment ,get user data and handle login.
+//                $data = $ssoObj->getUser();
+//                $this->loginAfter($data);
+//                $sessID = session_id();
+//                $sessLogin = session::get('login');
+//            }
+//        }
         //判断是否登录以及登录是否超时
         if($sessLogin!=null && isset($sessLogin['user_id']) && $sessID !=''){
             $userModel = $this->userModel;
@@ -103,6 +112,7 @@ class checkRight{
             }
 
         }
+
         if($obj!==null){
             if($isLogin == false){//如果未登录或超时，登出操作，跳转到登录页
                 //$this->logOut();
