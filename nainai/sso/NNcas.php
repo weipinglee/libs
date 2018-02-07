@@ -25,8 +25,15 @@ class NNcas{
        phpCAS::client(self::$cas_config['version'],self::$cas_config['host'],self::$cas_config['port'],self::$cas_config['context']);
    }
 
-    public static function test(){
-        $res = phpCAS::forceAuthentication();
-        var_dump($res);
+    /**
+     * 验证是否在认证中心登录
+     */
+    public static function checkServerLogin(){
+        return  phpCAS::checkAuthentication();
+
+    }
+
+    public static function getUser(){
+        return phpCAS::getUser();
     }
 }
