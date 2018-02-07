@@ -38,7 +38,7 @@ class NNcas{
      * 认证中心认证
      */
     public function serverAuthentication($account,$password,$callbackUrl=''){
-        $postUrl = self::$cas_config['host'].':'.self::$cas_config['port'].'/'.self::$cas_config['context'].'/login';
+        $postUrl = 'https://'.self::$cas_config['host'].':'.self::$cas_config['port'].'/'.self::$cas_config['context'].'/login';
         $service = $callbackUrl=='' ? url::createUrl('/') : $callbackUrl;
         $service = urlencode($service);
         $postUrl .= '?service='.$service;
