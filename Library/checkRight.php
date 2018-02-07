@@ -39,6 +39,7 @@ class checkRight{
         }
     }
 
+
     /**
      * 登录后处理
      * @param array $data  用户登录数据
@@ -52,7 +53,6 @@ class checkRight{
         session::merge('login',array('mobile'=>$data['mobile']));
         Session::merge('login',array('pid'=>$data['pid']));
         session::merge('login',array('user_type'=>$data['type']));
-        
         //session数据计入数据库
         $sessID = session_id();
         $sessData = session::get('login');
@@ -114,8 +114,7 @@ class checkRight{
         }
 
         if($obj!==null){
-            if($isLogin == false){//如果未登录或超时，登出操作，跳转到登录页
-                //$this->logOut();
+            if($isLogin == false){  //if user  have neither a global session nor a local one,present a login form page
                 if(isset($_GET['callback']))
                     $callBack = $_GET['callback'];
                 else{
@@ -148,6 +147,8 @@ class checkRight{
                 }
                 $obj->redirect(url::createUrl('/login/login@user').'?callback='.$callBack);
                 exit;
+
+
             }
             else{//已登录则记录user_id
                 foreach($sessLogin as $k=>$v){

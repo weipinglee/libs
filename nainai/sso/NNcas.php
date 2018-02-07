@@ -28,6 +28,7 @@ class NNcas{
        phpCAS::client(self::$cas_config['version'],self::$cas_config['host'],self::$cas_config['port'],self::$cas_config['context']);
    }
 
+
     public  function checkServerLogin(){
         return phpCAS::checkAuthentication();
 
