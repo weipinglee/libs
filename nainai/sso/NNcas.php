@@ -17,15 +17,21 @@ class NNcas{
    public function __construct()
    {
          self::$cas_config = array(
-             'version' => 'CAS_VERSION_2_0',
+             'version' => '2.0',
              'host' =>'shop.nz826.com',
-             'port' =>'443',
+             'port' =>443,
              'context'=>'cas',
              'server_ca_cert_path'=>'',
 
          );
+		 $this->client();
+		 phpCAS::setVerbose(true);
 
-       phpCAS::client(self::$cas_config['version'],self::$cas_config['host'],self::$cas_config['port'],self::$cas_config['context']);
+       //
+   }
+   
+   public function client(){
+	   phpCAS::client(self::$cas_config['version'],self::$cas_config['host'],self::$cas_config['port'],self::$cas_config['context']);
    }
 
 
