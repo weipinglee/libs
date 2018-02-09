@@ -24,6 +24,7 @@ class NNcas{
              'server_ca_cert_path'=>'',
 
          );
+
        $this->client();
        phpCAS::setVerbose(true);
 
