@@ -78,7 +78,7 @@ class jingjiaOffer extends product{
                 return tool::getSuccInfo(0,'参与活动的商品量不能大于原报盘剩余量');
             }
             if($offerData['max_num'] == $max_num){//如果剩余量等于竞价量，原报盘状态改为成交
-				$oldOfferData['status'] = 6
+				$oldOfferData['status'] = 6;
 			}
             
             if(time::getTime()>time::getTime($newOfferData['start_time'])){
