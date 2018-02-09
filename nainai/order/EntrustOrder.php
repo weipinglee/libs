@@ -277,7 +277,8 @@ class entrustOrder extends Order{
 								}
 							}
 							$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
-							$content = '合同'.$info['order_no'].'报价方已支付委托金,请您及时支付尾款。'.$jump_url;
+
+							$content = $type==1 ? '合同'.$info['order_no'].'报价方已支付委托金款。'.$jump_url : '合同'.$info['order_no'].'报价方已支付委托金,请您及时支付尾款。'.$jump_url;
 							$mess_buyer->send('common',$content);
 						}
 					}else{

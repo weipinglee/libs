@@ -32,8 +32,12 @@ class PurchaseOffer extends product {
 	* @param array $productData  商品数据
 	* @param array $offerData 报盘数据
 	*/
-	public function doOffer(&$productData, &$offerData){
+	public function doOffer(&$productData, &$offerData,$offer_id=0){
 		$this->_productObj->beginTrans();
+		if($offer_id){//删除旧的id
+			$this->delOffer($offer_id,$this->user_id);
+		}
+		$offerData['max_num'] = $productData[0]['quantity'];
 		if ($this->_productObj->validate($this->productRules,$productData) && $this->_productObj->validate($this->productOfferRules, $offerData)){
 
 			$pId = $this->_productObj->table('products')->data($productData[0])->add();

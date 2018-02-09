@@ -74,10 +74,13 @@ class jingjiaOffer extends product{
 
             //计算新报盘和旧报盘的最大购买数量
             $max_num = $newOfferData['max_num']-$newOfferData['sell_num'];
-           
-            if($offerData['max_num']>$max_num){
+			if($offerData['max_num']>$max_num){
                 return tool::getSuccInfo(0,'参与活动的商品量不能大于原报盘剩余量');
             }
+            if($offerData['max_num'] == $max_num){//如果剩余量等于竞价量，原报盘状态改为成交
+				$oldOfferData['status'] = 6
+			}
+            
             if(time::getTime()>time::getTime($newOfferData['start_time'])){
                 return tool::getSuccInfo(0,'开始时间不能小于当前时间');
             }
@@ -88,7 +91,7 @@ class jingjiaOffer extends product{
             $oldOfferData['max_num'] =  $newOfferData['max_num'] - $offerData['max_num'] ;//原报盘最大数量减去竞价报盘的数量
             $newOfferData['max_num'] = $offerData['max_num'];//竞价报盘的数量等于参数传递的数量
             $newOfferData['sell_num'] = 0;//新的竞价报盘的已售数量为0
-
+            
             //场内竞价生成口令
             $newOfferData['jingjia_mode'] = $offerData['jingjia_mode'];
             if($offerData['jingjia_mode']==1){
