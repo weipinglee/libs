@@ -150,7 +150,23 @@ class js extends account{
 
     public function getActive($user_id)
     {
-
+        $code = '3FC006';
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'FUNC_CODE'=> 1,
+            'MCH_NO'   => $this->mainacc,
+            'SIT_NO'   => '',//获取用户席位号
+        );
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        //根据$res拿到流水数据
+        return array();
     }
 
     public function getFreeze($user_id)
@@ -207,9 +223,33 @@ class js extends account{
         // TODO: Implement freezeRelease() method.
     }
 
-    public function in($user_id, $num)
+    public function in($user_id, $num , $note='')
     {
-        // TODO: Implement in() method.
+        $code = '3FC002';//交易代码
+        //子账户的信息可能需要从数据库获取
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'MCH_NO' => $this->mainacc,
+            'CURR_COD' => '01',
+            'TX_AMT' => $num,
+            'IN_AMT_SIT_NO' => '',
+            'RMRK' => $note
+        );
+
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+        return false;
     }
 
     public function payMarket($user_id, $num)
@@ -251,5 +291,77 @@ class js extends account{
         return false;
 
     }
+
+    public function signedStatus($user_id)
+    {
+        $code = '3FC014';//交易代码
+        //子账户的信息可能需要从数据库获取
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'MCH_NO' => $this->mainacc,
+            'FUNC_CODE'=> 2,
+            'CERT_TYPE' =>  $accInfo['id_type'],
+            'CERT_NO'   =>  $accInfo['id_card']
+
+        );
+
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+        return false;
+
+    }
+
+    public function transSigninfo($user_id)
+    {
+        $code = '3FC001';//交易代码
+        //子账户的信息可能需要从数据库获取
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'MCH_NO' => $this->mainacc,
+            'MBR_CERT_TYPE'=> $accInfo['id_type'],
+            'MBR_CERT_NO'  => $accInfo['id_card'],
+            'SPOT_SIT_NO' => '',//未签约席位号怎么 获取
+            'MBR_NAME'     => $accInfo['legal'],
+           // 'MBR_SPE_ACCT_NO' => '',
+            'MBR_CONTACT'  => $accInfo['contact_name'],
+            'MBR_PHONE_NUM' => $accInfo['contact_phone'],
+            'MBR_ADDR'     => $accInfo['address'],
+            'MBR_INOUT_AMT_SVC_DRAWEE' => 1,
+            'MBR_INOUT_AMT_SVC_RCV_STY' => 1,
+            'SIGNED_DATE' => time::getDateTime('Ymd'),
+            'MBR_STS' => 1,
+            'RMRK'    => ''
+
+        );
+
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+        return false;
+
+    }
+
+
 
 }

@@ -358,5 +358,15 @@ class agentAccount extends account{
         return false;
     }
 
+    public function signedStatus($user_id)
+    {
+        return true;
+    }
+
+    public function transSigninfo($user_id)
+    {
+        // TODO: Implement transSigninfo() method.
+    }
+
 
 }

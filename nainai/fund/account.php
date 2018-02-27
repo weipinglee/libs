@@ -45,7 +45,7 @@ abstract class account{
      * @param int $user_id 用户id
      * @param float $num 冻结数额
      */
-    abstract protected function freeze($user_id,$num,$clientID='');
+    abstract protected function freeze($user_id,$num,$note='');
 
     /**
      * 释放用户一定数量的冻结资金
@@ -69,6 +69,20 @@ abstract class account{
      * @param float $num 金额
      */
     abstract protected function payMarket($user_id,$num);
+
+    /**
+     * 查询签约状态
+     * @param int $user_id 用户id
+     * @return mixed
+     */
+    abstract protected function signedStatus($user_id);
+
+    /**
+     * 传输签约信息
+     * @param int $user_id
+     * @return mixed
+     */
+    abstract protected function transSigninfo($user_id);
 
 
 }
