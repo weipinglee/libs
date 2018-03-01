@@ -208,6 +208,38 @@ class js extends account{
         return array();
     }
 
+    /**
+     * create order in table order_tobe
+     * @param int $user_id the user account to be changed.
+     * @param $buyer_id
+     * @param $seller_id
+     * @param float $num money
+     * @param string $orderNo
+     * @return bool
+     */
+    private function createOrderTobe($user_id,$buyer_id,$seller_id,$num,$orderNo=''){
+        if($orderNo==''){
+            $orderNo = tool::create_uuid();
+        }
+
+        $orderObj = new \Library\M('order_tobe');
+        $data = array(
+            'order_no' => $orderNo,
+            'seller_id' => $seller_id,
+            'buyer_id' => $buyer_id,
+            'create_time' => time::getDateTime()
+        );
+        if($user_id==$buyer_id){
+            $data['buyer_freeze'] = $num;
+        }
+        elseif($user_id==$seller_id){
+            $data['seller_freeze'] = $num;
+        }
+        else{
+            throw new \Exception('非法操作');
+        }
+        return $orderObj->data($data)->add();
+    }
 
     /**
      * @param int $user_id 要冻结的用户id
@@ -215,7 +247,7 @@ class js extends account{
      * @param string $note
      * @param int $buyer_id 买方id
      * @param int $seller_id 卖方id
-     * @param string $orderNo
+     * @param string $orderNo ,if it is empty,create temporary order in table order_tobe
      * @param int $amount 合同总金额
      * @return bool|string
      */
@@ -223,43 +255,52 @@ class js extends account{
     {
         $code = '3FC009';//交易代码
 
-        //子账户的信息可能需要从数据库获取
-        $buyerInfo = $this->attachAccount->attachInfo($buyer_id,$this->bankName);
-        if(empty($buyerInfo)){
-            return '买方建行账户不存在';
-        }
-        $sellerInfo = $this->attachAccount->attachInfo($seller_id,$this->bankName);
-        if(empty($sellerInfo)){
-            return '卖方建行账户不存在';
-        }
-        $bodyParams = array(
-            'FUNC_CODE' => 0,
-            'MCH_NO'    => $this->mainacc,
-            'BUYER_SIT_NO' => $buyerInfo['no'],
-            'SELLER_SIT_NO'=> $sellerInfo['no'],
-            'CTRT_NO'      => $orderNo,
-            'CTRT_AMT'     => $amount,
-            'CURR_COD'     => '01',
-            'RMRK'         => $note,
-            'FIN_FLG'      => 0,
-            'FIN_AMT'      => 0
+        try {
+            //子账户的信息可能需要从数据库获取
+            $buyerInfo = $this->attachAccount->attachInfo($buyer_id, $this->bankName);
+            if (empty($buyerInfo)) {
+                throw new \Exception('买方建行账户不存在');
+            }
+            $sellerInfo = $this->attachAccount->attachInfo($seller_id, $this->bankName);
+            if (empty($sellerInfo)) {
+                throw new \Exception('卖方建行账户不存在');
+            }
+            if ($orderNo == '') {
+                $res = $this->createOrderTobe($user_id, $buyer_id, $seller_id, $num);
+                if (!$res) {
+                    throw new \Exception('生成订单失败');
+                }
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 0,
+                'MCH_NO' => $this->mainacc,
+                'BUYER_SIT_NO' => $buyerInfo['no'],
+                'SELLER_SIT_NO' => $sellerInfo['no'],
+                'CTRT_NO' => $orderNo,
+                'CTRT_AMT' => $amount,
+                'CURR_COD' => '01',
+                'RMRK' => $note,
+                'FIN_FLG' => 0,
+                'FIN_AMT' => 0
 
-        );
-        if($user_id==$buyer_id){//冻结买方资金
-            $bodyParams['BUYER_GUAR_PAY_AMT'] = $num;
+            );
+            if ($user_id == $buyer_id) {//冻结买方资金
+                $bodyParams['BUYER_GUAR_PAY_AMT'] = $num;
+            } elseif ($user_id == $seller_id) {
+                $bodyParams['SELLER_GUAR_PAY_AMT'] = $num;
+            }
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+        }catch (\Exception $e){
+            $this->rollback();//如果冻结失败，回滚，删除生成的预订单
+            return $e->getMessage();
         }
-        elseif($user_id==$seller_id){
-            $bodyParams['SELLER_GUAR_PAY_AMT'] = $num;
-        }
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
-
 
         return false;
 
@@ -320,47 +361,101 @@ class js extends account{
     }
 
 
+    /**
+     * find a right order to release money,and update the row in the order_tobe.
+     * @param int $user_id  the user account to be changed.
+     * @param int $buyer_id buyer id
+     * @param int $seller_id 卖方id
+     * @param float $num 金额
+     * @return array
+     * @throws \Exception
+     */
+    private function findOrderTobe($user_id,$buyer_id,$seller_id,$num){
+        $orderObj = new \Library\M('order_tobe');
+        $where = array('buyer_id'=>$buyer_id,'seller_id'=>$seller_id);
+        $inc_field = $dec_field = '';
+        if($user_id==$buyer_id){
+            $where['buyer_freeze'] = array('gt',$num);
+            $order = 'buyer_freeze asc';
+            $inc_field = 'buyer_release';
+            $dec_field = 'buyer_freeze';
+        }
+        elseif($user_id==$seller_id){
+            $where['seller_freeze'] = array('gt',$num);
+            $order = 'seller_freeze asc';
+            $inc_field = 'seller_release';
+            $dec_field = 'seller_freeze';
+        }
+        else{
+            throw new \Exception('不存在可以释放金额的订单');
+        }
+
+        $data = $orderObj->where($where)->order($order)->getObj();
+        if(!empty($data)){//将该条记录的释放金额增加，冻结金额减少
+             $sql = 'UPDATE order_tobe set '.$inc_field.' = '.$inc_field.' + :inc ,'.$dec_field.'= '.$dec_field.' - :dec WHERE id='.$data['id'];
+             if(!$orderObj->query($sql,array('inc'=>$num,'dec'=>$num))){
+                 throw new \Exception('更新数据失败ORDER_TOBE');
+             }
+        }
+        return $data;
+
+    }
+
+
     public function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0)
     {
         $code = '3FC009';//交易代码
 
-        //子账户的信息可能需要从数据库获取
-        $buyerInfo = $this->attachAccount->attachInfo($buyer_id,$this->bankName);
-        if(empty($buyerInfo)){
-            return '买方建行账户不存在';
-        }
-        $sellerInfo = $this->attachAccount->attachInfo($seller_id,$this->bankName);
-        if(empty($sellerInfo)){
-            return '卖方建行账户不存在';
-        }
-        $bodyParams = array(
-            'FUNC_CODE' => 1,
-            'MCH_NO'    => $this->mainacc,
-            'BUYER_SIT_NO' => $buyerInfo['no'],
-            'SELLER_SIT_NO'=> $sellerInfo['no'],
-            'CTRT_NO'      => $orderNo,
-            'CTRT_AMT'     => $amount,
-            'CURR_COD'     => '01',
-            'RMRK'         => $note,
-            'FIN_FLG'      => 0,
-            'FIN_AMT'      => 0
+        try {
+            //子账户的信息可能需要从数据库获取
+            $buyerInfo = $this->attachAccount->attachInfo($buyer_id, $this->bankName);
+            if (empty($buyerInfo)) {
+                throw new \Exception('买方建行账户不存在') ;
+            }
+            $sellerInfo = $this->attachAccount->attachInfo($seller_id, $this->bankName);
+            if (empty($sellerInfo)) {
+                throw new \Exception('卖方建行账户不存在');
+            }
+            $orderData = array();
+            if ($orderNo == '') {
+                $orderData = $this->findOrderTobe($user_id, $buyer_id, $seller_id, $num);
+                if (!isset($orderData['order_no'])) {
+                    throw new \Exception('不存在可以释放金额的订单');
+                }
+                $orderNo = $orderData['order_no'];
+            }
 
-        );
-        if($user_id==$buyer_id){//释放买方资金
-            $bodyParams['BUYER_PAY_UNFRZ_AMT'] = $num;
-        }
-        elseif($user_id==$seller_id){
-            $bodyParams['SELLER_PAY_UNFRZ_AMT'] = $num;
-        }
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'BUYER_SIT_NO' => $buyerInfo['no'],
+                'SELLER_SIT_NO' => $sellerInfo['no'],
+                'CTRT_NO' => $orderNo,
+                'CTRT_AMT' => $amount,
+                'CURR_COD' => '01',
+                'RMRK' => $note,
+                'FIN_FLG' => 0,
+                'FIN_AMT' => 0
 
+            );
+            if ($user_id == $buyer_id) {//释放买方资金
+                $bodyParams['BUYER_PAY_UNFRZ_AMT'] = $num;
+            } elseif ($user_id == $seller_id) {
+                $bodyParams['SELLER_PAY_UNFRZ_AMT'] = $num;
+            }
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+        }catch (\Exception $e){
+            //回滚事务
+            $this->rollback();
+            return $e->getMessage();
+        }
 
         return false;
     }
@@ -555,6 +650,11 @@ class js extends account{
 
         return false;
 
+    }
+
+    private function rollback(){
+        $M = new M('order_tobe');
+        $M->rollBack();
     }
 
 
