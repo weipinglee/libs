@@ -208,19 +208,161 @@ class js extends account{
         return array();
     }
 
-    public function freeze($user_id, $num, $clientID = '')
+
+    /**
+     * @param int $user_id 要冻结的用户id
+     * @param float $num 金额
+     * @param string $note
+     * @param int $buyer_id 买方id
+     * @param int $seller_id 卖方id
+     * @param string $orderNo
+     * @param int $amount 合同总金额
+     * @return bool|string
+     */
+    public function freeze($user_id, $num, $note = '',$buyer_id=0,$seller_id=0,$orderNo='',$amount=0)
     {
-        // TODO: Implement freeze() method.
+        $code = '3FC009';//交易代码
+
+        //子账户的信息可能需要从数据库获取
+        $buyerInfo = $this->attachAccount->attachInfo($buyer_id,$this->bankName);
+        if(empty($buyerInfo)){
+            return '买方建行账户不存在';
+        }
+        $sellerInfo = $this->attachAccount->attachInfo($seller_id,$this->bankName);
+        if(empty($sellerInfo)){
+            return '卖方建行账户不存在';
+        }
+        $bodyParams = array(
+            'FUNC_CODE' => 0,
+            'MCH_NO'    => $this->mainacc,
+            'BUYER_SIT_NO' => $buyerInfo['no'],
+            'SELLER_SIT_NO'=> $sellerInfo['no'],
+            'CTRT_NO'      => $orderNo,
+            'CTRT_AMT'     => $amount,
+            'CURR_COD'     => '01',
+            'RMRK'         => $note,
+            'FIN_FLG'      => 0,
+            'FIN_AMT'      => 0
+
+        );
+        if($user_id==$buyer_id){//冻结买方资金
+            $bodyParams['BUYER_GUAR_PAY_AMT'] = $num;
+        }
+        elseif($user_id==$seller_id){
+            $bodyParams['SELLER_GUAR_PAY_AMT'] = $num;
+        }
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+
+        return false;
+
     }
 
-    public function freezePay($from, $to, $num, $note = '', $amount = '')
+
+
+    /**
+     * @param int $from 买方id
+     * @param int $to 卖方id
+     * @param float $num 金额
+     * @param string $note
+     * @param string $orderNo  订单号
+     * @param int $payTime 付款批次
+     * @param string $orderTime 订单时间
+     */
+    public function freezePay($from, $to, $num, $note = '',$orderNo='',$payTime=1,$orderTime='')
     {
-        // TODO: Implement freezePay() method.
+        $code = '3FC025';//交易代码
+
+        //子账户的信息可能需要从数据库获取
+        $buyer_id = $from;
+        $seller_id = $to;
+        $buyerInfo = $this->attachAccount->attachInfo($buyer_id,$this->bankName);
+        if(empty($buyerInfo)){
+            return '买方建行账户不存在';
+        }
+        $sellerInfo = $this->attachAccount->attachInfo($seller_id,$this->bankName);
+        if(empty($sellerInfo)){
+            return '卖方建行账户不存在';
+        }
+        $bodyParams = array(
+            'MCH_NO'       => $this->mainacc,
+            'MCH_NAME'     => '',
+            'BUYER_SIT_NO' => $buyerInfo['no'],
+            'SELLER_SIT_NO'=> $sellerInfo['no'],
+            'CTRT_NO'      => $orderNo,
+            'PAY_PRD_NO'   => '0'.$payTime,
+            'CURR_COD'     => '01',
+            'TX_AMT'       => $num,
+            'CTRT_TIME'    => time::getDateTime('YYYYmmddHHMMSS',$orderTime),
+            'CURR_IDEN'    => 0,
+            'BUYER_PAY_UNFRZ_AMT'      => $num
+
+        );
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+
+        return false;
     }
 
-    public function freezeRelease($user_id, $num, $note, $freezeno = '')
+
+    public function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0)
     {
-        // TODO: Implement freezeRelease() method.
+        $code = '3FC009';//交易代码
+
+        //子账户的信息可能需要从数据库获取
+        $buyerInfo = $this->attachAccount->attachInfo($buyer_id,$this->bankName);
+        if(empty($buyerInfo)){
+            return '买方建行账户不存在';
+        }
+        $sellerInfo = $this->attachAccount->attachInfo($seller_id,$this->bankName);
+        if(empty($sellerInfo)){
+            return '卖方建行账户不存在';
+        }
+        $bodyParams = array(
+            'FUNC_CODE' => 1,
+            'MCH_NO'    => $this->mainacc,
+            'BUYER_SIT_NO' => $buyerInfo['no'],
+            'SELLER_SIT_NO'=> $sellerInfo['no'],
+            'CTRT_NO'      => $orderNo,
+            'CTRT_AMT'     => $amount,
+            'CURR_COD'     => '01',
+            'RMRK'         => $note,
+            'FIN_FLG'      => 0,
+            'FIN_AMT'      => 0
+
+        );
+        if($user_id==$buyer_id){//释放买方资金
+            $bodyParams['BUYER_PAY_UNFRZ_AMT'] = $num;
+        }
+        elseif($user_id==$seller_id){
+            $bodyParams['SELLER_PAY_UNFRZ_AMT'] = $num;
+        }
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+
+        return false;
     }
 
     public function in($user_id, $num , $note='')
@@ -252,9 +394,62 @@ class js extends account{
         return false;
     }
 
-    public function payMarket($user_id, $num)
+    public function payMarket($user_id, $num,$note='')
     {
-        // TODO: Implement payMarket() method.
+        $code = '3FC029';//交易代码
+        //子账户的信息可能需要从数据库获取
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'FUNC_CODE' => 1,
+            'MCH_NO' => $this->mainacc,
+            'SIT_NO' => $accInfo['no'],//商户结算专户
+            'TX_AMT' => $num,
+            'RMRK'   => $note
+        );
+
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+        return false;
+    }
+
+    public function marketToUser($user_id, $num,$note='')
+    {
+        $code = '3FC029';//交易代码
+        //子账户的信息可能需要从数据库获取
+        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+        if(empty($accInfo)){
+            return '该建行账户不存在';
+        }
+        $bodyParams = array(
+            'FUNC_CODE' => 2,
+            'MCH_NO' => $this->mainacc,
+            'SIT_NO' => $accInfo['no'],//商户结算专户
+            'TX_AMT' => -$num,
+            'RMRK'   => $note
+        );
+
+
+        //得到响应报文并转化为数组
+        $res = $this->SendTranMessage($bodyParams,$code);
+        if($this->errorText!=''){
+            return $this->errorText;
+        }
+        if(is_array($res)){
+            return true;
+        }
+
+        return false;
     }
 
 

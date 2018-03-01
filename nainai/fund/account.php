@@ -39,20 +39,31 @@ abstract class account{
     abstract protected function in($user_id,$num);
 
 
+    /**
+     * to freeze money
+     * @param int $user_id   the userID to be frozen
+     * @param float $num     the amount to be frozen
+     * @param string $note   note
+     * @param int $buyer_id  buyer id
+     * @param int $seller_id seller id
+     * @param string $orderNo order no
+     * @param int $amount    the total amount of order
+     * @return mixed
+     */
+    abstract protected function freeze($user_id, $num, $note = '',$buyer_id=0,$seller_id=0,$orderNo='',$amount=0);
 
     /**
-     * 冻结用户一定数量的资金
-     * @param int $user_id 用户id
-     * @param float $num 冻结数额
+     * release a certain amount of frozen money
+     * @param int $user_id the user account to be release
+     * @param float $num the amount to be release
+     * @param string $note note
+     * @param int $buyer_id
+     * @param int $seller_id
+     * @param string $orderNo
+     * @param float $amount order amount
+     * @return mixed
      */
-    abstract protected function freeze($user_id,$num,$note='');
-
-    /**
-     * 释放用户一定数量的冻结资金
-     * @param int $user_id
-     * @param float $num 数量
-     */
-    abstract protected function freezeRelease($user_id,$num,$note,$freezeno='');
+    abstract protected function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0);
 
     /**
      * 使用用户的冻结资金支付给另一个用户
@@ -61,15 +72,22 @@ abstract class account{
      * @param float $num 金额
      *
      */
-    abstract protected function freezePay($from,$to,$num,$note='',$amount='');
+    abstract protected function freezePay($from,$to,$num,$note='');
 
     /**
-     * 支付给市场
-     * @param int $user_id 用户id
-     * @param float $num 金额
+     * pay to platform
+     * @param int $user_id the payer id
+     * @param float $num money ,greater than 0
      */
-    abstract protected function payMarket($user_id,$num);
+    abstract protected function payMarket($user_id,$num,$note='');
 
+    /**
+     * platform refund to user
+     * @param int $user_id the user that the platform refund to
+     * @param float $num Refund amount
+     * @return mixed
+     */
+    abstract protected function marketToUser($user_id,$num,$note='');
     /**
      * 查询签约状态
      * @param int $user_id 用户id

@@ -203,7 +203,7 @@ class agentAccount extends account{
      * @param int $user_id 用户id
      * @param float $num 冻结金额
      */
-    public function freeze($user_id,$num,$note=''){
+    public function freeze($user_id, $num, $note = '',$buyer_id=0,$seller_id=0,$orderNo='',$amount=0){
         $num = floatval($num);
         if($num>0){
             $fund = $this->agentModel->table($this->agentTable)->where(array('user_id'=>$user_id))->getField('fund');
@@ -242,7 +242,7 @@ class agentAccount extends account{
      * @param string $note 备注
      * @param string $freezeno 冻结编号
      */
-    public function freezeRelease($user_id,$num,$note='',$freezeno=''){
+    public function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0){
         $num = floatval($num);
         if($num>0){
             $freeze = $this->agentModel->table($this->agentTable)->where(array('user_id'=>$user_id))->getField('freeze');
@@ -273,10 +273,9 @@ class agentAccount extends account{
      * @param int $to  转到的账户用户id,0代表市场
      * @param float $num 转账的金额
      * @param string $note 备注
-     * @param string $amount
      *
      */
-    public function freezePay($from,$to=0,$num,$note='',$amount=''){
+    public function freezePay($from,$to=0,$num,$note=''){
         $num = floatval($num);
         if($num > 0){
 
@@ -366,6 +365,11 @@ class agentAccount extends account{
     public function transSigninfo($user_id)
     {
         // TODO: Implement transSigninfo() method.
+    }
+
+    public function marketToUser($user_id, $num,$note='')
+    {
+        // TODO: Implement marketToUser() method.
     }
 
 
