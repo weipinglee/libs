@@ -112,11 +112,8 @@ class store{
         }
         $data['confirm_thumb'] = \Library\thumb::get($confirm[0],180,180);
         $data['confirm_orig'] = \Library\thumb::getOrigImg($confirm[0]);
-        $data['confirm'] = array();
-        foreach($confirm as $item){
-            $data['confirm']['thumb'][] =  \Library\thumb::get($item,180,180);
-            $data['confirm']['orig'][] =  \Library\thumb::getOrigImg($item);
-        }
+        $data['confirm'] = $confirm;
+
 
         $data['quality_thumb'] = \Library\thumb::get($data['quality'],180,180);
         $data['quality_orig'] = \Library\thumb::getOrigImg($data['quality']);
