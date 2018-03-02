@@ -133,7 +133,7 @@ class witty{
             //处理layout
             $content = $this->renderLayout($layout_file,$content);
 
-            $content = preg_replace_callback('/{include:([\/a-zA-Z0-9_\.]+)}/',array($this,'includeFile'), $content);
+            $content = preg_replace_callback('/{include:([\/a-zA-Z0-9_\.]+)\s*([^}]*)}/',array($this,'includeFile'), $content);
 
             $content = preg_replace_callback('/{(\/?)(\$|url|root|views|echo|foreach|set|if|elseif|else|while|for|code|areatext|img|area)\s*(:?)([^}]*)}/i', array($this,'translate'), $content);
 
@@ -152,7 +152,18 @@ class witty{
      * @return string
      */
     private function includeFile($matches){
-        return file_get_contents($this->_tpl_dir.$matches[1]);
+        $attr = $this->getAttrs($matches[2]);
+        $pre = '';
+        if(!empty($attr)){
+            $pre =  '
+              <?php
+            ';
+            foreach($attr as $key=>$item){
+                $pre .= '$'.$key.'='.$item.';';
+            }
+            $pre .= '?>';
+        }
+        return $pre.file_get_contents($this->_tpl_dir.$matches[1]);
     }
     /**
      * @brief 渲染layout
