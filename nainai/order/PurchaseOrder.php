@@ -56,6 +56,7 @@ class PurchaseOrder extends Order{
 				$orderData['create_time'] = date('Y-m-d H:i:s',time());
 				$orderData['mode'] = self::ORDER_PURCHASE;
 				$orderData['invoice'] = 1;
+				$orderData['offer_user_id'] = $purchase_info['buyer_id'];
 				// $orderData['buyer_id'] = $purchase_info['buyer_id'];
 				$orderData['payment'] = $payment;
 				$gen_res = $this->geneOrder($orderData);

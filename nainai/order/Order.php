@@ -324,7 +324,7 @@ class Order{
 			if($product_valid !== true)
 				return tool::getSuccInfo(0,$product_valid);
 			$orderData['amount'] = $offer_info['price'] * $orderData['num'];
-			
+			$orderData['offer_user_id'] = $offer_info['user_id'];
 			//判断用户买家余额是否足够
 			if($check_payment){
 				//获取摘牌所需定金数额
