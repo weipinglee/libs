@@ -42,5 +42,7 @@ class http extends communicate
     public function receiveMessage()
     {
         // TODO: Implement receiveMessage() method.
+        return file_get_contents('php://input');
+
     }
 }

@@ -41,7 +41,7 @@ class Common{
 	}
 
 	/**
-	 * DES加密
+	 * DES解密
 	 * @param $string
 	 * @return string
 	 */
@@ -93,6 +93,10 @@ class Common{
 		$pkcs12 = file_get_contents ( dirname(__FILE__).'/'.$cert_path );
 		openssl_pkcs12_read ( $pkcs12, $certs, self::$SDK_SIGN_CERT_PWD );
 		return $certs ['pkey'];
+	}
+
+	static function getResponseInfo(&$xml,&$sign,$response){
+		//TODO:
 	}
 	
 

@@ -79,16 +79,17 @@ class js extends account{
         $xml = common::desEncryp($xml);
 
         //通过http上传
-        $param = array('xml'=>$xml,'sign'=>$sign);
+        $param = array('xml'=>$xml,'signature'=>$sign);
         $url = $this->config['ip'].':'.$this->config['port'];
         $res = $this->communicateObj->sendRequest($param,$url);
         if(isset($res['success'])&& $res['success']==1){//有错误返回错误信息
             $this->errorText = $res['info'];
             return false;
         }
-        $xmlReturn = '';//待写获取方法
+        $xmlReturn = '';
         $signReturn = '';
-        $xmlReturn = common::desEncryp($xmlReturn);
+        common::getResponseInfo($xmlReturn,$signReturn,$res);
+        $xmlReturn = common::desdecryp($xmlReturn);
         if(common::verify($xmlReturn,$signReturn)){//验签成功
             $parseRes = $this->messageObj->parse($xmlReturn);//先将xml的字符串解析成数据
             return $this->analysisRes($parseRes);//分析xml返回结果信息，是成功还是失败
@@ -99,6 +100,24 @@ class js extends account{
         }
 
 
+    }
+
+    /**
+     * 对银行向商户请求的数据进行验证，通过则返回xml数据，客户端根据交易代码和其他参数做相应的业务处理
+     * @return mixed
+     * @throws \Exception
+     */
+    public function receiveTranMessage(){
+        $xml = $_POST['xml'];
+        $sign = $_POST['signature'];
+        $xml = common::desdecryp($xml);
+        if(common::verify($xml,$sign)){
+            $parseRes = $this->messageObj->parse($xml);//先将xml的字符串解析成数据
+            return $parseRes;
+        }
+        else{
+            throw new \Exception('验签失败');
+        }
     }
 
     /**
@@ -208,38 +227,7 @@ class js extends account{
         return array();
     }
 
-    /**
-     * create order in table order_tobe
-     * @param int $user_id the user account to be changed.
-     * @param $buyer_id
-     * @param $seller_id
-     * @param float $num money
-     * @param string $orderNo
-     * @return bool
-     */
-    private function createOrderTobe($user_id,$buyer_id,$seller_id,$num,&$orderNo=''){
-        if($orderNo==''){
-            $orderNo = tool::create_uuid();
-        }
 
-        $orderObj = new \Library\M('order_tobe');
-        $data = array(
-            'order_no' => $orderNo,
-            'seller_id' => $seller_id,
-            'buyer_id' => $buyer_id,
-            'create_time' => time::getDateTime()
-        );
-        if($user_id==$buyer_id){
-            $data['buyer_freeze'] = $num;
-        }
-        elseif($user_id==$seller_id){
-            $data['seller_freeze'] = $num;
-        }
-        else{
-            throw new \Exception('非法操作');
-        }
-        return $orderObj->data($data)->add();
-    }
 
     /**
      * @param int $user_id 要冻结的用户id
@@ -290,6 +278,8 @@ class js extends account{
                 throw new \Exception($this->errorText);
             }
             if (is_array($res)) {
+                //如果成功，则发起强制付款通知
+                $this->payNotice($buyer_id,$seller_id,$orderNo,$amount,time::getDateTime());
                 return true;
             }
         }catch (\Exception $e){
@@ -380,7 +370,7 @@ class js extends account{
                 'BUYER_SIT_NO' => $buyerInfo['no'],
                 'SELLER_SIT_NO' => $sellerInfo['no'],
                 'CTRT_NO' => $orderNo,
-                'PAY_PRD_NO' => '0' . $payTime,
+                'PAY_PRD_NO' => '00' ,
                 'CURR_COD' => '01',
                 'RMRK'    => $note,
 
@@ -407,12 +397,6 @@ class js extends account{
 
         return false;
     }
-
-
-
-
-
-
 
     public function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0)
     {
@@ -460,6 +444,54 @@ class js extends account{
         }
 
         return false;
+    }
+
+    /**
+     * 强制付款通知,发起后才可以发起强制付款
+     * @param int $buyer_id
+     * @param int $seller_id
+     * @param string $orderNo
+     * @param float $amount
+     * @param string $orderTime
+     * @return bool|string
+     */
+    public function payNotice($buyer_id,$seller_id,$orderNo,$amount,$orderTime){
+        $code = '3FC024';//交易代码
+
+        try {
+            //子账户的信息可能需要从数据库获取
+            $buyerInfo = $this->attachAccount->attachInfo($buyer_id, $this->bankName);
+            if (empty($buyerInfo)) {
+                throw new \Exception('买方建行账户不存在') ;
+            }
+            $sellerInfo = $this->attachAccount->attachInfo($seller_id, $this->bankName);
+            if (empty($sellerInfo)) {
+                throw new \Exception('卖方建行账户不存在');
+            }
+
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'MCH_NAME'=> '',
+                'BUYER_SIT_NO' => $buyerInfo['no'],
+                'SELLER_SIT_NO' => $sellerInfo['no'],
+                'CTRT_NO' => $orderNo,
+                'CTRT_AMT' => $amount,
+                'CTRT_TIME' => time::getDateTime('YYYYmmddHHMMSS', $orderTime),
+                'PAY_PRD_NO' => '',
+            );
+
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+        }catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 
     public function in($user_id, $num , $note='')
