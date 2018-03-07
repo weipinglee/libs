@@ -265,12 +265,7 @@ class js extends account{
             if (empty($sellerInfo)) {
                 throw new \Exception('卖方建行账户不存在');
             }
-            if ($orderNo == '') {
-                $res = $this->createOrderTobe($user_id, $buyer_id, $seller_id, $num,$orderNo);
-                if (!$res) {
-                    throw new \Exception('生成订单失败');
-                }
-            }
+
             $bodyParams = array(
                 'FUNC_CODE' => 0,
                 'MCH_NO' => $this->mainacc,
@@ -298,7 +293,6 @@ class js extends account{
                 return true;
             }
         }catch (\Exception $e){
-            $this->rollback();//如果冻结失败，回滚，删除生成的预订单
             return $e->getMessage();
         }
 
@@ -407,7 +401,6 @@ class js extends account{
                 return true;
             }
         }catch(\Exception $e){
-            $this->rollback();
             return $e->getMessage();
         }
 
@@ -416,111 +409,9 @@ class js extends account{
     }
 
 
-    /**
-     * find a right order to release money,and update the row in the order_tobe.
-     * @param int $user_id  the user account to be changed.
-     * @param int $buyer_id buyer id
-     * @param int $seller_id 卖方id
-     * @param float $num 金额
-     * @return array
-     * @throws \Exception
-     */
-    private function releaseOrderTobe($user_id,$buyer_id,$seller_id,$num){
-        $orderObj = new \Library\M('order_tobe');
-        $where = array('buyer_id'=>$buyer_id,'seller_id'=>$seller_id);
-        $inc_field = $dec_field = '';
-        if($user_id==$buyer_id){
-            $where['buyer_freeze'] = array('gt',$num);
-            $order = 'buyer_freeze asc';
-            $inc_field = 'buyer_release';
-            $dec_field = 'buyer_freeze';
-        }
-        elseif($user_id==$seller_id){
-            $where['seller_freeze'] = array('gt',$num);
-            $order = 'seller_freeze asc';
-            $inc_field = 'seller_release';
-            $dec_field = 'seller_freeze';
-        }
-        else{
-            throw new \Exception('不存在可以释放金额的订单');
-        }
 
-        $data = $orderObj->where($where)->order($order)->getObj();
-        if(!empty($data)){//将该条记录的释放金额增加，冻结金额减少
-             $sql = 'UPDATE order_tobe set '.$inc_field.' = '.$inc_field.' + :inc ,'.$dec_field.'= '.$dec_field.' - :dec WHERE id='.$data['id'];
-             if(!$orderObj->query($sql,array('inc'=>$num,'dec'=>$num))){
-                 throw new \Exception('更新数据失败ORDER_TOBE');
-             }
-        }
-        return $data;
 
-    }
 
-    /**
-     * find a right order to pay money,and update the row in the order_tobe.
-     * @param int $buyer_id buyer id
-     * @param int $seller_id 卖方id
-     * @param float $num 金额
-     * @return array
-     * @throws \Exception
-     */
-    private function payOrderTobe($buyer_id,$seller_id,$num){
-        $orderObj = new \Library\M('order_tobe');
-        $where = array('buyer_id'=>$buyer_id,'seller_id'=>$seller_id);
-
-        $where['buyer_freeze'] = array('gt',$num);
-        $order = 'buyer_freeze asc';
-        $inc_field = 'buyer_pay';
-        $dec_field = 'buyer_freeze';
-
-        $data = $orderObj->where($where)->order($order)->getObj();
-        if(!empty($data)){//将该条记录的释放金额增加，冻结金额减少
-            $sql = 'UPDATE order_tobe set '.$inc_field.' = '.$inc_field.' + :inc ,'.$dec_field.'= '.$dec_field.' - :dec WHERE id='.$data['id'];
-            if(!$orderObj->query($sql,array('inc'=>$num,'dec'=>$num))){
-                throw new \Exception('更新数据失败ORDER_TOBE');
-            }
-        }
-        return $data;
-
-    }
-
-    /**
-     * 找到一个合适的合同进行违约处理
-     * @param $from
-     * @param $buyer_id
-     * @param $seller_id
-     * @param $num
-     * @return mixed
-     * @throws \Exception
-     */
-    private function breakOrderTobe($from,$buyer_id,$seller_id,$num){
-        $orderObj = new \Library\M('order_tobe');
-        $where = array('buyer_id'=>$buyer_id,'seller_id'=>$seller_id);
-
-        if($from==$buyer_id){
-            $where['buyer_freeze'] = array('gt',$num);
-            $order = 'buyer_freeze asc';
-            $inc_field = 'buyer_pay';
-            $dec_field = 'buyer_freeze';
-        }
-        else{
-            $where['seller_freeze'] = array('gt',$num);
-            $order = 'seller_freeze asc';
-            $inc_field = 'seller_pay';
-            $dec_field = 'seller_freeze';
-        }
-
-        $data = $orderObj->where($where)->order($order)->getObj();
-        if(!empty($data)){//将该条记录的释放金额增加，冻结金额减少
-            $sql = 'UPDATE order_tobe set '.$inc_field.' = '.$inc_field.' + :inc ,'.$dec_field.'= '.$dec_field.' - :dec WHERE id='.$data['id'];
-            if(!$orderObj->query($sql,array('inc'=>$num,'dec'=>$num))){
-                throw new \Exception('更新数据失败ORDER_TOBE');
-            }
-        }
-
-        return $data;
-
-    }
 
 
     public function freezeRelease($user_id, $num, $note,$buyer_id=0,$seller_id=0,$orderNo='',$amount=0)
@@ -536,14 +427,6 @@ class js extends account{
             $sellerInfo = $this->attachAccount->attachInfo($seller_id, $this->bankName);
             if (empty($sellerInfo)) {
                 throw new \Exception('卖方建行账户不存在');
-            }
-            $orderData = array();
-            if ($orderNo == '') {
-                $orderData = $this->releaseOrderTobe($user_id, $buyer_id, $seller_id, $num);
-                if (!isset($orderData['order_no'])) {
-                    throw new \Exception('不存在可以释放金额的订单');
-                }
-                $orderNo = $orderData['order_no'];
             }
 
             $bodyParams = array(
@@ -573,8 +456,6 @@ class js extends account{
                 return true;
             }
         }catch (\Exception $e){
-            //回滚事务
-            $this->rollback();
             return $e->getMessage();
         }
 
