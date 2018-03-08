@@ -23,11 +23,28 @@ class staticPage{
          self::getFileName($request);
         //if  the static file is exist,and not expire ,include it.
         $fileName = self::$dir.'/'.self::$fileName;
-         if(file_exists($fileName) && time()-filemtime($fileName)<$expireTime){
-              include($fileName);exit;
-         }
-
+        if(file_exists($fileName)){
+            $fileTime = filemtime($fileName);
+            if( time()-$fileTime<$expireTime && self::viewNotExpire($fileTime)){
+                include($fileName);exit;
+            }
+        }
          return false;
+    }
+
+    /**
+     * check the view file whether or not expire,if not expire,return ture
+     * @param int $fileTime the time the static file was created
+     * @return bool
+     */
+    private static function viewNotExpire($fileTime){
+        $viewPath = \Library\tool::getConfig(array('application','baseDir')).'/application/views/pc/';
+        $viewPath .= self::$request->getControllerName().'/';
+        $viewPath .= self::$request->getActionName().'.tpl';
+        if(file_exists($viewPath) && filemtime($viewPath)>$fileTime){
+            return false;
+        }
+        return true;
     }
 
     private static function getFileName($request){
