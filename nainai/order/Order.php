@@ -1136,7 +1136,7 @@ class Order{
 		$query = new \Library\searchQuery('order_sell as do');
 		$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join user as u2 on po.user_id = u2.id left join products as p on po.product_id = p.id left join company_info as ci on do.user_id = ci.user_id left join product_category as pc on p.cate_id = pc.id left join store_products as sp on sp.product_id = p.id left join store_list as sl on sp.store_id = sl.id left join person_info as pi on pi.user_id = do.user_id';
 		if($where)$query->where = $where;
-		$query->fields = 'po.type,u2.username as po_username,po.mode,po.sub_mode,u.username as do_username,do.*,p.name as product_name,p.img,p.unit,ci.company_name,pc.percent,sl.name as store_name,pi.true_name';
+		$query->fields = 'po.type,po.id as offer_id,u2.username as po_username,po.mode,po.sub_mode,u.username as do_username,do.*,p.name as product_name,p.img,p.unit,ci.company_name,pc.percent,sl.name as store_name,pi.true_name';
 		// $query->bind  = array_merge($bind,array('user_id'=>$user_id));
 
 		 $query->order = "do.id desc";
@@ -1151,7 +1151,7 @@ class Order{
 			$value['amount'] = number_format(floatval($value['amount']),2);
 			$value['num'] = number_format(floatval($value['num']),2);
 			$value['buyer_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL ? $value['do_username'] : $value['po_username'];
-
+            $value['sub_mode'] = $product->getSubmode($value['sub_mode']);
 			$value['seller_name'] = $value['type'] == \nainai\offer\product::TYPE_SELL  ? $value['po_username'] : $value['do_username'];
 
 		}
