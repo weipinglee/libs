@@ -34,6 +34,8 @@ class witty{
 	
 	protected $_template_name = 'pc';
 
+    private $static_flag = 0;
+
 	//设置模板名称
 	public function setTemplateName($name=''){
 		$this->_template_name = $name;
@@ -57,6 +59,16 @@ class witty{
         }
     }
 
+    /**
+     * 设置应用的根目录，就是application目录，后续可以将模板、编译文件的目录设置都放在这里
+     * @param $dir
+     */
+    public function setRootDir($dir){
+        if($this->isAbsoluteDir($dir)){
+            $this->static_dir = $dir.$this->static_dir;
+            //TODO:其他文件目录的设置
+        }
+    }
 
     public function setLayout($str){
         if(is_string($str))
@@ -133,7 +145,7 @@ class witty{
             //处理layout
             $content = $this->renderLayout($layout_file,$content);
 
-            $content = preg_replace_callback('/{include:([\/a-zA-Z0-9_\.]+)}/',array($this,'includeFile'), $content);
+            $content = preg_replace_callback('/{include:([\/a-zA-Z0-9_\.]+)\s*([^}]*)}/',array($this,'includeFile'), $content);
 
             $content = preg_replace_callback('/{(\/?)(\$|url|root|views|echo|foreach|set|if|elseif|else|while|for|code|areatext|img|area)\s*(:?)([^}]*)}/i', array($this,'translate'), $content);
 
@@ -143,8 +155,19 @@ class witty{
                 exit('编译文件生成出错！');
             }
         }
-        include($parse_file);
+
+        if($this->static_flag){
+            $fileName = \Library\staticPage::createStaticFile();
+            ob_start();
+            include($parse_file);
+            file_put_contents($fileName, ob_get_contents());
+        }
+        else{
+            include($parse_file);
+        }
+
     }
+
 
     /**
      * 载入include标签的内容
@@ -152,7 +175,18 @@ class witty{
      * @return string
      */
     private function includeFile($matches){
-        return file_get_contents($this->_tpl_dir.$matches[1]);
+        $attr = $this->getAttrs($matches[2]);
+        $pre = '';
+        if(!empty($attr)){
+            $pre =  '
+              <?php
+            ';
+            foreach($attr as $key=>$item){
+                $pre .= '$'.$key.'='.$item.';';
+            }
+            $pre .= '?>';
+        }
+        return $pre.file_get_contents($this->_tpl_dir.$matches[1]);
     }
     /**
      * @brief 渲染layout
@@ -376,6 +410,10 @@ OEF;
     protected function varReplace($str)
     {
         return preg_replace(array("#(\\$.*?(?=$|\/))#","#(\\$\w+)\[(\w+)\]#"),array("\".$1.\"","$1['$2']"),$str);
+    }
+
+    public function setStaticFile(){
+        $this->static_flag = 1;
     }
 	
 
