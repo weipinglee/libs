@@ -161,6 +161,7 @@ class witty{
             ob_start();
             include($parse_file);
             file_put_contents($fileName, ob_get_contents());
+            ob_end_flush();
         }
         else{
             include($parse_file);
