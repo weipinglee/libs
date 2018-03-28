@@ -104,8 +104,17 @@ class store{
         }
 
         $data['status_txt'] = $this->getStatusText($data['status']);
-        $data['confirm_thumb'] = \Library\thumb::get($data['confirm'],180,180);
-        $data['confirm_orig'] = \Library\thumb::getOrigImg($data['confirm']);
+        if(strpos($data['confirm'],';')!==false){
+            $confirm = explode(';',$data['confirm']);
+        }
+        else{
+            $confirm = array($data['confirm']);
+        }
+        $data['confirm_thumb'] = \Library\thumb::get($confirm[0],180,180);
+        $data['confirm_orig'] = \Library\thumb::getOrigImg($confirm[0]);
+        $data['confirm'] = $confirm;
+
+
         $data['quality_thumb'] = \Library\thumb::get($data['quality'],180,180);
         $data['quality_orig'] = \Library\thumb::getOrigImg($data['quality']);
         $productModel = new product();
@@ -390,8 +399,16 @@ class store{
         }
 
         $detail['status_txt'] = $this->getStatusText($detail['status']);
-        $detail['confirm_thumb'] = \Library\thumb::get($detail['confirm'],180,180);
-        $detail['confirm_orig'] = \Library\thumb::getOrigImg($detail['confirm']);
+        if(strpos($detail['confirm'],';')!==false){
+            $confirm = explode(';',$detail['confirm']);
+        }
+        else{
+            $confirm = array($detail['confirm']);
+        }
+        $detail['confirm_thumb'] = \Library\thumb::get($confirm[0],180,180);
+        $detail['confirm_orig'] = \Library\thumb::getOrigImg($confirm[0]);
+        $detail['confirm'] = $confirm;
+
         $detail['quality_thumb'] = \Library\thumb::get($detail['quality'],180,180);
         $detail['quality_orig'] = \Library\thumb::getOrigImg($detail['quality']);
         //获取商品信息

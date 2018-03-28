@@ -13,6 +13,7 @@ class wittyAdapter implements \Yaf\View_Interface {
 
 	public $layout = '';
 
+
 	/**
 	 * Constructor.
 	 *
@@ -31,7 +32,6 @@ class wittyAdapter implements \Yaf\View_Interface {
 		$this->witty->setLayoutDir($tpl_dir.'/layout/');
 		$this->witty->setCompileDir($config['compile_dir'].'/'.$templateName.'/');
 		$this->witty->setCacheDir($config['cache_dir']);
-
 		//$this->_options = $options;
 	}
 
@@ -181,6 +181,10 @@ class wittyAdapter implements \Yaf\View_Interface {
 
 		$this->witty->render($tpl);
 
+	}
+
+	public function setStaticFile(){
+          $this->witty->setStaticFile();
 	}
 
 

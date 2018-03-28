@@ -38,7 +38,7 @@ class entrustOrder extends Order{
 			if($product_valid !== true)
 				return tool::getSuccInfo(0,$product_valid);
 			$orderData['amount'] = $offer_info['price'] * $orderData['num'];
-
+			$orderData['offer_user_id'] = $offer_info['user_id'];
 			$upd_res = $this->orderUpdate($orderData);
 			$pro_res = $this->productsFreeze($offer_info,$orderData['num']);
 			if($pro_res != true) return tool::getSuccInfo(0,$pro_res);

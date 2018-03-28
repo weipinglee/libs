@@ -2,11 +2,11 @@
 namespace nainai\fund\jianshe;
 class Common{
 
-	protected static $private_key_path = '/key/';
+	protected static $private_key_path = '/key/localPrivateKey.pfx';
 	protected static $public_key_path = '';
 	protected static $des_key_path = '/key/';
 
-	static $SDK_SIGN_CERT_PWD = '000000';
+	static $SDK_SIGN_CERT_PWD = '123456';
 	/**
 	 * 签名
 	 *

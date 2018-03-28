@@ -186,4 +186,34 @@ class statsMarket
         //$memcache->set('staticTime',serialize($res));
         return $res;
     }
+
+    public function userStatData(){
+        $user_id = \Library\safe::filterPost('id');
+        $pro_name = \Library\safe::filterPost('pro_name');
+        $start =  \Library\safe::filterPost('start_time');
+        $end = \Library\safe::filterPost('end_time');
+        $offerObj = new M('product_offer');
+        $where = 'type=1 AND ';
+        if(!$user_id){
+            return array();
+        }
+        $where .= 'user_id in('.$user_id.')';
+        if($start){
+            $where .= ' AND apply_time > "'.$start.'"';
+        }
+        if($end){
+            $where .= ' AND apply_time<"'.$end.'"';
+        }
+        if($pro_name){
+            $where .= ' AND pro_name="'.$pro_name.'"';
+        }
+        $data = $offerObj->where($where)->fields('count(id) as offer_num,sum(max_num+sell_num) as offer_dun,sum((max_num+sell_num)*price) as offer_amount,sum(sell_num) as order_dun,sum(sell_num*price) as order_amount')->getObj();
+        $data['offer_amount'] = number_format($data['offer_amount'],2,'.','');
+        $data['order_amount'] = number_format($data['order_amount'],2,'.','');
+        $data['last_dun'] = number_format($data['offer_dun']-$data['order_dun'],2,'.','');
+        $data['last_amount'] = number_format($data['offer_amount']-$data['order_amount'],2,'.','');
+        return $data;
+    }
+
+
 }
