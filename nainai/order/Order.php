@@ -1134,9 +1134,12 @@ class Order{
 	 */
 	public function memberContractList($page,$where=''){
 		$query = new \Library\searchQuery('order_sell as do');
-		$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join user as u2 on po.user_id = u2.id left join products as p on po.product_id = p.id left join company_info as ci on do.user_id = ci.user_id left join product_category as pc on p.cate_id = pc.id left join store_products as sp on sp.product_id = p.id left join store_list as sl on sp.store_id = sl.id left join person_info as pi on pi.user_id = do.user_id';
+		$query->join  = 'left join product_offer as po on do.offer_id = po.id 
+		                 left join user as u on u.id = do.user_id 
+		                 left join user as u2 on do.offer_user_id = u2.id 
+		                 left join products as p on po.product_id = p.id ';
 		if($where)$query->where = $where;
-		$query->fields = 'po.type,po.id as offer_id,u2.username as po_username,po.mode,po.sub_mode,u.username as do_username,do.*,p.name as product_name,p.img,p.unit,ci.company_name,pc.percent,sl.name as store_name,pi.true_name';
+		$query->fields = 'po.type,po.id as offer_id,u2.username as po_username,u2.true_name,po.mode,po.sub_mode,u.username as do_username,u.true_name as company_name,do.*,p.name as product_name,p.img,p.unit';
 		// $query->bind  = array_merge($bind,array('user_id'=>$user_id));
 
 		 $query->order = "do.id desc";
@@ -1170,15 +1173,12 @@ class Order{
 		$query = new \Library\searchQuery('order_sell as do');
 		$query->join  = 'left join product_offer as po on do.offer_id = po.id
 						left join user as u on u.id = do.user_id
+						left join user as offer_user on offer_user.id=do.offer_user_id 
 						left join products as p on po.product_id = p.id
-						left join company_info as ci1 on do.user_id = ci1.user_id
-						left join company_info as ci2 on po.user_id = ci2.user_id
-						left join product_category as pc on p.cate_id = pc.id
 						left join store_products as sp on sp.product_id = p.id
-						left join store_list as sl on sp.store_id = sl.id
-						left join person_info as pi on pi.user_id = do.user_id';
+						left join store_list as sl on sp.store_id = sl.id';
 		$query->where = '((po.user_id = :user_id and po.type = '.\nainai\offer\product::TYPE_SELL.') or (do.user_id = :seller_id and po.type = '.\nainai\offer\product::TYPE_BUY.'))';
-		$query->fields = 'u.username,do.*,p.name as product_name,po.type,p.img,p.unit,ci1.company_name as do_company_name,ci2.company_name as po_company_name,pc.percent,sl.name as store_name,pi.true_name';
+		$query->fields = 'u.username,u.true_name,u.type as user_type,offer_user.id as offer_user_id,offer_user.type as offer_user_type,offer_user.true_name as offer_true_name,do.*,p.name as product_name,po.type,p.img,p.unit,sl.name as store_name';
 		// $query->bind  = array_merge($bind,array('user_id'=>$user_id));
 		$query->bind  = array('user_id'=>$user_id,'seller_id'=>$user_id);
 		$query->page  = $page;
@@ -1187,30 +1187,16 @@ class Order{
 		$data = $query->find();
 
 		foreach ($data['list'] as $key => &$value) {
-			$value['company_name'] = $value['type'] == \nainai\offer\product::TYPE_BUY ? $value['po_company_name'] : $value['do_company_name'];
+		    $value['buyer_type'] = $value['type'] == \nainai\offer\product::TYPE_BUY ? $value['offer_user_type'] : $value['user_type'];
+            $value['buyer_name'] = $value['type'] == \nainai\offer\product::TYPE_BUY ? $value['offer_true_name'] : $value['true_name'];
 		}
+
 		$this->sellerContractStatus($data['list']);
 		// tool::pre_dump($data);
 		return $data;
 	}
 
-	// /**
-	//  * 合同详情
-	//  * @param  int $id 订单id
-	//  * @param  boolean $is_seller 默认为购买合同
-	//  * @return array   结果数组
-	//  */
-	// public function contractDetail($id,$is_seller = false){
-	// 	$query = new Query('order_sell as do');
-	// 	$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join products as p on po.product_id = p.id';
-	// 	$query->fields = 'do.*,p.name,po.price,do.amount,p.unit';
-	// 	$query->where = 'do.id=:id';
-	// 	$query->bind = array('id'=>$id);
-	// 	$res = array($query->getObj());
-	// 	// var_dump($res);
-	// 	$this->sellerContractStatus($res);
-	// 	return $res[0];
-	// }
+
 
 	/**
 	 * 用户购买合同列表
