@@ -55,7 +55,7 @@ class secretKey{
         $privkeyPath = dirname(__FILE__).$this->privateKeyPath; //密钥文件路径//生成证书
         $cerpath = dirname(__FILE__).$this->publicKeyPath;
 
-       $privkey = openssl_pkey_new(array('private_key_bits'=>1024));
+       $privkey = openssl_pkey_new(array('private_key_bits'=>512));
 
         $csr = openssl_csr_new($dn, $privkey);
         $sscert = openssl_csr_sign($csr, null, $privkey, $numberofdays);
@@ -94,7 +94,8 @@ class secretKey{
             $cert_path = dirname(__FILE__).$this->publicKeyPath;
 			$publicRes = openssl_pkey_get_public(file_get_contents ($cert_path ));
 			$pubKey = openssl_pkey_get_details($publicRes);
-			//echo $pubKey['key'];exit;
+			print_r($pubKey);
+			echo $pubKey['key'];exit;
             if(!isset($pubKey['key'])){
 				throw new \Exception('get failed');
 			}

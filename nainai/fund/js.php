@@ -22,6 +22,7 @@ class js extends account{
     private $config = array();
     private $errorText = '';//错误信息
     private $bankName  = 'js';
+    private $bankTableObj = '';
      public function __construct()
      {
          $this->configs = tool::getGlobalConfig(array('signBank','jianshe'));
@@ -39,9 +40,11 @@ class js extends account{
              'chanl_trad_no'=> '',
 
          );
+         $this->bankTableObj = new M('user_attach');
          $this->createMessageProduct();
          $this->createCommunicateProduct();
      }
+
 
 
     protected function createMessageProduct()
@@ -169,28 +172,63 @@ class js extends account{
 
     public function getActive($user_id)
     {
-        $code = '3FC006';
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
+        try {
+            $code = '3FC006';
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'SIT_NO' => $accInfo['no'],//获取用户席位号
+            );
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            //根据$res拿到流水数据
+            if (isset($res['AVL_BAL'])) {
+                return $res['AVL_BAL'];
+            }
+            else{
+                throw new \Exception('用户余额获取错误');
+            }
+        }catch (\Exception $e){
+            return $e->getMessage();
         }
-        $bodyParams = array(
-            'FUNC_CODE'=> 1,
-            'MCH_NO'   => $this->mainacc,
-            'SIT_NO'   => '',//获取用户席位号
-        );
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        //根据$res拿到流水数据
-        return array();
+
     }
 
     public function getFreeze($user_id)
     {
-        // TODO: Implement getFreeze() method.
+        try {
+            $code = '3FC006';
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'SIT_NO' => $accInfo['no'],//获取用户席位号
+            );
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            //根据$res拿到流水数据
+            if (isset($res['STX_SVC_FRZ_BAL']) && isset($res['STX_GUAR_FRZ_BAL'])) {
+                return $res['STX_SVC_FRZ_BAL'] + $res['STX_GUAR_FRZ_BAL'];
+            }
+            else{
+                throw new \Exception('用户冻结金额获取错误');
+            }
+        }catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 
     /**
@@ -200,31 +238,35 @@ class js extends account{
      */
     public function getFundFlow($user_id=0,$cond=array())
     {
-        $code = '3FC007';
-        if(!isset($cond['start']))
-            $cond['start'] = '20000101';
-        if(!isset($cond['end'])){
-            return time::getDateTime('YMD');
+        try {
+            $code = '3FC007';
+            if (!isset($cond['start']))
+                $cond['start'] = '20000101';
+            if (!isset($cond['end'])) {
+                $cond['end'] = time::getDateTime('YMD');
+            }
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'SIT_NO' => $accInfo['no'],//获取用户席位号
+                'STRT_DT' => $cond['start'],
+                'END_DT' => $cond['end'],
+                'INQ_AMT_TYP' => 0
+            );
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            //根据$res拿到流水数据
+            return $res;
+        }catch (\Exception $e){
+            return $e->getMessage();
         }
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
-        }
-        $bodyParams = array(
-            'FUNC_CODE'=> 1,
-            'MCH_NO'   => $this->mainacc,
-            'SIT_NO'   => '',//获取用户席位号
-            'STRT_DT'  => $cond['start'],
-            'END_DT'   => $cond['end'],
-            'INQ_AMT_TYP' => 0
-        );
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        //根据$res拿到流水数据
-        return array();
     }
 
 
@@ -351,6 +393,17 @@ class js extends account{
     }
 
 
+    /**
+     * 交易终止冻结支付
+     * @param $from
+     * @param $num
+     * @param string $note
+     * @param int $buyer_id
+     * @param int $seller_id
+     * @param string $orderNo
+     * @param int $payTime
+     * @return bool|string
+     */
     public function breakFreezePay($from, $num, $note = '',$buyer_id=0,$seller_id=0,$orderNo='',$payTime=1){
         $code = '3FC011';//交易代码
         try {
@@ -496,193 +549,214 @@ class js extends account{
 
     public function in($user_id, $num , $note='')
     {
-        $code = '3FC002';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
-        }
-        $bodyParams = array(
-            'MCH_NO' => $this->mainacc,
-            'CURR_COD' => '01',
-            'TX_AMT' => $num,
-            'IN_AMT_SIT_NO' => '',
-            'RMRK' => $note
-        );
+        try{
+            $code = '3FC002';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
+            if(empty($accInfo)){
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'MCH_NO' => $this->mainacc,
+                'CURR_COD' => '01',
+                'TX_AMT' => $num,
+                'IN_AMT_SIT_NO' => '',
+                'RMRK' => $note
+            );
 
 
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams,$code);
+            if($this->errorText!=''){
+                throw new \Exception($this->errorText);
+            }
+            if(is_array($res)){
+                return true;
+            }
+
+            return false;
+        }catch(\Exception $e){
+            return $e->getMessage();
         }
 
-        return false;
     }
 
     public function payMarket($user_id, $num,$note='')
     {
-        $code = '3FC029';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
-        }
-        $bodyParams = array(
-            'FUNC_CODE' => 1,
-            'MCH_NO' => $this->mainacc,
-            'SIT_NO' => $accInfo['no'],//商户结算专户
-            'TX_AMT' => $num,
-            'RMRK'   => $note
-        );
+        try {
+            $code = '3FC029';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 1,
+                'MCH_NO' => $this->mainacc,
+                'SIT_NO' => $accInfo['no'],//商户结算专户
+                'TX_AMT' => $num,
+                'RMRK' => $note
+            );
 
 
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
 
-        return false;
+            return false;
+        }catch(\Exception $e){
+            return $e->getMessage();
+        }
     }
 
     public function marketToUser($user_id, $num,$note='')
     {
-        $code = '3FC029';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
-        }
-        $bodyParams = array(
-            'FUNC_CODE' => 2,
-            'MCH_NO' => $this->mainacc,
-            'SIT_NO' => $accInfo['no'],//商户结算专户
-            'TX_AMT' => -$num,
-            'RMRK'   => $note
-        );
+        try {
+            $code = '3FC029';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'FUNC_CODE' => 2,
+                'MCH_NO' => $this->mainacc,
+                'SIT_NO' => $accInfo['no'],//商户结算专户
+                'TX_AMT' => -$num,
+                'RMRK' => $note
+            );
 
 
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
 
-        return false;
+            return false;
+        }catch (\Exception $e){
+            return $e->getMessage();
+        }
     }
 
 
     public function out($user_id,$num,$note='')
     {
-        $code = '3FC022';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
+        try {
+            $code = '3FC022';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'MCH_NO' => $this->mainacc,
+                'FLOW_NO' => '',
+                'DRAWEE_ACCT_NO' => '45345345345',//商户结算专户
+                'PAYEE_ACCT_NO' => 'sdf1234234',//出金到的账户
+                'CURR_COD' => '01',
+                'TX_AMT' => $num,
+                'OUT_AMT_SIT_NO' => '',//？
+                'AUDIT_STS' => '1',
+                'RMRK' => $note
+            );
+
+
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+
+            return false;
+        }catch (\Exception $e){
+            return $e->getMessage();
         }
-        $bodyParams = array(
-            'MCH_NO' => $this->mainacc,
-            'FLOW_NO' => '',
-            'DRAWEE_ACCT_NO' => '45345345345',//商户结算专户
-            'PAYEE_ACCT_NO'  => 'sdf1234234',//出金到的账户
-            'CURR_COD' => '01',
-            'TX_AMT' => $num,
-            'OUT_AMT_SIT_NO' => '',//？
-            'AUDIT_STS' => '1',
-            'RMRK' => $note
-        );
-
-
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-       if($this->errorText!=''){
-           return $this->errorText;
-       }
-        if(is_array($res)){
-            return true;
-        }
-
-        return false;
 
     }
 
     public function signedStatus($user_id)
     {
-        $code = '3FC014';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
+        try {
+            $code = '3FC014';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'MCH_NO' => $this->mainacc,
+                'FUNC_CODE' => 2,
+                'CERT_TYPE' => $accInfo['id_type'],
+                'CERT_NO' => $accInfo['id_card']
+
+            );
+
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+            return false;
+        }catch(\Exception $e){
+            $e->getMessage();
         }
-        $bodyParams = array(
-            'MCH_NO' => $this->mainacc,
-            'FUNC_CODE'=> 2,
-            'CERT_TYPE' =>  $accInfo['id_type'],
-            'CERT_NO'   =>  $accInfo['id_card']
-
-        );
-
-
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
-
-        return false;
 
     }
 
     public function transSigninfo($user_id)
     {
-        $code = '3FC001';//交易代码
-        //子账户的信息可能需要从数据库获取
-        $accInfo = $this->attachAccount->attachInfo($user_id,$this->bankName);
-        if(empty($accInfo)){
-            return '该建行账户不存在';
+        try {
+            $code = '3FC001';//交易代码
+            //子账户的信息可能需要从数据库获取
+            $accInfo = $this->attachAccount->attachInfo($user_id, $this->bankName);
+            if (empty($accInfo)) {
+                throw new \Exception('该建行账户不存在');
+            }
+            $bodyParams = array(
+                'MCH_NO' => $this->mainacc,
+                'MBR_CERT_TYPE' => $accInfo['id_type'],
+                'MBR_CERT_NO' => $accInfo['id_card'],
+                'SPOT_SIT_NO' => '',//未签约席位号怎么 获取
+                'MBR_NAME' => $accInfo['legal'],
+                // 'MBR_SPE_ACCT_NO' => '',
+                'MBR_CONTACT' => $accInfo['contact_name'],
+                'MBR_PHONE_NUM' => $accInfo['contact_phone'],
+                'MBR_ADDR' => $accInfo['address'],
+                'MBR_INOUT_AMT_SVC_DRAWEE' => 1,
+                'MBR_INOUT_AMT_SVC_RCV_STY' => 1,
+                'SIGNED_DATE' => time::getDateTime('Ymd'),
+                'MBR_STS' => 1,
+                'RMRK' => ''
+
+            );
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+
+            return false;
+        }catch(\Exception $e){
+            $e->getMessage();
         }
-        $bodyParams = array(
-            'MCH_NO' => $this->mainacc,
-            'MBR_CERT_TYPE'=> $accInfo['id_type'],
-            'MBR_CERT_NO'  => $accInfo['id_card'],
-            'SPOT_SIT_NO' => '',//未签约席位号怎么 获取
-            'MBR_NAME'     => $accInfo['legal'],
-           // 'MBR_SPE_ACCT_NO' => '',
-            'MBR_CONTACT'  => $accInfo['contact_name'],
-            'MBR_PHONE_NUM' => $accInfo['contact_phone'],
-            'MBR_ADDR'     => $accInfo['address'],
-            'MBR_INOUT_AMT_SVC_DRAWEE' => 1,
-            'MBR_INOUT_AMT_SVC_RCV_STY' => 1,
-            'SIGNED_DATE' => time::getDateTime('Ymd'),
-            'MBR_STS' => 1,
-            'RMRK'    => ''
-
-        );
-
-
-        //得到响应报文并转化为数组
-        $res = $this->SendTranMessage($bodyParams,$code);
-        if($this->errorText!=''){
-            return $this->errorText;
-        }
-        if(is_array($res)){
-            return true;
-        }
-
-        return false;
 
     }
 
