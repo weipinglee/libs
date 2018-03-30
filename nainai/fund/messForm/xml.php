@@ -34,7 +34,7 @@ class xml extends message
     {
         $res = $this->head.$this->dataToXml($message,1);
         $xmlObj = new \SimpleXMLElement($res);
-        return iconv('UTF-8','GBK',$xmlObj->asXML());
+        return iconv('UTF-8',$this->encoding,$xmlObj->asXML());
 
     }
 

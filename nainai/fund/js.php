@@ -18,7 +18,7 @@ class js extends account{
     private $messageObj = null;//处理报文的对象
     private $communicateObj = null;//通信对象
     private $attachAccount = null;
-    private $encoding = '';
+    private $encoding = 'gb2312';
     private $config = array();
     private $errorText = '';//错误信息
     private $bankName  = 'js';
@@ -76,52 +76,21 @@ class js extends account{
         );
         $xml = $this->messageObj->create($xmlArr);//生成xml字符串
 
-        //签名
-        $sign = common::sign($xml);
-        //加密
-        $xml = common::desEncryp($xml);
-
-        //通过http上传
-        $param = array('xml'=>$xml,'signature'=>$sign);
         $url = $this->config['ip'].':'.$this->config['port'];
-        $res = $this->communicateObj->sendRequest($param,$url);
-        if(isset($res['success'])&& $res['success']==1){//有错误返回错误信息
+        $res = $this->communicateObj->sendRequest($xml,$url);
+        if(isset($res['success'])&& $res['success']==0){//本地发生错误
             $this->errorText = $res['info'];
             return false;
         }
-        $xmlReturn = '';
-        $signReturn = '';
-        common::getResponseInfo($xmlReturn,$signReturn,$res);
-        $xmlReturn = common::desdecryp($xmlReturn);
-        if(common::verify($xmlReturn,$signReturn)){//验签成功
-            $parseRes = $this->messageObj->parse($xmlReturn);//先将xml的字符串解析成数据
-            return $this->analysisRes($parseRes);//分析xml返回结果信息，是成功还是失败
-        }
-        else{
-            $this->errorText = '验签失败';
-            return false;
-        }
-
+        //解析返回的xml
+        $xmlReturn = $res;
+        $parseRes = $this->messageObj->parse($xmlReturn);//先将xml的字符串解析成数组
+        //分析xml返回结果信息，是成功还是失败。发生在前置机端的错误也按照建行的响应报文头的规范返回
+        return $this->analysisRes($parseRes);
 
     }
 
-    /**
-     * 对银行向商户请求的数据进行验证，通过则返回xml数据，客户端根据交易代码和其他参数做相应的业务处理
-     * @return mixed
-     * @throws \Exception
-     */
-    public function receiveTranMessage(){
-        $xml = $_POST['xml'];
-        $sign = $_POST['signature'];
-        $xml = common::desdecryp($xml);
-        if(common::verify($xml,$sign)){
-            $parseRes = $this->messageObj->parse($xml);//先将xml的字符串解析成数据
-            return $parseRes;
-        }
-        else{
-            throw new \Exception('验签失败');
-        }
-    }
+
 
     /**
      * 解析响应报文
