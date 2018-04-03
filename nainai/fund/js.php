@@ -25,8 +25,8 @@ class js extends account{
     private $bankTableObj = '';
      public function __construct()
      {
-         $this->configs = tool::getGlobalConfig(array('signBank','jianshe'));
-         $this->mainacc = $this->configs['mainacc'];
+         $this->config = tool::getGlobalConfig(array('signBank','jianshe'));
+         $this->mainacc = $this->config['mainacc'];
          $this->encoding = 'gbk';
          $this->attachAccount = new attachAccount();
          $this->headParams = array(
