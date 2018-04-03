@@ -19,7 +19,7 @@ class xml extends message
      * @param int $depth xml的深度
      * 设置深度为xml的实际深度，最深层的xml使用field格式<field name="字段名" attr="">值</field>，该值设置为0则所有xml字段都是普通格式
      */
-    public function __construct($encoding='gb2312',$depth=3)
+    public function __construct($encoding='gbk',$depth=3)
     {
         parent::__construct($encoding,$depth);
         $this->head = '<?xml version="1.0" encoding="'.$this->encoding.'"?>';
@@ -71,6 +71,7 @@ class xml extends message
         else{
             foreach($xmlArr as $key=>$val){
                 if( $this->depth==$currDepth){//建行的特殊处理，最底层的xml标签使用field格式
+
                     if(is_array($val)){
                         $tempXml .= '<field name="'.$key.'" ';
                         $value = isset($val['value']) ? $val['value'] : '';
@@ -79,9 +80,10 @@ class xml extends message
                             $tempXml .= $attr.'="'.$v.'" ';
                         }
                         $tempXml.= '>'.$value.'</field>';
+                        echo $tempXml.'</br>';
                     }
                     else{
-                        $tempXml .= '<field name="'.$key.'">'.$val.'</field>';
+                         $tempXml .= '<field name="'.$key.'">'.$val.'</field>';
                     }
 
                 }

@@ -27,15 +27,15 @@ class js extends account{
      {
          $this->configs = tool::getGlobalConfig(array('signBank','jianshe'));
          $this->mainacc = $this->configs['mainacc'];
-         $this->encoding = 'gb2312';
+         $this->encoding = 'gbk';
          $this->attachAccount = new attachAccount();
          $this->headParams = array(
              'version' => '100',
              'type' => '0200',
              'chanl_no' => '30',
-             'chanl_sub_no' => '01',
-             'chanl_date'   => time::getDateTime('YMD'),
-             'chanl_time'   => time::getDateTime('HMS'),
+             'chanl_sub_no' => '3001',
+             'chanl_date'   => time::getDateTime('Ymd'),
+             'chanl_time'   => time::getDateTime('His'),
              'chanl_flow_no'=> '123456',//生成随机的流水号
              'chanl_trad_no'=> '',
 
