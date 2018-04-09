@@ -726,4 +726,25 @@ class zx extends account{
         var_dump($res);
     }
 
+    protected function marketToUser($user_id,$num,$note=''){
+
+    }
+    /**
+     * 查询签约状态
+     * @param int $user_id 用户id
+     * @return mixed
+     */
+    protected function signedStatus($user_id){
+
+    }
+
+    /**
+     * 传输签约信息
+     * @param int $user_id
+     * @return mixed
+     */
+    protected function transSigninfo($user_id){
+
+    }
+
 }

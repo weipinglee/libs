@@ -76,7 +76,7 @@ class Order{
 		$this->account = new \nainai\fund\agentAccount();
 		$this->base_account = new \nainai\fund();
 		$this->user_invoice = new \nainai\user\UserInvoice();
-		$this->zx = new \nainai\fund\zx();
+		//$this->zx = new \nainai\fund\zx();
 		$this->delivery = new \nainai\delivery\Delivery();
 	}
 
