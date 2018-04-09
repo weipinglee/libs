@@ -23,6 +23,7 @@ class js extends account{
     private $errorText = '';//错误信息
     private $bankName  = 'js';
     private $bankTableObj = '';
+    private $requestUrl = '/abutment/sendRequest';
      public function __construct()
      {
          $this->config = tool::getGlobalConfig(array('signBank','jianshe'));
@@ -76,7 +77,7 @@ class js extends account{
         );
         $xml = $this->messageObj->create($xmlArr);//生成xml字符串
 
-        $url = $this->config['ip'].':'.$this->config['port'];
+        $url = $this->config['ip'].':'.$this->config['port'].$this->requestUrl;
         $res = $this->communicateObj->sendRequest($xml,$url);
         if(isset($res['success'])&& $res['success']==0){//本地发生错误
             $this->errorText = $res['info'];
