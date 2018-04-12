@@ -33,8 +33,7 @@ class xml extends message
     public function create($message)
     {
         $res = $this->head.$this->dataToXml($message,1);
-        $xmlObj = new \SimpleXMLElement($res);
-        return iconv('UTF-8',$this->encoding,$xmlObj->asXML());
+        return iconv('UTF-8',$this->encoding,$res);
 
     }
 

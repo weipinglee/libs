@@ -76,7 +76,7 @@ class js extends account{
             )
         );
         $xml = $this->messageObj->create($xmlArr);//生成xml字符串
-
+        $xml = 'requestMessage='.$xml;
         $url = $this->config['ip'].':'.$this->config['port'].$this->requestUrl;
         $res = $this->communicateObj->sendRequest($xml,$url);
         if(isset($res['success'])&& $res['success']==0){//本地发生错误
@@ -85,6 +85,7 @@ class js extends account{
         }
         //解析返回的xml
         $xmlReturn = $res;
+		echo $res;
         $parseRes = $this->messageObj->parse($xmlReturn);//先将xml的字符串解析成数组
         //分析xml返回结果信息，是成功还是失败。发生在前置机端的错误也按照建行的响应报文头的规范返回
         return $this->analysisRes($parseRes);
@@ -701,7 +702,7 @@ class js extends account{
                 'MCH_NO' => $this->mainacc,
                 'MBR_CERT_TYPE' => $accInfo['id_type'],
                 'MBR_CERT_NO' => $accInfo['id_card'],
-                'SPOT_SIT_NO' => '',//未签约席位号怎么 获取
+                'SPOT_SIT_NO' => $accInfo['no'],
                 'MBR_NAME' => $accInfo['legal'],
                 // 'MBR_SPE_ACCT_NO' => '',
                 'MBR_CONTACT' => $accInfo['contact_name'],
@@ -710,7 +711,7 @@ class js extends account{
                 'MBR_INOUT_AMT_SVC_DRAWEE' => 1,
                 'MBR_INOUT_AMT_SVC_RCV_STY' => 1,
                 'SIGNED_DATE' => time::getDateTime('Ymd'),
-                'MBR_STS' => 1,
+                'MBR_STS' => 0,
                 'RMRK' => ''
 
             );
