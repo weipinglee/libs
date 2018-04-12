@@ -267,7 +267,8 @@ class jingjiaOffer extends product{
         $amount = bcmul($price,$res['max_num'],2);
 
         $event_name = 'startJingjia_'.$offer_id;
-        $startTime = $res['start_time'];
+        $interval = 5;
+        $startTime = time::getDateTime('Y-m-d H:i:s',time::getTime($res['start_time'])+$interval);
 
         $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$startTime.'" ON COMPLETION NOT PRESERVE ENABLE DO
         CALL jingjiaStart('.$offer_id.','.$user_id.','.$price.','.$amount.');';
