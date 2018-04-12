@@ -83,10 +83,10 @@ class certDealer extends certificate{
 
         if($check===true ){
             //检验其他的认证是否需要重新认证
-            $reCertType = $this->checkOtherCert($accData);
+           // $reCertType = $this->checkOtherCert($accData);
             $certObj->beginTrans();
-            if(!empty($reCertType))//若果重新认证的类型不为空，对其初始化
-                $this->certInit($reCertType);
+           // if(!empty($reCertType))//若果重新认证的类型不为空，对其初始化
+           //     $this->certInit($reCertType);
 
             if($this->createCertApply(self::$certType,$accData,$certData)){
                 $this->chgCertStatus($this->user_id,$certObj);//更改用户表认证状态

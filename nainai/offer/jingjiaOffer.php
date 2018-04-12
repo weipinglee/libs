@@ -217,6 +217,73 @@ class jingjiaOffer extends product{
     }
 
     /**
+     * 竞价交易报价
+     * @param $offer_id int 报盘id
+     * @param $price float 提报的价格
+     * @param $user_id int 报价的用户id
+     * @param $pay_way int 支付方式，默认代理账户
+     */
+    public function createbaojia($offer_id,$price,$user_id,$pay_way=1)
+    {
+        $offerObj = new M('product_offer');
+        $offerObj->beginTrans();
+        //获取符合条件的报盘,对相应的竞价报盘行锁定，同一竞价的多个会话的报价必须串行执行
+        $res = $offerObj->where(array('id'=>$offer_id,'sub_mode'=>$this->jingjiaMode))->lock('update')->getObj();
+        if(empty($res)){
+            return tool::getSuccInfo(0,'该报盘不存在');
+        }
+
+        if($user_id<=0)
+            return tool::getSuccInfo(0,'用户不能为空');
+        if($res['status']!=1){
+            return tool::getSuccInfo(0,'该报盘已成交');
+        }
+        if($user_id==$res['user_id'])
+            return tool::getSuccInfo(0,'不能给自己的报盘报价');
+
+        //判断是否处于交易时间内
+        $now = time::getTime();
+        if($now>time::getTime($res['start_time']) ){
+            return tool::getSuccInfo(0,'该时间不能报价');
+        }
+
+
+
+        //判断价格是否合适
+        $baojiaObj = new M('product_jingjia');
+        $baojiaData = $baojiaObj->where(array('offer_id'=>$offer_id))->fields('max(price) as max')->getObj();
+        //获取报价的基础价
+        $minPrice = isset($baojiaData['max']) ? $baojiaData['max'] : $res['price_l'];
+        if(!isset($baojiaData['max']) && $price<$res['price_l']){
+            return tool::getSuccInfo(0,'您的报价低于卖方设置的最低价，请重新出价');
+        }
+        if(isset($baojiaData['max']) && $price <=$baojiaData['max']){
+            return tool::getSuccInfo(0,'您的报价不能低于当前报价的最高价，请重新出价');
+        }
+        if($res['jing_stepprice']>0 && ($price-$minPrice)%$res['jing_stepprice']!=0){
+            return tool::getSuccInfo(0,'报价必须按照'.$res['jing_stepprice'].'的倍数递增');
+        }
+
+        $amount = bcmul($price,$res['max_num'],2);
+
+        $event_name = 'startJingjia_'.$offer_id;
+        $interval = 5;
+        $startTime = time::getDateTime('Y-m-d H:i:s',time::getTime($res['start_time'])+$interval);
+
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$startTime.'" ON COMPLETION NOT PRESERVE ENABLE DO
+        CALL jingjiaStart('.$offer_id.','.$user_id.','.$price.','.$amount.');';
+        $res = $offerObj->query($sql);
+        if($res){
+            return tool::getSuccInfo();
+        }
+        return tool::getSuccInfo(0,'操作失败');
+
+
+
+
+    }
+
+    /**
      * 创建到期自动执行的事件
      * @param $offer_id
      * @param string $end_time
