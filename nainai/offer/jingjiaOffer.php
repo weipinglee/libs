@@ -216,6 +216,7 @@ class jingjiaOffer extends product{
 
     }
 
+
     /**
      * 创建到期自动执行的事件
      * @param $offer_id

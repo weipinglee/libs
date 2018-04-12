@@ -292,6 +292,11 @@ class witty{
                     if(!isset($attr['cityID']))$attr['cityID'] = 'seachcity';
                     if(!isset($attr['districtID']))$attr['districtID'] = 'seachdistrict';
                     if(!isset($attr['inputName'])) $attr['inputName'] = 'area';
+                    if(isset($attr['id'])){
+                        $attr['provinceID'] = 'seachprov'.$attr['id'];
+                        $attr['cityID'] = 'seachcity'.$attr['id'];
+                        $attr['districtID'] = 'seachdistrict'.$attr['id'];
+                    }
                     if(substr($attr['data'],0,1) == '$')
                         $attr['data'] = '<?php echo '.$attr['data'].' ; ?>';
 

@@ -172,7 +172,6 @@ class certificate{
 
         }
 
-
         $insert['status'] = $status;
         $insert['user_id'] = $user_id;
         $insert['apply_time'] = time::getDateTime();
