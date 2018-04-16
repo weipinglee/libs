@@ -118,7 +118,7 @@ class FreeOrder extends Order{
 								$note = '冻结合同'.$info['order_no'].'款项￥'.number_format($retainage,2);
 								$account = $this->base_account->get_account($account);
 								if(!is_object($account)) return tool::getSuccInfo(0,$account);
-								$acc_res = $account->freeze($buyer,$retainage,$note);
+								$acc_res = $account->freeze($buyer,$retainage,$note,$buyer,$seller,$info['order_no'],$info['amount']);
 
 							}
 
@@ -180,7 +180,7 @@ class FreeOrder extends Order{
 			return tool::getSuccInfo(0,'订单卖家信息有误');
 
 		$account = $this->base_account->createFund($info['retainage_payment']);
-		$res = $account->freezePay($buyer,$seller,$info['amount'],'合同'.$info['order_no'].'的款项￥'.$info['amount']);
+		$res = $account->freezePay($buyer,$seller,$info['amount'],'合同'.$info['order_no'].'的款项￥'.$info['amount'],$info['order_no'],1,strtotime($info['create_time']));
         if($res===true){
 			$data = array('contract_status'=>self::CONTRACT_COMPLETE,'id'=>$info['id']);
 			$res1 = $this->orderUpdate($data);

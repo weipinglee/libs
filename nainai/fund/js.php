@@ -342,7 +342,7 @@ class js extends account{
                 'PAY_PRD_NO' => '0' . $payTime,
                 'CURR_COD' => '01',
                 'TX_AMT' => $num,
-                'CTRT_TIME' => time::getDateTime('YYYYmmddHHMMSS', $orderTime),
+                'CTRT_TIME' => time::getDateTime('YmdHMS', $orderTime),
                 'CURR_IDEN' => 0,
                 'BUYER_PAY_UNFRZ_AMT' => $num
 

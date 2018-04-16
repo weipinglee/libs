@@ -138,10 +138,7 @@ class entrustOrder extends Order{
 					$account = $this->base_account->get_account($payment);
 					if(!is_object($account)) return tool::getSuccInfo(0,$account);
 					if(($type == 0) || ($type == 1 && !$is_vip)){
-						$res = $account->freeze($buyer,$orderData['pay_deposit'],$note);
-					}elseif($type == 1 && $is_vip){
-						//全款支付且卖方为收费会员则合同结束，转账
-						$res = $account->transfer($buyer,$seller,array('amount'=>$amount,'note'=>$note));
+						$res = $account->freeze($buyer,$orderData['pay_deposit'],$note,$buyer,$seller,$info['order_no'],$info['amount']);
 					}
 				}
 
@@ -210,7 +207,7 @@ class entrustOrder extends Order{
 					if($res === true){
 						//将买方冻结资金解冻
 						$note = '卖方未支付合同'.$info['order_no'].'委托金 退还定金 '.$info['pay_deposit'];
-						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note);
+						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
 						
 						$content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
 						$mess_buyer->send('common',$content);
@@ -266,14 +263,14 @@ class entrustOrder extends Order{
 
 										if(is_object($account_deposit)){
 											$note = '合同'.$info['order_no'].'已完成,解冻支付全款'.$info['pay_deposit'];
-											$fpay_res = $account_deposit->freezePay($buyer,$seller,$info['pay_deposit'],$note);
+											$fpay_res = $account_deposit->freezePay($buyer,$seller,$info['pay_deposit'],$note,$info['order_no'],1,strtotime($info['create_time']));
 											if($fpay_res !== true ) $res = $fpay_res;
 										}else{
 											$res = $res ? $res : '无效定金支付方式';
 										}
 									}
 								}else{
-									$res = $seller_deposit == 0 ? true : $account->freeze($seller,$seller_deposit,$note);
+									$res = $seller_deposit == 0 ? true : $account->freeze($seller,$seller_deposit,$note,$buyer,$seller,$info['order_no'],$info['amount']);
 								}
 							}
 							$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";

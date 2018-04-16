@@ -86,7 +86,7 @@ class DepositOrder extends Order{
 					$account = $this->base_account->get_account($payment);
 					
 					if(!is_object($account)) return tool::getSuccInfo(0,$account);
-					$res = $account->freeze($buyer,$orderData['pay_deposit'],$note);
+					$res = $account->freeze($buyer,$orderData['pay_deposit'],$note,$buyer,$seller,$info['order_no'],$info['amount']);
 
 				}
 
@@ -155,7 +155,7 @@ class DepositOrder extends Order{
 					if($res === true){
 						//将买方冻结资金解冻
 						$note = '卖方未支付合同'.$info['order_no'].'保证金 退还定金 '.$info['pay_deposit'];
-						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note);
+						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
 
 						$content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
 						$mess_buyer->send('common',$content);
@@ -210,7 +210,7 @@ class DepositOrder extends Order{
 							$account = $this->base_account->get_account($payment);
 							// var_dump($account);exit;
 							if(!is_object($account)) return tool::getSuccInfo(0,$account);
-							$res = $account->freeze($seller,$seller_deposit,$note);
+							$res = $account->freeze($seller,$seller_deposit,$note,$buyer,$seller,$info['order_no'],$info['amount']);
 							
 							$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
 							$content = $msg_txt.$jump_url;

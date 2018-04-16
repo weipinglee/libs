@@ -62,7 +62,7 @@ class StoreOrder extends Order{
 					$note_type = $type==0 ? '订金' : '全款';
 					$pay_account = $type == 0 ? $pay_deposit : $info['amount'];
 					$note = '合同'.$note_id.$note_type.'支付 '.$pay_account;
-					$acc_res = $account->freeze($info['user_id'],$orderData['pay_deposit'],$note);
+					$acc_res = $account->freeze($info['user_id'],$orderData['pay_deposit'],$note,$info['user_id'],$offerInfo['user_id'],$info['order_no'],$info['amount']);
 					if($acc_res === true){
 						$mess = new \nainai\message($info['user_id']);
 						$content = $type == 0 ? '(合同'.$info['order_no'].'已支付定金,请您及时支付尾款)' : '(合同'.$info['order_no'].'已生效,您可以申请提货了)';
