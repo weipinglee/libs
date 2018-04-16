@@ -28,7 +28,7 @@ class js extends account{
      {
          $this->config = tool::getGlobalConfig(array('signBank','jianshe'));
          $this->mainacc = $this->config['mainacc'];
-         $this->encoding = 'gbk';
+         $this->encoding = 'gb2312';
          $this->attachAccount = new attachAccount();
          $this->headParams = array(
              'version' => '100',
