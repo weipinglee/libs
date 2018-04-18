@@ -37,7 +37,7 @@ class js extends account{
              'chanl_sub_no' => '3001',
              'chanl_date'   => time::getDateTime('Ymd'),
              'chanl_time'   => time::getDateTime('His'),
-             'chanl_flow_no'=> '123456',//生成随机的流水号
+             'chanl_flow_no'=> 'nnys'.rand(1000,9999),//生成随机的流水号
              'chanl_trad_no'=> '',
 
          );
