@@ -12,10 +12,14 @@ class fund{
     const FUND_AGENT  =  1; //代理账户
     const FUND_ZX     = 2;  //中信账户
     const FUND_ZX_EN  = 'zx';
+    const FUND_JS     = 3;
+    const FUND_JS_EN  = 'js';
 
     public static function getFundName($type){
         switch($type){
-
+            case self::FUND_JS:
+            case self::FUND_JS_EN:
+                return '建设账户';
             case self::FUND_ZX :
             case self::FUND_ZX_EN :
                 return '中信账户';
@@ -31,7 +35,9 @@ class fund{
     public static function createFund($id){
 
         switch($id){
-
+            case self::FUND_JS:
+            case self::FUND_JS_EN:
+                return new \nainai\fund\js();
             case self::FUND_ZX :
             case self::FUND_ZX_EN :
                 return new \nainai\fund\zx();

@@ -7,7 +7,7 @@
  */
 
 namespace nainai\fund\jianshe;
-
+use \Library\time;
 class bankRequestHandle
 {
 
@@ -27,9 +27,14 @@ class bankRequestHandle
         $this->returnMsg = array(
             'message'=>array(
                 'head'=>array(
-                    'version'=>'100',
-                    'type'=> '0210',
-                    'chanl_trad_no'=> 0,
+                    'version' => '100',
+                    'type' => '0200',
+                    'chanl_no' => '30',
+                    'chanl_sub_no' => '3001',
+                    'ectip_date'   => '',//银行日期
+                    'chanl_flow_no'=> 'nnys'.rand(1000,9999),//生成随机的流水号
+                    'ectip_flow_no'=> '',//银行流水号
+                    'chanl_trad_no'=> '',
                     'resp_code' => '000000000000',
                     'resp_msg'  => 'SUCCESS'
                 )
@@ -56,21 +61,34 @@ class bankRequestHandle
      * @return mixed
      */
      public function handleRequest(){
-         $tradeCode = 0;
+         $tradeCode = 0;//交易码
+         $bankDate = '';//银行日期
+         $bankFlow = '';
          try{
              $messData = $this->receiveTranMessage();
              if(isset($messData['message']['head']['chanl_trad_no']))
                  $tradeCode = $messData['message']['head']['chanl_trad_no'];
+             if(isset($messData['message']['head']['chanl_date']))
+                 $bankDate = $messData['message']['head']['chanl_date'];
+             if(isset($messData['message']['head']['chanl_date']))
+                 $bankFlow = $messData['message']['head']['chanl_flow_no'];
+             $transMessage = $this->returnMsg;
+             $transMessage['message']['head']['ectip_date'] = $bankDate;
+             $transMessage['message']['head']['chanl_trad_no'] = $tradeCode;
+             $transMessage['message']['head']['ectip_flow_no'] = $bankFlow;
              switch($tradeCode){
                  case '3FC019'://合同状态变更通知
-                     $res = $this->orderStatuschg($messData);
+                     $res = $this->orderStatuschg($messData,$transMessage);
+                     break;
+                 case '3FC008':
+                     $res = $this->userSignInfo($messData,$transMessage);
                      break;
                  default://没有实现的请求返回成功报文
                      $res = true;
                      break;
              }
              if($res===true){//业务操作成功，返回成功报文
-                 $returnMsg = $this->returnMsg;
+                 $returnMsg = $transMessage;
              }
              else{//res是包含错误代码和消息的数组
                  $returnMsg = array_merge($this->returnMsg['message']['head'],$res);
@@ -82,8 +100,13 @@ class bankRequestHandle
              $returnMsg = array(
                  'message'=>array(
                      'head'=>array(
-                         'version'=>'100',
-                         'type'=> '0210',
+                         'version' => '100',
+                         'type' => '0200',
+                         'chanl_no' => '30',
+                         'chanl_sub_no' => '3001',
+                         'chanl_date'   => time::getDateTime('Ymd'),
+                         'chanl_time'   => time::getDateTime('His'),
+                         'chanl_flow_no'=> 'nnys'.rand(1000,9999),//生成随机的流水号
                          'chanl_trad_no'=> $tradeCode,
                          'resp_code' => 'ERR001',
                          'resp_msg'  => $e->getMessage()
@@ -101,7 +124,7 @@ class bankRequestHandle
      * @param array $messData
      * @return bool|array 成功返回true 失败返回数组
      */
-     private function orderStatuschg($messData=array()){
+     private function orderStatuschg($messData=array(),&$resData=array()){
         $orderNo = $messData['message']['body']['CTRT_NO'];
         $status = $messData['message']['body']['PAY_STS'];
          $res= true;
@@ -117,6 +140,39 @@ class bankRequestHandle
              return $this->errCode($res['code'],$res['msg']);
          }
         return true;
+     }
+
+     private function userSignInfo($rqData=array(),&$resData=array()){
+         $messData = $rqData;
+         $sit_no = isset($messData['message']['body']['SIT_NO']) ? $messData['message']['body']['SIT_NO'] : '';
+         $cert_no = isset($messData['message']['body']['CERT_NO']) ? $messData['message']['body']['CERT_NO'] : '';
+         if($sit_no){//按席位查询
+             $where = array('no'=>$sit_no);
+         }elseif($cert_no){
+             $where = array('id_card'=>$cert_no);
+         }else{
+             return $this->errCode('ERR002','席位号和证件号为空');
+         }
+         $userObj = new \Library\M('user_attach');
+         $data = $userObj->where($where)->getObj();
+         if(!empty($data)){
+             $resData['message']['body'] = array(
+                 'MBR_CERT_TYPE'=>$data['id_type'],
+                 'MBR_CERT_NO'  => $data['id_card'],
+                 'SPOT_SIT_NO'  => $data['no'],
+                 'MBR_NAME'     => $data['name'],
+                 'MBR_ANNUAL_FEE_AMT' => '0.0',
+                 'MBR_INOUT_AMT_SVC_AMT'=> '0.0',
+                 'MBR_INOUT_AMT_SVC_DRAWEE' =>1,
+                 'MBR_INOUT_AMT_SVC_RCV_STY'=>1,
+                 'SIGNED_DATE'  => time::getDateTime('Ymd'),
+                 'MBR_STS'      => 0
+             );
+             return true;
+         }else{
+             return $this->errCode('ERR003','会员信息不存在');
+         }
+
      }
 
      private function errCode($code,$msg){

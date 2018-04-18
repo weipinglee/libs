@@ -46,6 +46,7 @@ class xml extends message
     public function parse($message)
     {
        // $tags = '';
+        $message = preg_replace('/\s/','',$message);
         $parser = xml_parser_create();
         xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
         xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
