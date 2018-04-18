@@ -43,6 +43,9 @@ class bankRequestHandle
      */
     private function receiveTranMessage(){
         $xml = $this->communicateObj->receiveMessage();
+		$xml = base64_decode($xml);
+		$model = new \Library\M('test');
+		$model->data(array('json'=>$xml))->add();
         $parseRes = $this->messageObj->parse($xml);//先将xml的字符串解析成数据
         return $parseRes;
 
