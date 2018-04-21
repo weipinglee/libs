@@ -66,7 +66,6 @@ class certStore extends certificate{
         else
             $check = $m->checkPersonInfo($accData);
 
-
         $certObj = new M(self::$certTable[self::$certType]);
 
         if($check===true ){
