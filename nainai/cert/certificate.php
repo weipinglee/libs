@@ -29,7 +29,8 @@ class certificate{
     protected static $certType = '';
     public static $certTable = array(
         'deal'=>'dealer',
-        'store'=>'store_manager'
+        'store'=>'store_manager',
+        'vip'  => 'user_vip'
 
     );
 

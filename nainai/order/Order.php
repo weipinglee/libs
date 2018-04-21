@@ -315,6 +315,8 @@ class Order{
 		}
 
 		$offer_info = $this->offerInfo($orderData['offer_id']);
+		$this->vipPrice($offer_info);
+        $orderData['price_unit'] = $offer_info['price'];
 		if($offer_info['user_id'] == $orderData['user_id']){
 			return tool::getSuccInfo(0,'买方卖方为同一人');
 		}
@@ -1194,23 +1196,6 @@ class Order{
 		return $data;
 	}
 
-	// /**
-	//  * 合同详情
-	//  * @param  int $id 订单id
-	//  * @param  boolean $is_seller 默认为购买合同
-	//  * @return array   结果数组
-	//  */
-	// public function contractDetail($id,$is_seller = false){
-	// 	$query = new Query('order_sell as do');
-	// 	$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join products as p on po.product_id = p.id';
-	// 	$query->fields = 'do.*,p.name,po.price,do.amount,p.unit';
-	// 	$query->where = 'do.id=:id';
-	// 	$query->bind = array('id'=>$id);
-	// 	$res = array($query->getObj());
-	// 	// var_dump($res);
-	// 	$this->sellerContractStatus($res);
-	// 	return $res[0];
-	// }
 
 	/**
 	 * 用户购买合同列表
@@ -1693,6 +1678,13 @@ class Order{
 		$memcache->set('orderTotal'.$date,serialize($orderTotal));
 		return $orderTotal;
 	}
+
+	public function vipPrice(&$offerInfo){
+	    $login = \Library\session::get('login');
+	    if($login && $login['cert']['vip']==1){
+	        $offerInfo['price'] = $offerInfo['price_vip'];
+        }
+    }
 
 
 }

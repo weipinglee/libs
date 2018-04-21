@@ -30,6 +30,8 @@ class entrustOrder extends Order{
 		if($offer_exist === false) return tool::getSuccInfo(0,'报盘不存在或未通过审核');
 
 		$offer_info = $this->offerInfo($orderData['offer_id']);
+        $this->vipPrice($offer_info);
+        $orderData['price_unit'] = $offer_info['price'];
 		if($offer_info['user_id'] == $orderData['user_id']){
 			return tool::getSuccInfo(0,'买方卖方为同一人');
 		}
