@@ -29,7 +29,8 @@ class certificate{
     protected static $certType = '';
     public static $certTable = array(
         'deal'=>'dealer',
-        'store'=>'store_manager'
+        'store'=>'store_manager',
+        'vip'  => 'user_vip'
 
     );
 
@@ -45,7 +46,8 @@ class certificate{
 
     protected static $certClass = array(
         'deal'=>'certDealer',
-        'store'=>'certStore'
+        'store'=>'certStore',
+        'vip'  => 'certVip'
     );
 
     /**
@@ -53,7 +55,8 @@ class certificate{
      */
     protected static $creditConf = array(
         'deal' => 'cert_dealer',
-        'store'=> 'cert_store'
+        'store'=> 'cert_store',
+        'vip'  => 'cert_vip'
     );
 
     /**

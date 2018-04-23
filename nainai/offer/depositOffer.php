@@ -1,6 +1,6 @@
 <?php
 /**
- * ±£Ö¤½ğ±¨ÅÌ¹ÜÀíÀà
+ * ä¿è¯é‡‘æŠ¥ç›˜ç®¡ç†
  * author: weipinglee
  * Date: 2016/5/7
  * Time: 23:16
@@ -10,7 +10,7 @@ use \Library\tool;
 class depositOffer extends product{
 
     /**
-     * »ñÈ¡±£Ö¤½ğÊÕÈ¡±ÈÀı TODO
+     * è·å–ç”¨æˆ·ä¿è¯é‡‘æ¯”ç‡
      */
     public function getDepositRate($user_id){
         $obj = new \nainai\member();
@@ -19,15 +19,15 @@ class depositOffer extends product{
     }
 
     /**
-     * ±¨ÅÌÉêÇë²åÈëÊı¾İ
-     * @param array $productData  ÉÌÆ·Êı¾İ
-     * @param array $offerData ±¨ÅÌÊı¾İ
-     * @param int $offer_id Òª¸üĞÂµÄid
+     * æäº¤æŠ¥ç›˜
+     * @param array $productData  äº§å“æ•°æ®
+     * @param array $offerData æŠ¥ç›˜æ•°æ®
+     * @param int $offer_id æŠ¥ç›˜id
      */
     public function doOffer($productData,$offerData,$offer_id=0){
         $offerData['mode'] = self::DEPOSIT_OFFER;
         $this->_productObj->beginTrans();
-        if($offer_id){//É¾³ı¾ÉµÄid
+        if($offer_id){
             $this->delOffer($offer_id,$this->user_id);
         }
 

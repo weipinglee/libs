@@ -315,6 +315,8 @@ class Order{
 		}
 
 		$offer_info = $this->offerInfo($orderData['offer_id']);
+		$this->vipPrice($offer_info);
+        $orderData['price_unit'] = $offer_info['price'];
 		if($offer_info['user_id'] == $orderData['user_id']){
 			return tool::getSuccInfo(0,'买方卖方为同一人');
 		}
@@ -1677,6 +1679,13 @@ class Order{
 		$memcache->set('orderTotal'.$date,serialize($orderTotal));
 		return $orderTotal;
 	}
+
+	public function vipPrice(&$offerInfo){
+	    $login = \Library\session::get('login');
+	    if($login && $login['cert']['vip']==1){
+	        $offerInfo['price'] = $offerInfo['price_vip'];
+        }
+    }
 
 
 }
