@@ -568,6 +568,10 @@ class product  {
 
                 $pId = $this->_productObj->data($productData[0])->add();
                 $productOffer['product_id'] = $pId;
+                if(!isset($productOffer['price_vip']) || $productOffer['price_vip']<=0){
+                    $productOffer['price_vip'] = $productOffer['price'];
+                }
+
                 $productOffer['insurance'] = 0;
                 $productOffer['status'] = self::OFFER_APPLY;
                 $productOffer['max_num'] = $productData[0]['quantity'];

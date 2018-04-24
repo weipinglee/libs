@@ -29,7 +29,9 @@ class storeOffer extends product{
 
         if ($this->_productObj->validate($this->productOfferRules, $productOffer)) {
             $productOffer['mode'] = self::STORE_OFFER;
-
+            if(!isset($productOffer['price_vip']) || $productOffer['price_vip']<=0){
+                $productOffer['price_vip'] = $productOffer['price'];
+            }
             $obj = new M('store_products');
             $obj->beginTrans();
             $obj->data(array('is_offer'=>1))->where(array('id'=>$id))->update();//更改为已报盘
