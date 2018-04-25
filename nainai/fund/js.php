@@ -731,6 +731,32 @@ class js extends account{
 
     }
 
+    public function sendOut($bankFlowno,$status=1){
+        try {
+            $code = '3FC004';//交易代码
+            $status = $status==1 ? 1 : 2;
+            $bodyParams = array(
+                'MCH_NO' => $this->mainacc,
+                'FLOW_NO' => $bankFlowno,
+                'AUDIT_STS' => $status,
+                'RMRK' => ''
+
+            );
+            //得到响应报文并转化为数组
+            $res = $this->SendTranMessage($bodyParams, $code);
+            if ($this->errorText != '') {
+                throw new \Exception($this->errorText);
+            }
+            if (is_array($res)) {
+                return true;
+            }
+
+            return false;
+        }catch(\Exception $e){
+            $e->getMessage();
+        }
+    }
+
     private function rollback(){
         $M = new M('order_tobe');
         $M->rollBack();
