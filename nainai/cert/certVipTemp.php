@@ -13,10 +13,10 @@ use \Library\Query;
 use \Library\Thumb;
 use \Library\log;
 use \Library\JSON;
-class certVip extends certificate{
+class certVipTemp extends certificate{
 
 
-    protected static $certType = 'vip';
+    protected static $certType = 'vip_temp';
     //认证需要的字段,0个人用户，1企业用户
     protected static $certFields = array(
             'name',
@@ -56,9 +56,16 @@ class certVip extends certificate{
     public function certApply($certData=array()){
         $memObj = new M(self::$certTable[self::$certType]);
         $certData['status'] = self::CERT_APPLY;
-        $certData['type'] = 2;
+        $certData['type'] = 1;
         return $memObj->insertUpdate($certData,$certData);
 
+    }
+
+    public function certUpdate($certData=array()){
+        $memObj = new M(self::$certTable[self::$certType]);
+        $certData['status'] = self::CERT_UPDATE;
+        $certData['type'] = 2;
+        return $memObj->insertUpdate($certData,$certData);
     }
 
     //获取待认证列表
