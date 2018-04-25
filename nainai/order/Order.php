@@ -1265,14 +1265,14 @@ class Order{
 	public function contractDetail($id,$identity = 'buyer'){
 		$query = new Query('order_sell as do');
 		$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join products as p on po.product_id = p.id left join product_category as pc on p.cate_id = pc.id';
-		$query->fields = 'do.*,po.type,po.other,p.name,po.price,do.amount,p.unit,po.product_id,po.accept_area,p.cate_id,p.img,p.produce_area,pc.name as cate_name,po.user_id as seller_id';
+		$query->fields = 'do.*,po.type,po.other,po.price_vip,p.name,po.price,do.amount,p.unit,po.product_id,po.accept_area,p.cate_id,p.img,p.produce_area,pc.name as cate_name,po.user_id as seller_id';
 		$query->where = 'do.id=:id';
 		$query->bind = array('id'=>$id);
 		$res = $query->getObj();
 		if(empty($res)){
 			return array();
 		}
-
+        $this->vipPrice($res);
 		$res['img_thumb'] = \Library\thumb::get($res['img'],50,50);
 
 		if($res['mode'] == self::ORDER_STORE){
@@ -1682,7 +1682,7 @@ class Order{
 
 	public function vipPrice(&$offerInfo){
 	    $login = \Library\session::get('login');
-	    if($login && ($login['cert']['vip']==1 || $login['cert']['vip_temp']==1 )){
+	    if($login && $offerInfo['price_vip']>0 && ($login['cert']['vip']==1 || $login['cert']['vip_temp']==1 )){
 	        $offerInfo['price'] = $offerInfo['price_vip'];
         }
     }
