@@ -1235,11 +1235,11 @@ class Order{
 	public function contractReview($offer_id,$num,$user_id = ''){
 		$query = new Query('product_offer as po');
 		$query->join = 'left join products as p on po.product_id = p.id';
-		$query->fields = 'po.type,po.user_id as offer_user,po.price,p.name,po.product_id,po.accept_area,po.other,p.cate_id,p.produce_area,p.unit';
+		$query->fields = 'po.type,po.user_id as offer_user,po.price,po.price_vip,p.name,po.product_id,po.accept_area,po.other,p.cate_id,p.produce_area,p.unit';
 		$query->where = 'po.id = :id';
 		$query->bind = array('id'=>$offer_id);
 		$res = $query->getObj();	
-
+        $this->vipPrice($res);
 		$res['num'] = $num;
 		$res['amount'] = $res['price']*$num;
 		$user = $this->contractUserInfo($user_id);
@@ -1682,7 +1682,7 @@ class Order{
 
 	public function vipPrice(&$offerInfo){
 	    $login = \Library\session::get('login');
-	    if($login && $login['cert']['vip']==1){
+	    if($login && ($login['cert']['vip']==1 || $login['cert']['vip_temp']==1 )){
 	        $offerInfo['price'] = $offerInfo['price_vip'];
         }
     }

@@ -28,7 +28,7 @@ class StoreDelivery extends Delivery{
 	public function storeFees($delivery_id){
 		$query = new Query('product_delivery as pd');
 		$query->join = 'left join product_offer as po on pd.offer_id = po.id left join store_products as sp on sp.product_id = po.product_id left join store_list as sl on sp.store_id = sl.id left join products as p on po.product_id = p.id left join order_sell as o on pd.order_id = o.id LEFT JOIN product_category as ca ON p.cate_id=ca.id';
-		$query->fields = 'pd.*,p.img,pd.num as delivery_num,sp.store_price,sp.store_unit,sp.in_time,sp.rent_time,sl.name as store_name,p.name,p.unit,o.amount,po.price,o.num, po.product_id, pd.status as pstatus, pd.admin_msg, po.user_id as seller_id, p.quantity,p.produce_area,p.attribute, po.expire_time,po.accept_area, ca.name as cate_name';
+		$query->fields = 'pd.*,p.img,pd.num as delivery_num,sp.store_price,sp.store_unit,sp.in_time,sp.rent_time,sl.name as store_name,p.name,p.unit,o.amount,po.price,o.num, po.product_id, pd.status as pstatus, pd.admin_msg, po.user_id as seller_id, p.quantity,p.produce_area,p.attribute, po.expire_time,po.accept_area,o.price_unit, ca.name as cate_name';
 		$query->where = 'pd.id=:id';
 		$query->bind = array('id'=>$delivery_id);
 		$res = $query->getObj();
