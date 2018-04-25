@@ -110,7 +110,7 @@ class PurchaseOrder extends Order{
         }
 
         $offer_info = $this->offerInfo($orderData['offer_id']);
-        
+
         $orderData['price_unit'] = $offer_info['price'];
         if($offer_info['user_id'] == $orderData['user_id']){
             return tool::getSuccInfo(0,'买方卖方为同一人');
