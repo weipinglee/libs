@@ -22,6 +22,7 @@ class certificate{
     const CERT_FIRST_OK=4;  //初审通过
     const CERT_SUCCESS =   2; //后台确认认证通过
     const CERT_FAIL    =   3; //后台拒绝认证
+    const CERT_UPDATE  =   4;//申请升级，保持原有权限
 	private $db_name = '';
 
     private $check_other = 0;//是否校验其他认证
@@ -30,7 +31,8 @@ class certificate{
     public static $certTable = array(
         'deal'=>'dealer',
         'store'=>'store_manager',
-        'vip'  => 'user_vip'
+        'vip'  => 'user_vip',
+        'vip_temp'=> 'user_vip'//临时会员
 
     );
 
@@ -47,7 +49,8 @@ class certificate{
     protected static $certClass = array(
         'deal'=>'certDealer',
         'store'=>'certStore',
-        'vip'  => 'certVip'
+        'vip'  => 'certVip',
+        'vip_temp' => 'certVipTemp'
     );
 
     /**
@@ -56,7 +59,8 @@ class certificate{
     protected static $creditConf = array(
         'deal' => 'cert_dealer',
         'store'=> 'cert_store',
-        'vip'  => 'cert_vip'
+        'vip'  => 'cert_vip',
+        'vip_temp' => 'cert_vip'
     );
 
     /**
@@ -370,9 +374,17 @@ class certificate{
         foreach(self::$certTable as $type=>$table){
 			if($this->db_name)
 				$table = $this->db_name.'.'.$table;
-            $status = $obj->table($table)->where(array('user_id'=>$user_id))->getField('status');
-            //$result[$type] = $status==self::CERT_SUCCESS ? 1 : ($status==self::CERT_FIRST_OK?1:0);
-            $result[$type] = $status==self::CERT_SUCCESS ? 1 : 0;
+			if($type=='vip'){
+                $status = $obj->table($table)->where(array('user_id'=>$user_id,'type'=>2))->getField('status');
+                $result[$type] = $status==self::CERT_SUCCESS ? 1 : 0;
+            }else if($type=='vip_temp'){
+                $status = $obj->table($table)->where(array('user_id'=>$user_id,'type'=>1))->getField('status');
+                $result[$type] = ($status==self::CERT_SUCCESS || $status==self::CERT_UPDATE) ? 1 : 0;
+            }else{
+                $status = $obj->table($table)->where(array('user_id'=>$user_id))->getField('status');
+                $result[$type] = $status==self::CERT_SUCCESS ? 1 : 0;
+            }
+
         }
         return $result;
     }
