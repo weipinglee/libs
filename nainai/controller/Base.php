@@ -55,17 +55,31 @@ class Base extends \Yaf\Controller_Abstract{
 			 }
 		 }else $this->getView()->assign('login',0);
 		  //需要认证的方法未认证则跳转到认证页面
-	   if($this->certType!==null  && (!isset($this->cert[$this->certType]) || $this->cert[$this->certType]==0))
-	   {
-		   $url = url::createUrl('/ucenter/'.self::$certPage[$this->certType].'@user');
-		   if(IS_AJAX){
-			   die(\Library\json::encode(\Library\tool::getSuccInfo(0,'请先进行相关的资质认证',$url)));
-			
-		   }else{
-			   $this->redirect($url);exit;
+         if(is_array($this->certType)){//数组中的一个身份认证过，就可以访问当前页面
+             $can = 0;
+             foreach($this->certType as $cert){
+                 if(isset($this->cert[$cert]) && $this->cert[$cert]==1){
+                     $can = 1;
+                 }
+             }
 
-		   }
-	   }
+         }else{
+             $can = 1;
+             if($this->certType!==null  && (!isset($this->cert[$this->certType]) || $this->cert[$this->certType]==0))
+             {
+                 $can = 0;
+             }
+         }
+         if($can==0){
+             $url = url::createUrl('/ucenter/'.self::$certPage[$this->certType].'@user');
+             if(IS_AJAX){
+                 die(\Library\json::encode(\Library\tool::getSuccInfo(0,'请先进行相关的资质认证',$url)));
+
+             }else{
+                 $this->redirect($url);exit;
+
+             }
+         }
 
 			$model = new \nainai\system\DealSetting();
 			$deal = $model->getsetting();
