@@ -317,7 +317,13 @@ class certificate{
         $userData = $userModel->fields('username,type,mobile,email')->where(array('id'=>$id,'pid'=>0))->getObj();
 
         if(!empty($userData)){
-            $userDetail = $userData['type']==1 ? $this->getCompanyInfo($id) : $this->getPersonInfo($id);
+            if($userData['type']==1){
+                $userDetail =$this->getCompanyInfo($id);
+            }elseif($userData['type']==0){
+                $userDetail = $this->getPersonInfo($id);
+            }else{//可能有类型不确定的情况
+                $userDetail = array();
+            }
             if($certType!=''){
                 $userCert   = $userModel->table($this->getCertTable($certType))->fields('status as cert_status,apply_time,verify_time,admin_id,message')->where(array('user_id'=>$id))->getObj();
                 if(!empty($userCert)){

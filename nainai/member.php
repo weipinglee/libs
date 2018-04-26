@@ -160,9 +160,9 @@ class member{
         if(is_array($cond))
             $where = $cond;
         else
-            $where = array('id'=>$cond);;
+            $where = array('id'=>$cond);
         $userObj = new M($this->table);
-        $detail = $userObj->fields('id,type,username,credit,mobile,vip,email,head_photo,pid,roles,status,agent,create_time,yewu')->where($where)->getObj();
+        $detail = $userObj->fields('id,type,username,true_name,credit,mobile,vip,email,head_photo,pid,roles,status,agent,create_time,yewu')->where($where)->getObj();
         $product = new \nainai\offer\product();
 
         if(!empty($detail)){
