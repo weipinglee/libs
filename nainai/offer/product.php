@@ -511,6 +511,10 @@ class product  {
             $res['divide_txt'] = $this->getDivide($res['divide']);
             if($res['divide']==self::UNDIVIDE)
                 $res['minimum'] = $res['max_num'];
+
+            if($res['price_vip']<=0){
+                $res['price_vip'] = $res['price'];
+            }
         }
 
 

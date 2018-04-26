@@ -259,6 +259,7 @@ class Order{
 		if($order->data($data)->validate($this->orderRules)){
 			if(isset($data['id']) && $data['id']>0){
 				$id = $data['id'];
+				$order_id = $id;
 				//编辑
 				unset($data['id']);
 				$res = $order->where(array('id'=>$id))->data($data)->update();

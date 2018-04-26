@@ -57,11 +57,43 @@ class FreeOrder extends Order{
 			$mess_seller = new \nainai\message($seller);
 			$content = $bankinfo ? '您有一笔合同形成,合同号：'.$orderData['order_no'].',正在等待买家支付货款' : '您有一笔合同形成,合同号：'.$orderData['order_no'].'。正在等待买家支付。请您及时进行开户申请。<a href="'.url::createUrl('/fund/bank@user').'">去开户</a>';
 			$mess_seller->send('common',$content);
+
+			//拿到订单id,创建事件
+            $order_id = isset($upd_res['order_id']) ? $upd_res['order_id'] : 0;
+            if($order_id){
+                $this->createEvent($order_id);
+            }
 		}else{
 			$res = tool::getSuccInfo(0,'无效报盘');
 		}
 		return $res;
 	}
+
+    /**
+     * 创建到期自动执行的事件
+     * @param $offer_id
+     * @param string $end_time
+     * @return bool
+     */
+    protected function createEvent($order_id,$end_time='')
+    {
+        if($order_id<=0)
+            return false;
+        $event_name = 'autoCancleFreeorder_'.$order_id;
+        $jingjiaOffer = new M('product_offer');
+        if($end_time==''){
+            $sec = 5400;
+            $end_time = \Library\time::getDateTime('Y-m-d H:i:s',time()+$sec);
+        }
+
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
+        CALL cancleFreeOrder('.$order_id.',@a);';
+        $res = $jingjiaOffer->query($sql);
+        if($res){
+            return true;
+        }
+        return false;
+    }
 
 	/**
 	 * 买家支付尾款
