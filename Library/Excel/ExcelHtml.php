@@ -90,7 +90,11 @@ class ExcelHtml{
                               }
                             }else{
                               foreach ((array)$datakey as $v) {
-                                    $output .= "<td width='140' >{$value[$v]}</td>";
+                                  if($v=='order_no'){
+                                      $output .= "<td width='140' style='vnd.ms-excel.numberformat:@' >{$value[$v]}</td>";
+                                  }else{
+                                      $output .= "<td width='140'  >{$value[$v]}</td>";
+                                  }
                               }
                             }
                             $output .= '</tr>';

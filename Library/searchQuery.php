@@ -209,6 +209,7 @@ class searchQuery extends Query{
 
             $obj = new \Library\Excel\ExcelHtml();
             $fileName =  $name .  '信息报表';
+
             $obj->createExecl($excel, $count,  $fileName);
             exit();
         }
