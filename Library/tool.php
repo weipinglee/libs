@@ -3,17 +3,17 @@
  * Created by PhpStorm.
  * User: Administrator
  * Date: 2016/2/18 0018
- * Time: ÉÏÎç 9:28
+ * Time: ï¿½ï¿½ï¿½ï¿½ 9:28
  */
 namespace Library;
 class tool{
 
-    //È«¾ÖÅäÖÃ
+    //È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private static $globalConfigs = array();
     /**
-     * »ñÈ¡application.iniÖĞµÄÅäÖÃÏî£¬²¢×ª»¯ÎªÊı×é
-     * @param string $name ÅäÖÃÃû³Æ
-     * @return mix Èç¹ûÃ»ÓĞ¸ÄÅäÖÃĞÅÏ¢Ôò·µ»Ønull
+     * ï¿½ï¿½È¡application.iniï¿½Ğµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î£¬ï¿½ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
+     * @param string $name ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @return mix ï¿½ï¿½ï¿½Ã»ï¿½Ğ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ò·µ»ï¿½null
      */
     public static function getConfig($name=null){
         $configObj = \Yaf\Registry::get("config");
@@ -44,8 +44,8 @@ class tool{
     }
 
     /**
-     * ½«Í¼Æ¬Â·¾¶¼ÓÉÏ@µ±Ç°ÏµÍ³Ãû
-     * @param string $imgSrc Í¼Æ¬Ïà¶ÔÂ·¾¶
+     * ï¿½ï¿½Í¼Æ¬Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½@ï¿½ï¿½Ç°ÏµÍ³ï¿½ï¿½
+     * @param string $imgSrc Í¼Æ¬ï¿½ï¿½ï¿½Â·ï¿½ï¿½
      * @return string
      */
     public static function setImgApp($imgSrc){
@@ -57,7 +57,7 @@ class tool{
 
     }
 
-    //»ñÈ¡È«¾ÖÅäÖÃĞÅÏ¢
+    //ï¿½ï¿½È¡È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
     public static function getGlobalConfig($name=null){
         if(empty(self::$globalConfigs)){
             self::$globalConfigs = require self::getConfig(array('application','baseDir')).'/conf/configs.php';
@@ -79,8 +79,8 @@ class tool{
         }
     }
 
-    public static function getSuccInfo($res=1,$info='',$url='',$id=''){
-        return array('success'=>$res,'info'=>$info,'returnUrl'=>$url,'id'=>$id);
+    public static function getSuccInfo($res=1,$info='',$url='',$id='',$time=1){
+        return array('success'=>$res,'info'=>$info,'returnUrl'=>$url,'id'=>$id,'time'=>intval($time));
     }
 
     public static function create_uuid($user_id = 0){
