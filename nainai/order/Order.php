@@ -262,7 +262,12 @@ class Order{
 				$order_id = $id;
 				//编辑
 				unset($data['id']);
-				$res = $order->where(array('id'=>$id))->data($data)->update();
+                $where = array('id'=>$id);
+                if(isset($data['o_lock'])){
+                    $where['_string'] = '`o_lock`='.$data['o_lock'];
+                }
+				$data['o_lock'] = $data['o_lock']+1;
+				$res = $order->where($where)->data($data)->update();
 				$res = $res>0 ? true : ($order->getError() ? $order->getError() : '数据未修改');
 			}else{
 				while($this->existOrderData($order,array('order_no'=>$data['order_no']))){
@@ -488,7 +493,7 @@ class Order{
 							$this->order->rollBack();
 							$res = '无效支付方式';
 						}	
-					} catch (PDOException $e) {
+					} catch (\PDOException $e) {
 						$res = $e->getMessage();
 						$this->order->rollBack();
 					}
@@ -572,7 +577,7 @@ class Order{
 				}
 
 				if(!isset($res)){
-					
+                    $orderData['o_lock'] = $info['o_lock'];
 					$upd_res = $this->orderUpdate($orderData);
 					if($upd_res['success'] == 1){
 						$pdo_res = $order_type ? true : $this->productsFreezeToSell($offerInfo,$info['num']);
@@ -593,7 +598,7 @@ class Order{
 			}
 
 			$res = $res ? $res : $this->order->commit();
-		}catch(Exception $e){
+		}catch(\Exception $e){
 			$this->order->rollBack();
 			$res = $e->getMessage();
 		}
@@ -886,7 +891,7 @@ class Order{
 					return tool::getSuccInfo(0,'操作用户错误');
 				$orderData['contract_status'] = self::CONTRACT_VERIFY_QAULITY;//状态置为买家已确认质量
 				$orderData['id'] = $order_id;
-
+                $orderData['o_lock'] = $order['o_lock'];
 				try {
 					$this->order->beginTrans();
 					if(!empty($reduceData)){
@@ -909,8 +914,7 @@ class Order{
 					}else{
 						$error = $res['info'];
 					}
-				}catch(PDOException $e) {
-					$this->order->rollBack();
+				}catch(\PDOException $e) {
 					$error = $e->getMessage();
 				}
 			}else{
@@ -919,7 +923,7 @@ class Order{
 		}else{
 			$error = '无效订单';
 		}
-
+        $this->order->rollBack();//只要报错误就回滚
 		return tool::getSuccInfo(0,$error);
 	}
 
@@ -941,7 +945,15 @@ class Order{
 					$orderData['contract_status'] = self::CONTRACT_DELIVERY_COMPLETE;
 					$orderData['reduce_amount'] = NULL;
 					$orderData['reduce_remark'] = NULL;
-					return $this->orderUpdate($orderData);
+                    $orderData['o_lock'] = $order['o_lock'];
+                    $this->order->beginTrans();
+					$res = $this->orderUpdate($orderData);
+					if($res['success']==0){
+					    $this->order->rollBack();
+                    }else{
+					    $this->order->commit();
+                    }
+                    return $res;
 				}
 				$offerInfo = $this->offerInfo($order['offer_id']);
 				$buyer  = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $order['user_id'] : $offerInfo['user_id'];
@@ -954,6 +966,7 @@ class Order{
 
 				try {
 					$this->order->beginTrans();
+                    $orderData['o_lock'] = $order['o_lock'];
 					$res = $this->orderUpdate($orderData);
 					if($res['success'] == 1){
 						//将订单款 减去扣减款项 后的60%支付给卖方
@@ -1015,7 +1028,7 @@ class Order{
 		}else{
 			$error = '无效订单';
 		}
-
+        $this->order->rollBack();
 		return tool::getSuccInfo(0,$error);
 	}
 

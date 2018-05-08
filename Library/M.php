@@ -436,7 +436,6 @@ class M{
      */
 	public function update($trans=0){
 		$res = false;
-
 		if(!empty($this->tableData) && $this->whereStr != ''){
 			$sql = 'UPDATE '.$this->tableName.' SET ';
 			foreach($this->tableData as $key=>$val){
