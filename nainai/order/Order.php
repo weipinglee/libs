@@ -123,7 +123,7 @@ class Order{
 		$seller = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $offerInfo['user_id'] : $info['user_id'];
 		$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $info['user_id'] : $offerInfo['user_id'];
 		$pay_deposit = number_format($info['pay_deposit'],2);
-		if($pay_deposit <= floatval($info['amount'] * 0.1)){
+		if($pay_deposit>0 && $pay_deposit <= floatval($info['amount'] * 0.1)){
 			//定金小于总货款10%
 			$pay_break = $pay_deposit;
 			$pay_title = '该合同全部'.$deposit_title;
@@ -309,12 +309,8 @@ class Order{
 	//生成摘牌订单
 	public function geneOrder($orderData){
 		$check_payment = 0;
-		if(in_array($orderData['mode'],array(self::ORDER_FREE,self::ORDER_ENTRUST))){
-			$orderData['contract_status'] = self::CONTRACT_BUYER_RETAINAGE;
-		}else{
-			$check_payment = 1;
-			$orderData['contract_status'] = self::CONTRACT_NOTFORM;	
-		}
+		$orderData['contract_status'] = self::CONTRACT_BUYER_RETAINAGE;
+
 		if($orderData['mode'] != self::ORDER_PURCHASE){
 			$offer_exist = $this->offerExist($orderData['offer_id']);
 			if($offer_exist === false) return tool::getSuccInfo(0,'报盘不存在或未通过审核');
@@ -449,14 +445,14 @@ class Order{
 							// $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
-								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付尾款');
+								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付货款');
 
 								 $mess->send('buyerRetainage',$info['order_no']);
 								$mess_buyer = new \nainai\message($buyer);
 								if($is_entrust == 1){
-									$content = '(合同'.$info['order_no'].'买家已支付尾款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
+									$content = '(合同'.$info['order_no'].'买家已支付货款，合同已结束，请您关注资金动态。交收流程请您在线下进行操作。)';
 								}elseif($is_free==1){
-									$content = '(合同'.$info['order_no'].'买家已支付尾款，请您关注资金动态。交收流程请您在线下进行操作。)';
+									$content = '(合同'.$info['order_no'].'买家已支付货款，请您关注资金动态。交收流程请您在线下进行操作。)';
 								}
 								else{
 									$jump_url = "<a href='".url::createUrl('/contract/buyerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
@@ -468,7 +464,7 @@ class Order{
 								$res = $upd_res['info'];
 							}
 							if($res === true && $is_entrust == 0){
-								$note = '支付合同'.$info['order_no'].'尾款 '.number_format($retainage,2);
+								$note = '支付合同'.$info['order_no'].'货款 '.number_format($retainage,2);
 								$account = $this->base_account->get_account($account);
 								if(!is_object($account)) return tool::getSuccInfo(0,$account);
 								$acc_res = $account->freeze($buyer,$retainage,$note,$buyer,$seller,$info['order_no'],$info['amount']);
@@ -651,7 +647,7 @@ class Order{
 				//线上支付，直接将尾款部分进行转账操作
 				$account_retainage = $this->base_account->get_account($account);
 				if(is_object($account_retainage) && !$res){
-					$note = '支付合同'.$info['order_no'].'尾款 '.number_format($retainage,2);
+					$note = '支付合同'.$info['order_no'].'货款 '.number_format($retainage,2);
 					$tmp = $account_retainage->freezePay($buyer,$seller,$retainage,$note,$info['order_no'],1,strtotime($info['create_time']));
 					if($tmp !== true) $res = $tmp;
 				}else{
@@ -659,7 +655,7 @@ class Order{
 				}
 			}
 		}else{
-			$res = '无效尾款金额';
+			$res = '无效货款金额';
 		}
 
 		return isset($res) ? $res : true;
@@ -885,7 +881,7 @@ class Order{
 				$offerInfo = $this->offerInfo($order['offer_id']);
 				$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $order['user_id'] : $offerInfo['user_id'];
 				$seller = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $offerInfo['user_id'] : $order['user_id'];
-				if($reduceData['reduce_amount'] >= $order['pay_deposit'])
+				if($order['pay_deposit']>0 && $reduceData['reduce_amount'] >= $order['pay_deposit'])
 					return tool::getSuccInfo(0,'扣减货款不能超过或等于定金数额'.$order['pay_deposit']);
 				if($buyer != $user_id)
 					return tool::getSuccInfo(0,'操作用户错误');
@@ -982,15 +978,20 @@ class Order{
 							$cond =  $order['pay_retainage'] ? is_object($account_deposit) && is_object($account_retainage) : is_object($account_deposit);
 
 							if($cond){
-								$deposit_intro = $order['pay_deposit'] == $order['amount'] ? '货款' : '定金';
-								$note = '卖方确认质量合格'.$order['order_no'].'解冻支付'.$deposit_intro.'的60% '.number_format(($order['pay_deposit']-$order['reduce_amount'])*0.6,2).($reduce_amount ? '(扣减货款'.$reduce_amount.')' : '');
+							    if($order['pay_deposit']>0){
+                                    $deposit_intro = $order['pay_deposit'] == $order['amount'] ? '货款' : '定金';
+                                    $note = '卖方确认质量合格'.$order['order_no'].'解冻支付'.$deposit_intro.'的60% '.number_format(($order['pay_deposit']-$order['reduce_amount'])*0.6,2).($reduce_amount ? '(扣减货款'.$reduce_amount.')' : '');
 
-								$deposit_res = $account_deposit->freezePay($buyer,$seller,($order['pay_deposit']-$order['reduce_amount'])*0.6,$note,$order['order_no'],1,strtotime($order['create_time']));
+                                    $deposit_res = $account_deposit->freezePay($buyer,$seller,($order['pay_deposit']-$order['reduce_amount'])*0.6,$note,$order['order_no'],1,strtotime($order['create_time']));
+
+                                }else{
+                                    $deposit_res = true;
+                                }
 
 								if($deposit_res !== true) {
 									$error = $deposit_res;
 								}else{
-									$note = '卖方确认质量合格'.$order['order_no'].'解冻支付尾款的60% '.number_format($order['pay_retainage']*0.6,2);	
+									$note = '卖方确认质量合格'.$order['order_no'].'解冻支付货款的60% '.number_format($order['pay_retainage']*0.6,2);
 									$retainage_res = $order['pay_retainage'] ? $account_retainage->freezePay($buyer,$seller,$order['pay_retainage']*0.6,$note,$order['order_no'],2,strtotime($order['create_time'])) : true;
 									$error = $retainage_res === true ? '' : $retainage_res;
 
@@ -1080,14 +1081,19 @@ class Order{
 							$r1 = $order['seller_deposit'] ? $account_seller_deposit->freezeRelease($seller,$order['seller_deposit'],$note,$buyer,$seller,$order['order_no'],$order['amount']) : true;
 							
 							if($r1 === true){
-								$deposit_intro = $order['pay_deposit'] == $order['amount'] ? '货款' : '定金';
-								$note = '买方确认合同完成'.$order['order_no'].'解冻支付'.$deposit_intro.'的40% '.number_format(($order['pay_deposit']-$reduce_amount)*0.4,2).($reduce_amount ? '(扣减货款'.$reduce_amount.')' : '');
-								$r2 = $account_deposit->freezePay($buyer,$seller,($order['pay_deposit']-$reduce_amount)*0.4,$note,$order['order_no'],2,strtotime($order['create_time']));
-								
+							    if($order['pay_deposit']>0){
+                                    $deposit_intro = $order['pay_deposit'] == $order['amount'] ? '货款' : '定金';
+                                    $note = '买方确认合同完成'.$order['order_no'].'解冻支付'.$deposit_intro.'的40% '.number_format(($order['pay_deposit']-$reduce_amount)*0.4,2).($reduce_amount ? '(扣减货款'.$reduce_amount.')' : '');
+                                    $r2 = $account_deposit->freezePay($buyer,$seller,($order['pay_deposit']-$reduce_amount)*0.4,$note,$order['order_no'],2,strtotime($order['create_time']));
+
+                                }else{
+							        $r2 = true;
+                                }
+
 								if($r2 !== true){
 									$error = $r2;
 								}else{
-									$note = '买方确认合同完成'.$order['order_no'].'解冻支付尾款的40% '.number_format($order['pay_retainage']*0.4,2);
+									$note = '买方确认合同完成'.$order['order_no'].'解冻支付货款的40% '.number_format($order['pay_retainage']*0.4,2);
 									$r3 = $order['pay_retainage'] ? $account_retainage->freezePay($buyer,$seller,$order['pay_retainage']*0.4,$note,$order['order_no'],2,strtotime($order['create_time'])) : true;
 									if($r3 !== true){
 										$error = $r3;
@@ -1423,7 +1429,7 @@ class Order{
 					break;
 				case self::CONTRACT_BUYER_RETAINAGE:
 					if(empty($value['proof'])){
-						$title = $value['mode'] == self::ORDER_FREE ? '等待支付全款' : '等待支付尾款';
+						$title = $value['mode'] == self::ORDER_FREE ? '等待支付全款' : '等待支付';
 					}else{
 						$title = '确认线下凭证';
 						$href  = url::createUrl('/Order/confirmProofPage?order_id='.$value['id']);
@@ -1500,7 +1506,7 @@ class Order{
 					break;
 				case self::CONTRACT_BUYER_RETAINAGE:
 					if(empty($value['proof'])){
-						$title = $value['mode'] == self::ORDER_FREE ? '支付全款' : '支付尾款';
+						$title = $value['mode'] == self::ORDER_FREE ? '支付全款' : '支付全款';
 						$href = url::createUrl("/Order/buyerRetainage?order_id={$value['id']}");
 						$action []= array('action'=>$title,'url'=>$href);
 					}else{
@@ -1568,7 +1574,7 @@ class Order{
 					$title = '等待卖方支付保证金';
 					break;
 				case self::CONTRACT_BUYER_RETAINAGE:
-					$title = '等待买方支付尾款';
+					$title = '等待买方支付货款';
 					break;
 				case self::CONTRACT_CANCEL:
 					$title = '合同已被取消';
