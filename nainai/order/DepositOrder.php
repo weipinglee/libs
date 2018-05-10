@@ -154,8 +154,8 @@ class DepositOrder extends Order{
 
 					if($res === true){
 						//将买方冻结资金解冻
-						$note = '卖方未支付合同'.$info['order_no'].'保证金 退还定金 '.$info['pay_deposit'];
-						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
+						$note = '卖方未支付合同'.$info['order_no'].'保证金 退还货款 '.$info['pay_retainage'];
+						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_retainage']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
 
 						$content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
 						$mess_buyer->send('common',$content);
@@ -184,15 +184,18 @@ class DepositOrder extends Order{
 						$orderData['seller_deposit_payment'] = $payment;
 						$orderData['seller_deposit'] = $seller_deposit;
 						//判断此订单是否支付全款
-						if($info['amount'] === $info['pay_deposit']){
+						if($info['pay_deposit']>0 && $info['amount'] === $info['pay_deposit']){
 							//全款 合同生效 等待提货
 							$orderData['contract_status'] = self::CONTRACT_EFFECT;
 							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,等待买方提货申请。';
-						}else{
+						}elseif($info['pay_deposit']>0 && $info['amount'] > $info['pay_deposit']){
 							//定金 等待支付尾款
 							$orderData['contract_status'] = self::CONTRACT_BUYER_RETAINAGE;
 							$msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,请您及时支付尾款。';
-						}
+						}else{
+                            $orderData['contract_status'] = self::CONTRACT_EFFECT;
+                            $msg_txt = '合同'.$info['order_no'].'报价方已支付保证金,请您及时关注。';
+                        }
 
 						$upd_res = $this->orderUpdate($orderData);
 

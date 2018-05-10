@@ -417,6 +417,7 @@ class Order{
 		$offerInfo = $this->offerInfo($info['offer_id']);
 		$is_entrust = $info['mode'] == self::ORDER_ENTRUST ? 1 : 0;
 		$is_free = $info['mode'] == self::ORDER_FREE ? 1 : 0;
+		$is_deposit = $info['mode'] == self::ORDER_DEPOSIT ? 1 : 0;
 		if(is_array($info) && isset($info['contract_status'])){
 			$seller = $this->sellerUserid($order_id);
 			$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller;
@@ -442,7 +443,8 @@ class Order{
 							//冻结买家帐户余额
 							$orderData['pay_retainage'] = $retainage;
 							$orderData['contract_status'] = $is_entrust ? self::CONTRACT_COMPLETE : self::CONTRACT_EFFECT;//payment为1  合同状态置为生效 委托报盘则置为已完成
-							// $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
+                            $orderData['contract_status'] = $is_deposit ? self::CONTRACT_SELLER_DEPOSIT : $orderData['contract_status'];
+                            // $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付货款');
