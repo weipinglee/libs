@@ -476,7 +476,8 @@ class Order{
 							$orderData['contract_status'] = $is_entrust ? self::CONTRACT_COMPLETE : self::CONTRACT_EFFECT;//payment为1  合同状态置为生效 委托报盘则置为已完成
                             $orderData['contract_status'] = $is_deposit ? self::CONTRACT_SELLER_DEPOSIT : $orderData['contract_status'];
                             // $orderData['retainage_clientid'] = $account == self::PAYMENT_BANK ? $clientID : '';
-							$upd_res = $this->orderUpdate($orderData);
+                            $orderData['o_lock'] = $info['o_lock'];
+                            $upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$log_res = $this->payLog($order_id,$user_id,0,'买家线上支付货款');
 
@@ -508,6 +509,7 @@ class Order{
 							if($res === true) $res = $this->order->commit();
 						}elseif($payment == 'offline'){
 							$orderData['proof'] = $proof;
+                            $orderData['o_lock'] = $info['o_lock'];
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$jump_url = "<a href='".url::createUrl('/contract/sellerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
