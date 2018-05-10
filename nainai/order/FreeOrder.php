@@ -69,31 +69,6 @@ class FreeOrder extends Order{
 		return $res;
 	}
 
-    /**
-     * 创建到期自动执行的事件
-     * @param $offer_id
-     * @param string $end_time
-     * @return bool
-     */
-    protected function createEvent($order_id,$end_time='')
-    {
-        if($order_id<=0)
-            return false;
-        $event_name = 'autoCancleFreeorder_'.$order_id;
-        $jingjiaOffer = new M('product_offer');
-        if($end_time==''){
-            $sec = 5400;
-            $end_time = \Library\time::getDateTime('Y-m-d H:i:s',time()+$sec);
-        }
-
-        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
-        CALL cancleFreeOrder('.$order_id.',@a);';
-        $res = $jingjiaOffer->query($sql);
-        if($res){
-            return true;
-        }
-        return false;
-    }
 
 	/**
 	 * 买家支付尾款

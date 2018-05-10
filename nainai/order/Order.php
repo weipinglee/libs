@@ -363,12 +363,43 @@ class Order{
 			if($pro_res != true) return tool::getSuccInfo(0,$pro_res);
 			
 			$res = isset($res) ? tool::getSuccInfo(0,$res) : $upd_res;
+            //拿到订单id,创建事件
+            $order_id = isset($upd_res['order_id']) ? $upd_res['order_id'] : 0;
+            if($order_id){
+                $this->createEvent($order_id);
+            }
 		}else{
 			$res = tool::getSuccInfo(0,'无效报盘');
 		}
 
 		return $res;
 	}
+
+    /**
+     * 创建到期自动执行的事件
+     * @param $offer_id
+     * @param string $end_time
+     * @return bool
+     */
+    protected function createEvent($order_id,$end_time='')
+    {
+        if($order_id<=0)
+            return false;
+        $event_name = 'autoCancleorder_'.$order_id;
+        $jingjiaOffer = new M('product_offer');
+        if($end_time==''){
+            $sec = 5400;
+            $end_time = \Library\time::getDateTime('Y-m-d H:i:s',time()+$sec);
+        }
+
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
+        CALL cancleFreeOrder('.$order_id.',@a);';
+        $res = $jingjiaOffer->query($sql);
+        if($res){
+            return true;
+        }
+        return false;
+    }
 
 	/**
 	 * 根据订单id获取报盘用户的id
