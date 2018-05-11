@@ -496,17 +496,22 @@ class Order{
 								$res = $log_res;
 							}else{
 								$res = $upd_res['info'];
+
 							}
 							if($res === true && $is_entrust == 0){
 								$note = '支付合同'.$info['order_no'].'货款 '.number_format($retainage,2);
 								$account = $this->base_account->get_account($account);
 								if(!is_object($account)) return tool::getSuccInfo(0,$account);
 								$acc_res = $account->freeze($buyer,$retainage,$note,$buyer,$seller,$info['order_no'],$info['amount']);
-							}elseif($is_entrust == 1){
+							}elseif($res === true && $is_entrust == 1){
 								$res = $this->entrustComplete($info,$buyer,$seller,$payment,$account);
 							}
 
-							if($res === true) $res = $this->order->commit();
+							if($res === true) {
+							    $res = $this->order->commit();
+							}else{
+                                $this->order->rollBack();
+                            }
 						}elseif($payment == 'offline'){
 							$orderData['proof'] = $proof;
                             $orderData['o_lock'] = $info['o_lock'];

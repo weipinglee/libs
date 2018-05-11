@@ -61,7 +61,11 @@ class jingjiaOffer extends product{
             $newOfferData['pro_name'] = $offerData['proname'];
             $newOfferData['sub_mode'] = $offerData['submode'];
             $newOfferData['start_time'] = $offerData['start_time'];
-            $newOfferData['end_time'] = \Library\time::getDiffSec($newOfferData['expire_time'],$offerData['end_time'])>0 ? $offerData['end_time'] : $newOfferData['expire_time'];
+
+            if(\Library\time::getDiffSec($newOfferData['expire_time'],$offerData['end_time'])<0){
+                return tool::getSuccInfo(0,'竞价结束时间不能超过原报盘过期时间');
+            }
+            $newOfferData['end_time'] = $offerData['end_time'];
            $newOfferData['price_l'] = $offerData['price_l'];
             $newOfferData['price_r'] = $offerData['price_r'];
             $newOfferData['divide'] = 0;
