@@ -577,6 +577,7 @@ class product  {
                 }
 
                 $productOffer['insurance'] = 0;
+                $productOffer['pro_name'] = isset($productData[0]['name']) ? $productData[0]['name'] : '';
                 $productOffer['status'] = self::OFFER_APPLY;
                 $productOffer['max_num'] = $productData[0]['quantity'];
                 $id =  $this->_productObj->table('product_offer')->data($productOffer)->add(1);
