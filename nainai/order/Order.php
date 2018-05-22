@@ -1295,7 +1295,7 @@ class Order{
 	public function contractReview($offer_id,$num,$user_id = ''){
 		$query = new Query('product_offer as po');
 		$query->join = 'left join products as p on po.product_id = p.id';
-		$query->fields = 'po.type,po.user_id as offer_user,po.price,po.price_vip,p.name,po.product_id,po.accept_area,po.other,p.cate_id,p.produce_area,p.unit';
+		$query->fields = 'po.type,po.sub_mode,po.mode,po.user_id as offer_user,po.price,po.price_l,po.price_vip,p.name,po.product_id,po.accept_area,po.other,p.cate_id,p.produce_area,p.unit';
 		$query->where = 'po.id = :id';
 		$query->bind = array('id'=>$offer_id);
 		$res = $query->getObj();	
@@ -1325,7 +1325,7 @@ class Order{
 	public function contractDetail($id,$identity = 'buyer'){
 		$query = new Query('order_sell as do');
 		$query->join  = 'left join product_offer as po on do.offer_id = po.id left join user as u on u.id = do.user_id left join products as p on po.product_id = p.id left join product_category as pc on p.cate_id = pc.id';
-		$query->fields = 'do.*,po.type,po.other,po.price_vip,p.name,po.price,do.amount,p.unit,po.product_id,po.accept_area,p.cate_id,p.img,p.produce_area,pc.name as cate_name,po.user_id as seller_id';
+		$query->fields = 'do.*,po.type,po.other,po.price_vip,p.name,po.price,po.price_l,do.amount,p.unit,po.product_id,po.accept_area,p.cate_id,p.img,p.produce_area,pc.name as cate_name,po.user_id as seller_id';
 		$query->where = 'do.id=:id';
 		$query->bind = array('id'=>$id);
 		$res = $query->getObj();
@@ -1354,6 +1354,8 @@ class Order{
 
 		$buyer_info = $this->contractUserInfo($buyer_id);
 		$seller_info = $this->contractUserInfo($seller_id);
+		$res['buyer_id'] = $buyer_id;
+		$res['seller_id'] = $seller_id;
 		$res['buyer_name'] = $buyer_info['type'] == 0 ? $buyer_info['true_name'] : $buyer_info['company_name'];
 		$res['seller_name'] = $seller_info['type'] == 0 ? $seller_info['true_name'] : $seller_info['company_name'];
 		$res['buyer_phone'] = $buyer_info['type'] == 0 ? $buyer_info['mobile'] : $buyer_info['contact_phone'];
@@ -1743,7 +1745,10 @@ class Order{
 	public function vipPrice(&$offerInfo){
 	    $login = \Library\session::get('login');
 	    if($login && $offerInfo['price_vip']>0 && ($login['cert']['vip']==1 || $login['cert']['vip_temp']==1 )){
-	        $offerInfo['price'] = $offerInfo['price_vip'];
+	        if($offerInfo['sub_mode']!=1){
+                $offerInfo['price'] = $offerInfo['price_vip'];
+            }
+
         }
     }
 
