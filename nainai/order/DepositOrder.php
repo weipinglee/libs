@@ -139,6 +139,7 @@ class DepositOrder extends Order{
 					if(!is_object($account)) return tool::getSuccInfo(0,$account);
 
 					$orderData['contract_status'] = self::CONTRACT_CANCEL;
+                    $orderData['o_lock'] = $info['o_lock'];
 					$upd_res = $this->orderUpdate($orderData);
 					
 					//扣除信誉值
@@ -155,14 +156,20 @@ class DepositOrder extends Order{
 					if($res === true){
 						//将买方冻结资金解冻
 						$note = '卖方未支付合同'.$info['order_no'].'保证金 退还货款 '.$info['pay_retainage'];
-						$res = $acc_res = $account->freezeRelease($buyer,floatval($info['pay_retainage']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
+						$acc_res = $account->freezeRelease($buyer,floatval($info['pay_retainage']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
+                        if($acc_res===true){
+                            $content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
+                            $mess_buyer->send('common',$content);
 
-						$content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
-						$mess_buyer->send('common',$content);
+                            $content = '合同'.$info['order_no'].',由于您未及时支付保证金，买方已取消合同';
+                            $mess_seller->send('common',$content);
+                        }else{
+                            $res = '买方资金退还错误';
+                        }
 
-						$content = '合同'.$info['order_no'].',由于您未及时支付保证金，买方已取消合同';
-						$mess_seller->send('common',$content);
-					}
+					}else{
+					    $res = '合同取消发生错误';
+                    }
 					
 				}elseif($pay === true){
 					//卖方支付保证金
@@ -225,7 +232,11 @@ class DepositOrder extends Order{
 				}else{
 					$res = '参数错误';
 				}
-				$res = $res === true ? $this->order->commit() : $res;
+				if($res === true) {
+                    $this->order->commit();
+                }else{
+                    $this->order->rollBack();
+                }
 				
 			} catch (\PDOException $e) {
 				$res = $e->getMessage();
