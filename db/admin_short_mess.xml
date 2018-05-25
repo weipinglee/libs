@@ -1,0 +1,76 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet author="weipinglee" id="1">
+        <createTable tableName="admin_check" >
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="checkname" type="VARCHAR(30)" remarks="check item name">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chs_name" type="VARCHAR(30) CHARACTER SET utf8" remarks="中文说明" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+            <column name="admin_id" type="VARCHAR(100)" remarks="发送的管理员id,多个以逗号相隔" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+
+        </createTable>
+    </changeSet>
+
+    <changeSet author="weipinglee" id="2-1">
+        <comment>admin_check表的初始化数据</comment>
+        <insert tableName="admin_check">
+            <column name="checkname" value="checkoffer" />
+            <column name="chs_name" type="VARCHAR(30) CHARACTER SET utf8" value="报盘审核" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="fundoutfirst" />
+            <column name="chs_name" type="VARCHAR(30) CHARACTER SET utf8" value="出金初审" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="fundoutfinal" />
+            <column name="chs_name" type="VARCHAR(30) CHARACTER SET utf8" value="出金终审" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="fundouttransfer" />
+            <column name="chs_name" type="VARCHAR(30) CHARACTER SET utf8" value="出金打款" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="fundinfirst" />
+            <column name="chs_name" value="入金初审" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="fundinfinal" />
+            <column name="chs_name" value="入金初审" />
+        </insert>
+        <insert tableName="admin_check">
+            <column name="checkname" value="checkbankdetail" />
+            <column name="chs_name" value="开户审核" />
+        </insert>
+    </changeSet>
+
+    <changeSet author="weipinglee" id="3-1">
+        <addColumn tableName="admin">
+            <column name="mobile" type="varchar(15)" defaultValue="">
+                 <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet author="weipinglee" id="4">
+        <addColumn tableName="admin_check">
+            <column name="admin_names" type="varchar(255)" defaultValue="">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet author="weipinglee" id="5">
+        <addColumn tableName="admin_check" >
+            <column name="status" type="tinyint(2)" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="build">
+ <target name="build" depends="db_chg"/>
+ <includepath classpath="C:\Program Files\Java\jdk1.8.0_171\lib" />
+ <includepath classpath="D:\wamp64\build\liquibase-3.6.1" />
+ <property name="version-m"  value="1.1" />
+ <property name="version"    value="1.1.0" />
+ <property name="stability"  value="stable" />
+ <property name="releasenotes" value="" />
+ <property name="tarfile"     value="${phing.project.name}.${buildnumber}.${buildid}.tar.gz" />
+ <property name="pkgfile"     value="${phing.project.name}.${version}.tgz" />
+ <property name="distfile"    value="dist/${tarfile}" />
+ <property name="tests.dir" value="${project.basedir}/test" />
+ <property name="deploy.user" value="root" />
+ <property name="deploy.password" value="123456" />
+
+
+ <target name="db_chg" description="change the db" >
+  <!--下面的命令行选项url的值必须用双引号-->
+  <exec logoutput="true" checkreturn="true"
+        command='liquibase
+        --classpath=D:\wamp64\build\liquibase-3.6.1\lib\mysql-connector-java\mysql-connector-java.jar
+        --driver=com.mysql.jdbc.Driver
+        --changeLogFile=${project.basedir}\db\chg.xml
+        --url="jdbc:mysql://127.0.0.1:3306/nn_dev?useUnicode=true&amp;characterEncoding=UTF-8"
+        --username=root
+        --password=123456
+        update' />
+
+ </target>
+
+
+
+</project>
