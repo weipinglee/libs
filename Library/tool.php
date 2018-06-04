@@ -79,6 +79,9 @@ class tool{
         }
     }
 
+    public static function setHttpResponse($statusCode=200){
+        http_response_code($statusCode);
+    }
     public static function getSuccInfo($res=1,$info='',$url='',$id='',$time=1){
         return array('success'=>$res,'info'=>$info,'returnUrl'=>$url,'id'=>$id,'time'=>intval($time));
     }
