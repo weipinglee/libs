@@ -82,8 +82,30 @@ class AdminMsg extends \nainai\Abstruct\ModelAbstract{
 
 		$msg['status'] = 0;
 		$msg['create_time'] = \Library\time::getDateTime();
+		$this->sendShortMessage(strtolower($type),$content);
 		return $this->model->data($msg)->add();
  	}
+
+    /**
+     * 需要审核时给管理员发送短信
+     * @param $type
+     * @param $content
+     */
+ 	private function sendShortMessage($type,$content){
+	    $obj = new M('admin_check');
+	    $checkData = $obj->where(array('checkname'=>$type))->getObj();
+	    if(isset($checkData['admin_names']) && $checkData['admin_names']!=''){
+	        $adminObj = new M('admin');
+	        $adminData = $adminObj->where(array('name'=>array('in',$checkData['admin_names'])))->fields('mobile')->select();
+	        if(!empty($adminData)){
+                foreach($adminData as $item){
+                    if($item['mobile'])
+                        \Library\hsms::send($item['mobile'],$content);
+                }
+            }
+
+        }
+    }
 
 	/**
 	 * 获取某个管理员的通知信息
