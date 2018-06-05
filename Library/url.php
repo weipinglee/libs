@@ -71,13 +71,15 @@ class url {
 
         if($baseUrl==null){
             if($pos['host']==''){
-                $baseUrl = self::getHost().self::getScriptDir();
+                $baseUrl = self::getScriptDir();
             }
             else $baseUrl = self::getConfigHost($pos['host']);
         }
 
       return $baseUrl.'/'.self::getRoute($pos['controller'],$pos['action'],$pos['module'],$params);
     }
+
+
 
     /**
      *给定指定的模块、控制器、方法和参数列表，倒序查找application.int配置文件中的路由信息，找到匹配的路由并根据该路由规则生成url,
