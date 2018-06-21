@@ -148,7 +148,7 @@ class FreeOrder extends Order{
 							$this->order->rollBack();
 							$res = '无效支付方式';
 						}
-					} catch (PDOException $e) {
+					} catch (\PDOException $e) {
 						$res = $e->getMessage();
 						$this->order->rollBack();
 					}
