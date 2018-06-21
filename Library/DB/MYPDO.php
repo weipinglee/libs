@@ -123,6 +123,10 @@ class MYPDO {
                         return $DBlink->lastInsertId();
                     }
                         break;
+                    case 'SHOW' : {
+                        return $stmt->fetchAll();
+                    }
+                    break;
                     default : return $res;
                 }
             }

@@ -123,6 +123,68 @@ class jingjiaOffer extends product{
 
     }
 
+    public function updateOffer($offer_id,$offerData,$user_id){
+        $obj = new \Library\M('product_offer');
+
+        $offer_id = intval($offer_id);
+
+        //查看当前报盘数据
+        $currOfferData = $obj->where(array('id'=>$offer_id,'status'=>self::OFFER_NG))->getObj();
+        if(empty($currOfferData)){
+            return tool::getSuccInfo(0,'报盘不存在');
+        }
+        $old_offer = $currOfferData['old_offer'];
+        //查看原报盘数据
+        $query = 'select * from product_offer where id='.$old_offer.' AND user_id='.$user_id.'  FOR UPDATE';
+        $oldOfferData = $obj->query($query);//从旧的报盘中查询出数据作为新的报盘数据
+
+        if(!isset($oldOfferData[0])){
+            return tool::getSuccInfo(0,'原报盘异常');
+        }
+        $oldOfferData = $oldOfferData[0];
+        if(\Library\time::getDiffSec($oldOfferData['expire_time'],$offerData['end_time'])<0){
+            return tool::getSuccInfo(0,'竞价结束时间不能超过原报盘过期时间');
+        }
+
+        if(time::getTime()>time::getTime($offerData['start_time'])){
+            return tool::getSuccInfo(0,'开始时间不能小于当前时间');
+        }
+        if(time::getTime($offerData['end_time'])<=time::getTime($offerData['start_time'])){
+            return tool::getSuccInfo(0,'结束时间必须大于开始时间');
+        }
+
+        //判断竞价报盘的数量是否超过了原报盘，如果未超，原报盘数量是否得修改
+        //获取商品剩余量
+        $proLeft = $currOfferData['max_num'] + $oldOfferData['max_num'] - $oldOfferData['sell_num'] ;
+
+        if($offerData['max_num']>$proLeft){
+            return tool::getSuccInfo(0,'参与活动的商品量不能大于原报盘剩余量');
+        }
+
+        $obj->beginTrans();
+        //如果竞价的数量改变，需要改变原报盘数量
+        if($offerData['max_num'] != $currOfferData['max_num']){
+            $diff = $offerData['max_num'] - $currOfferData['max_num'];
+            $oldUpdate = array('max_num'=>$oldOfferData['max_num'] - $diff);
+            if($oldOfferData['max_num'] - $diff==0){//如果剩余量等于竞价量，原报盘状态改为成交
+                $oldUpdate['status'] = 6;
+            }
+
+            $obj->data($oldUpdate)->where(array('id'=>$old_offer))->update();
+        }
+
+       // $offerData['status'] = 0;
+        $obj->data($offerData)->where(array('id'=>$offer_id))->update();
+        if($obj->commit()){
+             $this->alterEvent($offer_id);
+             return tool::getSuccInfo();
+        }
+        else{
+            return tool::getSuccInfo(0,'操作失败');
+        }
+
+    }
+
     /**
      * 竞价交易报价
      * @param $offer_id int 报盘id
@@ -238,6 +300,29 @@ class jingjiaOffer extends product{
         $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
         CALL jingjiaHandle('.$offer_id.',0,0);';
         $res = $jingjiaOffer->query($sql);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+
+    protected function alterEvent($offer_id,$end_time=''){
+        $event_name = 'autoStopJingjia_'.$offer_id;
+        $jingjiaOffer = new M('product_offer');
+        if($end_time==''){
+            $end_time = $jingjiaOffer->where(array('id'=>$offer_id))->getField('end_time');
+        }
+
+        $sql = 'show events like "autoStopJingjia_'.$offer_id.'";';
+            $eventData = $jingjiaOffer->query($sql);
+        if(!empty($eventData)){
+            $sql = 'ALTER  EVENT  `'.$event_name.'`  ON SCHEDULE AT "'.$end_time.'" ON COMPLETION NOT PRESERVE ENABLE DO
+        CALL jingjiaHandle('.$offer_id.',0,0);';
+            $res = $jingjiaOffer->query($sql);
+        }else{
+            $res = $this->createEvent($offer_id,$end_time);
+        }
+
         if($res){
             return true;
         }
