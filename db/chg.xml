@@ -21,4 +21,5 @@
 
     </changeSet>
     <include file="admin_short_mess.xml" relativeToChangelogFile="true"/>
+    <include file="funcs.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
