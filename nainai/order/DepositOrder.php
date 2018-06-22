@@ -134,9 +134,6 @@ class DepositOrder extends Order{
 				$this->order->beginTrans();
 				if($pay === false){
 					//未支付 合同取消
-					
-					$account = $this->base_account->get_account($info['buyer_deposit_payment']);
-					if(!is_object($account)) return tool::getSuccInfo(0,$account);
 
 					$orderData['contract_status'] = self::CONTRACT_CANCEL;
                     $orderData['o_lock'] = $info['o_lock'];
@@ -155,9 +152,24 @@ class DepositOrder extends Order{
 
 					if($res === true){
 						//将买方冻结资金解冻
-						$note = '卖方未支付合同'.$info['order_no'].'保证金 退还货款 '.$info['pay_retainage'];
-						$acc_res = $account->freezeRelease($buyer,floatval($info['pay_retainage']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
-                        if($acc_res===true){
+                        $acc_res = true;
+                        if($info['buyer_deposit_payment']){
+                            $account = $this->base_account->get_account($info['buyer_deposit_payment']);
+                            if(!is_object($account)) return tool::getSuccInfo(0,$account);
+
+                            $note = '卖方未支付合同'.$info['order_no'].'保证金 退还货款 '.$info['pay_deposit'];
+                            $acc_res = $account->freezeRelease($buyer,floatval($info['pay_deposit']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
+
+                        }
+                        if($acc_res===true && $info['retainage_payment']){
+                            $account = $this->base_account->get_account($info['retainage_payment']);
+                            if(!is_object($account)) return tool::getSuccInfo(0,$account);
+
+                            $note = '卖方未支付合同'.$info['order_no'].'保证金 退还货款 '.$info['pay_retainage'];
+                            $acc_res = $account->freezeRelease($buyer,floatval($info['pay_retainage']),$note,$buyer,$seller,$info['order_no'],$info['amount']);
+
+                        }
+                          if($acc_res===true){
                             $content = '合同'.$info['order_no'].'已取消。根据交易规则，已退还您支付的预付款。请您关注资金动态。';
                             $mess_buyer->send('common',$content);
 
