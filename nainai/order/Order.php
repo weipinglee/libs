@@ -1650,6 +1650,9 @@ class Order{
 				case self::CONTRACT_COMPLETE:
 					$title = '合同已完成';
 					break;
+                case self::CONTRACT_FREE_VERIFY:
+                    $title = '等待卖家确认收款';
+                    break;
 				default:
 					$title = '未知状态';
 					break;
