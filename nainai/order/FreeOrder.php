@@ -87,6 +87,7 @@ class FreeOrder extends Order{
 			$seller = $this->sellerUserid($order_id);
 			$buyer = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? intval($info['user_id']) : $seller;
 			$seller = $offerInfo['type'] == \nainai\offer\product::TYPE_SELL ? $seller : intval($info['user_id']);
+
 			if($info['contract_status'] == self::CONTRACT_BUYER_RETAINAGE || $info['contract_status'] == self::CONTRACT_NOTFORM){
 				if($buyer != $user_id)
 					return tool::getSuccInfo(0,'订单买家信息有误');
@@ -137,7 +138,7 @@ class FreeOrder extends Order{
 							$upd_res = $this->orderUpdate($orderData);
 							if($upd_res['success'] == 1){
 								$jump_url = "<a href='".url::createUrl('/contract/sellerDetail?id='.$order_id.'@user')."'>跳转到合同详情页</a>";
-								$content = '(合同'.$info['order_no'].',买方已支付货款,请您及时进行凭证确认,并关注资金动态。)'.$jump_url;
+								$content = '(合同'.$info['order_no'].',买方已上传支付凭证,请您及时进行凭证确认,并关注资金动态。)'.$jump_url;
 								$mess->send('common',$content);
 								$log_res = $this->payLog($order_id,$user_id,0,'买家上传线下支付凭证');
 								$res = $log_res === true ? $this->order->commit() : $log_res;
