@@ -28,11 +28,11 @@ class jingjiaOffer extends product{
 
 
     /**
-     * 报盘插入数据
+     * 原报盘转竞价
      * @param array $offer_id  原报盘id
      * @param array $offerData 更改的报盘数据
      */
-    public function doOffer($offer_id,$offerData,$user_id)
+    public function transJingjiaOffer($offer_id,$offerData,$user_id)
     {
         $obj = new \Library\M('product_offer');
         $obj->beginTrans();
@@ -120,6 +120,19 @@ class jingjiaOffer extends product{
         }
 
 
+
+    }
+
+    /**
+     * 从头生成竞价，不是报盘转竞价
+     * @param $productData
+     * @param $offerData
+     */
+    public function doOffer($productData,$offerData){
+
+         $offerObj = new M('product_offer');
+         return $offerObj->fields('id,user_id,pro_name')->getObj();
+         return 123;
 
     }
 

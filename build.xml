@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="test" default="build">
- <target name="build" depends="db_chg"/>
+ <target name="build" depends="test"/>
  <includepath classpath="C:\Program Files\Java\jdk1.8.0_171\lib" />
  <includepath classpath="D:\wamp64\build\liquibase-3.6.1" />
  <property name="version-m"  value="1.1" />
@@ -29,6 +29,9 @@
 
  </target>
 
+ <target name="test" >
+  <exec logoutput="true" checkreturn="true" command="phpunit tests" />
+ </target>
 
 
 </project>
