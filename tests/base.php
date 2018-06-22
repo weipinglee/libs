@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class base extends TestCase
 {
-
+    use \tests\src\ApplicationTrait;
     public function __construct()
     {
         parent::__construct();

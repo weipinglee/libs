@@ -21,7 +21,7 @@ class offerTest extends base
         $offer = new jingjiaOffer();
         $res = $offer->doOffer(array(),array());
         //print_r($res);
-       // $this->assertArrayHasKey(1,$res);
+        $this->seeInDatabase('product_offer',array('id'=>16045));
 
         $this->assertEquals($a, 2);
     }
