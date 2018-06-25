@@ -611,7 +611,7 @@ class product  {
                         }
                         $this->_productObj->table('product_photos')->data($imgData)->adds(1);
                     }
-                return true;
+                return $id;
 
             }else{
                  return $this->_productObj->getError();
@@ -745,6 +745,7 @@ class product  {
             $obj->where(array('id'=>$id))->delete();
             $obj->table('products')->where(array('id'=>$product_id))->delete();
             $obj->table('product_photos')->where(array('products_id'=>$product_id))->delete();
+            $obj->table('product_jingjia_set')->where(array('jingjia_id'=>$id))->delete();
 
         }
         return true;

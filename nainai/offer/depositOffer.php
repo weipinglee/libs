@@ -34,7 +34,7 @@ class depositOffer extends product{
         $offerData['user_id'] = $this->user_id;
         $insert = $this->insertOffer($productData,$offerData);
 
-        if($insert===true){
+        if(is_int($insert) && $insert>0){
             if($this->_productObj->commit()){
                 return tool::getSuccInfo();
             }

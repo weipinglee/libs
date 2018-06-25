@@ -1,6 +1,6 @@
 <?php
 /**
- * Î¯ÍÐ±¨ÅÌ¹ÜÀí
+ * Î¯ï¿½Ð±ï¿½ï¿½Ì¹ï¿½ï¿½ï¿½
  * author: weipinglee
  * Date: 2016/5/7
  * Time: 23:43
@@ -11,7 +11,7 @@ use \Library\tool;
 class deputeOffer extends product{
 
     /**
-     * »ñÈ¡Î¯ÍÐ±¨ÅÌ·ÑÂÊ
+     * ï¿½ï¿½È¡Î¯ï¿½Ð±ï¿½ï¿½Ì·ï¿½ï¿½ï¿½
      * @return int
      */
     public function getFeeRate($user_id){
@@ -27,21 +27,21 @@ class deputeOffer extends product{
 
 
     /**
-     * ±¨ÅÌ²åÈëÊý¾Ý
-     * @param array $productData  ÉÌÆ·Êý¾Ý
-     * @param array $offerData ±¨ÅÌÊý¾Ý
+     * ï¿½ï¿½ï¿½Ì²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+     * @param array $productData  ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½
+     * @param array $offerData ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
      */
     public function doOffer($productData,$offerData,$offer_id=0){
         $offerData['mode'] = self::DEPUTE_OFFER;
         $this->_productObj->beginTrans();
-        if($offer_id){//É¾³ý¾ÉµÄid
+        if($offer_id){//É¾ï¿½ï¿½ï¿½Éµï¿½id
             $this->delOffer($offer_id,$this->user_id);
         }
 
         $offerData['user_id'] = $this->user_id;
         $insert = $this->insertOffer($productData,$offerData);
 
-        if($insert===true){
+        if(is_int($insert) && $insert>0){
             if($this->_productObj->commit()){
                 return tool::getSuccInfo();
             }

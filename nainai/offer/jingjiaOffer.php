@@ -128,11 +128,90 @@ class jingjiaOffer extends product{
      * @param $productData
      * @param $offerData
      */
-    public function doOffer($productData,$offerData){
+    public function doOffer($productData,$offerData,$offer_id=0){
+           if(!isset($offerData['mode']) || !in_array($offerData['mode'],array(0,1,2,3,4))){
+               return tool::getSuccInfo(0,'报盘模型必须选择');
+           }
 
-         $offerObj = new M('product_offer');
-         return $offerObj->fields('id,user_id,pro_name')->getObj();
-         return 123;
+        $this->_productObj->beginTrans();
+        if($offer_id){
+            $this->delOffer($offer_id,$this->user_id);
+
+        }
+
+        $offerData['user_id'] = $this->user_id;
+        $jingjiaSet = $offerData['set'];
+        unset($offerData['set']);
+
+        $insert = $this->insertOffer($productData,$offerData);
+
+        if(is_int($insert) && $insert>0){
+
+            //判断写入时间是否合理
+            $startTemp = time::getTime();
+            foreach($jingjiaSet as $key=>$item){
+                if($startTemp > time::getTime($item['start_time'])){
+                    return tool::getSuccInfo(0,$key==0 ? '开始时间不能小于当前时间' : '第'.($key+1).'阶段的开始时间不能小于上一阶段的结束时间');
+                }
+                if(time::getTime($item['end_time'])<=time::getTime($item['start_time'])){
+                    return tool::getSuccInfo(0,'第'.($key+1).'阶段的结束时间必须大于开始时间');
+                }
+                $startTemp = $item['end_time'];
+            }
+
+            //写入竞价设置
+            $res = $this->addJingjiaSet($insert,$jingjiaSet);
+            if($res && $this->_productObj->commit()){
+                return tool::getSuccInfo();
+            }
+            else {
+                $this->_productObj->rollBack();
+                return tool::getSuccInfo(0,$this->errorCode['server']['info']);
+            }
+        }
+        else{
+            $this->_productObj->rollBack();
+            $this->errorCode['dataWrong']['info'] = $insert;
+            return tool::getSuccInfo(0,$this->errorCode['dataWrong']['info']);
+        }
+
+
+    }
+
+    /**
+     * 竞价区间设置
+     * @param $offer_id
+     * @param $jingjiaSet
+     * @return bool
+     */
+    private function addJingjiaSet($offer_id,$jingjiaSet){
+         $jingjiaSetObj = new M('product_jingjia_set');
+         if(count($jingjiaSet)==0){
+             return false;
+         }
+         foreach($jingjiaSet as &$item){
+             $item['jingjia_id'] = $offer_id;
+             if($item['invitees']!=''){//如果有邀请人员，生产竞价密码
+                 $item['pass'] = rand(1000,9999);
+             }
+
+         }
+         $res = $jingjiaSetObj->data($jingjiaSet)->adds();
+         if($res){
+             $jingjiaOfferData = array(
+                 'jingjia_mode' => $jingjiaSet[0]['invitees'] ? 1 : 0,//有邀请则是场内
+                 'jingjia_pass' => $jingjiaSet[0]['pass'],
+                 'start_time' => $jingjiaSet[0]['start_time'],
+                 'end_time'   => $jingjiaSet[0]['end_time'],
+                 'price_l'    => $jingjiaSet[0]['price_l'],
+                 'jing_stepprice' => $jingjiaSet[0]['price_step']
+             );
+             $jingjisObj = new M('product_offer');
+             $jingjisObj->where(array('id'=>$offer_id))->data($jingjiaOfferData)->update();
+             return true;
+         }else{
+             return false;
+         }
 
     }
 

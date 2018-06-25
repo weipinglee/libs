@@ -63,7 +63,7 @@ class freeOffer extends product{
             }
             $insert = $this->insertOffer($productData,$offerData);
 
-            if($insert===true){
+            if(is_int($insert) && $insert>0){
                 if($fee>0){
                     $note = '自由报盘冻结报盘费';
                     $fund->freeze($user_id,$fee,$note);
