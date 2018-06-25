@@ -570,6 +570,7 @@ class product  {
         protected function insertOffer(&$productData, &$productOffer){
             if ($this->_productObj->validate($this->productRules,$productData) && $this->_productObj->validate($this->productOfferRules, $productOffer)){
 
+                $productData[0]['attr_json'] = json_encode(unserialize($productData[0]['attribute']));
                 $pId = $this->_productObj->data($productData[0])->add();
                 $productOffer['product_id'] = $pId;
                 if(!isset($productOffer['price_vip']) || $productOffer['price_vip']<=0){

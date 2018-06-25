@@ -129,9 +129,29 @@ class jingjiaOffer extends product{
      * @param $offerData
      */
     public function doOffer($productData,$offerData,$offer_id=0){
-           if(!isset($offerData['mode']) || !in_array($offerData['mode'],array(0,1,2,3,4))){
+           if(!isset($offerData['mode']) || !in_array($offerData['mode'],array(1,2,3,4))){
                return tool::getSuccInfo(0,'报盘模型必须选择');
            }
+
+
+        //判断写入时间是否合理
+        $jingjiaSet = $offerData['set'];//print_r($jingjiaSet);
+        unset($offerData['set']);
+        $startTemp = time::getTime();
+        foreach($jingjiaSet as $key=>$item){
+            $no = $key+1;
+            if($startTemp > time::getTime($item['start_time'])){
+                $info = $key==0 ? '开始时间不能小于当前时间' : '第'.$no.'阶段的开始时间不能小于上一阶段的结束时间';
+
+                return tool::getSuccInfo(0,$info);
+            }
+            if(time::getTime($item['end_time'])<=time::getTime($item['start_time'])){
+                $info  = '第'.$no.'阶段的结束时间必须大于开始时间';
+                return tool::getSuccInfo(0,$info);
+            }
+            $startTemp = time::getTime($item['end_time']);
+        }
+
 
         $this->_productObj->beginTrans();
         if($offer_id){
@@ -140,24 +160,11 @@ class jingjiaOffer extends product{
         }
 
         $offerData['user_id'] = $this->user_id;
-        $jingjiaSet = $offerData['set'];
-        unset($offerData['set']);
+
 
         $insert = $this->insertOffer($productData,$offerData);
 
-        if(is_int($insert) && $insert>0){
-
-            //判断写入时间是否合理
-            $startTemp = time::getTime();
-            foreach($jingjiaSet as $key=>$item){
-                if($startTemp > time::getTime($item['start_time'])){
-                    return tool::getSuccInfo(0,$key==0 ? '开始时间不能小于当前时间' : '第'.($key+1).'阶段的开始时间不能小于上一阶段的结束时间');
-                }
-                if(time::getTime($item['end_time'])<=time::getTime($item['start_time'])){
-                    return tool::getSuccInfo(0,'第'.($key+1).'阶段的结束时间必须大于开始时间');
-                }
-                $startTemp = $item['end_time'];
-            }
+        if( $insert>0){
 
             //写入竞价设置
             $res = $this->addJingjiaSet($insert,$jingjiaSet);
@@ -193,9 +200,12 @@ class jingjiaOffer extends product{
              $item['jingjia_id'] = $offer_id;
              if($item['invitees']!=''){//如果有邀请人员，生产竞价密码
                  $item['pass'] = rand(1000,9999);
+             }else{
+                 $item['pass'] = '';
              }
 
          }
+        // print_r($jingjiaSet);
          $res = $jingjiaSetObj->data($jingjiaSet)->adds();
          if($res){
              $jingjiaOfferData = array(

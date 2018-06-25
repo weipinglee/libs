@@ -39,7 +39,7 @@ trait ApplicationTrait
             'Unable to find row in database table [%s] that matched attributes [%s].', $table, json_encode($data)
         ));
 
-        return $this;
+        return $res;
     }
 
     protected function notSeeInDatabase($table, array $data)
@@ -51,5 +51,11 @@ trait ApplicationTrait
         ));
 
         return $this;
+    }
+
+    protected static function clearTable($tableName){
+        $dbObj = new M($tableName);
+        $sql = 'truncate table  '.$tableName;
+        return $dbObj->query($sql);
     }
 }

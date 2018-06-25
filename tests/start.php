@@ -24,6 +24,6 @@ define('TEST_PATH',__DIR__);
 $app = new Yaf\Application(TEST_PATH."/conf/application.ini");
 $config = Yaf\Application::app()->getConfig();
 \Yaf\Registry::set('config', $config);
-//$app->getDispatcher()->dispatch(new Yaf_Request_Simple());
+//$app->getDispatcher()->dispatch(new Yaf\Request_Simple());
 
 

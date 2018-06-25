@@ -41,7 +41,7 @@ class Client
 	    {
 	    	$realip = $_SERVER['HTTP_CLIENT_IP'];
 	    }
-	    else
+	    else if(isset($_SERVER['REMOTE_ADDR']))
 	    {
 	    	$realip = $_SERVER['REMOTE_ADDR'];
 	    }
