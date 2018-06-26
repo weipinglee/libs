@@ -180,3 +180,86 @@ BEGIN
 END
 ;;
 DELIMITER ;
+
+
+-- ----------------------------
+-- Procedure structure for `xinJingjiaHandle`
+-- 非由其他报盘转的竞价报盘在阶段时间结束时执行的过程
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `xinJingjiaHandle`;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `xinJingjiaHandle`(IN `offer_id` int,OUT `return_status` int)
+BEGIN
+	#
+
+  DECLARE stage_id INT(11) default 0;#当前竞价阶段id
+  DECLARE stage_start char(20);
+  DECLARE stage_end   char(20);
+  DECLARE to_next INT(2) default 0;#是否可以跳转到下一个阶段
+  DECLARE next_stage INT(11) default 0;#下一个阶段id
+  DECLARE next_stage_start char(20);#下一个阶段开始时间
+  DECLARE next_stage_end char(20);#下一阶段结束时间
+  DECLARE baojia_user INT(11) default 0;#当前报价的用户
+  DECLARE mode_id   INT(11) ;#报盘模式
+  DECLARE offer_num DECIMAL(15,2);#报盘数量
+  DECLARE max_price DECIMAL(15,2);#报价最高价
+  DECLARE next_stage_price_l DECIMAL(15,2);#下一个阶段起拍价
+  DECLARE next_stage_stepprice DECIMAL(15,2);#下一个阶段递增价
+  DECLARE next_stage_pass char(10);#下一个阶段密码
+  DECLARE offer_status INT(2) default 1;#报盘状态
+
+  #获取状态为正常且id为offer_id的竞价报盘的竞价阶段id
+  select jingjia_set_id,`mode`,max_num INTO stage_id,mode_id ,offer_num FROM product_offer where id = offer_id AND sub_mode=1 AND `status`=1;
+  #当前阶段的数据
+  SELECT always_next ,start_time,end_time INTO to_next,stage_start,stage_end FROM product_jingjia_set WHERE id = stage_id;
+  start TRANSACTION;
+  IF stage_id >0 THEN
+     #找到下一个阶段的id
+     SELECT id INTO next_stage FROM product_jingjia_set WHERE id>stage_id AND jingjia_id=offer_id  ORDER BY id ASC LIMIT 1;
+     #找到当前阶段的报价
+     SELECT user_id,price  INTO baojia_user,max_price FROM product_jingjia WHERE `offer_id`=offer_id AND time > stage_start AND time<stage_end ORDER BY price desc LIMIT 1;
+
+     IF next_stage>0 AND (to_next=1 OR (to_next=0 AND baojia_user=0)) THEN
+        #获取下一阶段的数据
+        SELECT start_time,end_time,price_l,price_step,pass INTO next_stage_start,next_stage_end ,next_stage_price_l,next_stage_stepprice,next_stage_pass
+          FROM product_jingjia_set WHERE id = next_stage;
+
+        #更新报盘数据为下一阶段
+        UPDATE product_offer SET price_l=next_stage_price_l,jing_stepprice=next_stage_stepprice,jingjia_pass=next_stage_pass,start_time=next_stage_start,
+             end_time=next_stage_end,jingjia_set_id=next_stage WHERE id=offer_id;
+        #启动下一个阶段结束时间的事件
+        #这里不能生成event,mysql不允许在函数或过程中生成event
+        set return_status=1;
+     ELSE
+         #生成订单要重新获取最新的报价数据
+         SELECT user_id ,price INTO baojia_user,max_price FROM product_jingjia WHERE `offer_id`=offer_id ORDER BY price desc LIMIT 1;
+         IF baojia_user>0 THEN
+          #生成订单
+              SET offer_status=6;
+              UPDATE product_offer SET `status`=offer_status WHERE id=offer_id;
+              IF mode_id=4 THEN
+               CALL  createStoreOrder(offer_id,baojia_user, offer_num,1,max_price*offer_num,1);
+              ELSEIF mode_id=2 THEN
+                CALL  createDepositOrder(offer_id,baojia_user, offer_num,1,max_price*offer_num,1);
+              ELSEIF mode_id=1 THEN
+                CALL createFreeOrder(offer_id,baojia_user, offer_num,1,max_price*offer_num,1);
+              END IF;
+              set return_status=6;
+         ELSE#报盘改成已过期
+             SET offer_status=5;
+             UPDATE product_offer SET `status`=offer_status WHERE id=offer_id;
+             set return_status=5;
+         END IF;
+     END IF;
+
+
+
+  END IF;
+  COMMIT;
+
+
+END
+;;
+DELIMITER ;
+
+

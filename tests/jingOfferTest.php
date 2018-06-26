@@ -266,7 +266,7 @@ class jingOfferTest extends base
         $expectOffer = array(
             'id'=>$offerData['id'],
             'price_l'=>$this->stage2['price_l'],
-           // 'jing_stepprice'=>$this->stage2['price_step']
+            'jing_stepprice'=>$this->stage2['price_step']
 
         );
         $this->seeInDatabase('product_offer',$expectOffer);
