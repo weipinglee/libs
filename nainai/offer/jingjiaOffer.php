@@ -160,8 +160,7 @@ class jingjiaOffer extends product{
         }
 
         $offerData['user_id'] = $this->user_id;
-
-
+        $offerData['sub_mode'] = 1;
         $insert = $this->insertOffer($productData,$offerData);
 
         if( $insert>0){
@@ -196,6 +195,7 @@ class jingjiaOffer extends product{
          if(count($jingjiaSet)==0){
              return false;
          }
+         $set_id = 0;
          foreach($jingjiaSet as &$item){
              $item['jingjia_id'] = $offer_id;
              if($item['invitees']!=''){//如果有邀请人员，生产竞价密码
@@ -204,17 +204,21 @@ class jingjiaOffer extends product{
                  $item['pass'] = '';
              }
 
+             $res = $jingjiaSetObj->data($item)->add();
+             if($set_id==0)
+                 $set_id = $res;
+
          }
         // print_r($jingjiaSet);
-         $res = $jingjiaSetObj->data($jingjiaSet)->adds();
-         if($res){
+         if($set_id){
              $jingjiaOfferData = array(
                  'jingjia_mode' => $jingjiaSet[0]['invitees'] ? 1 : 0,//有邀请则是场内
                  'jingjia_pass' => $jingjiaSet[0]['pass'],
                  'start_time' => $jingjiaSet[0]['start_time'],
                  'end_time'   => $jingjiaSet[0]['end_time'],
                  'price_l'    => $jingjiaSet[0]['price_l'],
-                 'jing_stepprice' => $jingjiaSet[0]['price_step']
+                 'jing_stepprice' => $jingjiaSet[0]['price_step'],
+                 'jingjia_set_id' => $set_id
              );
              $jingjisObj = new M('product_offer');
              $jingjisObj->where(array('id'=>$offer_id))->data($jingjiaOfferData)->update();
@@ -339,7 +343,12 @@ class jingjiaOffer extends product{
         $fund = new \nainai\fund();
 
         //冻结该用户新的金额
-        $fundObj = $fund->createFund($pay_way);
+        if(is_object($pay_way)){
+            $fundObj = $pay_way;
+        }else{
+            $fundObj = $fund->createFund($pay_way);
+        }
+
         $amount = bcmul($price,$res['max_num'],2);
         $payRes = $fundObj->freeze($user_id,$amount,'参加竞价交易报价冻结金额');
         if($payRes!==true){
@@ -360,7 +369,7 @@ class jingjiaOffer extends product{
             'price' => $price,
             'time' => time::getDateTime(),
             'is_freeze'=>0,
-            'pay_way' => $pay_way,
+            'pay_way' => is_scalar($pay_way) ? $pay_way : 0,
             'amount'=>$amount
         );
         $insertRes = $baojiaObj->data($insertData)->add();
@@ -429,6 +438,23 @@ class jingjiaOffer extends product{
             return true;
         }
         return false;
+    }
+
+    /**
+     * 生成offer不同竞价阶段的event
+     * @param $offer_id
+     */
+    public function createXinEvent($offer_id){
+        $stageObj = new M('product_jingjia_set');
+        $stages = $stageObj->where(array('jingjia_id'=>$offer_id))->select();
+        foreach($stages as $item){
+            $event_name = 'jingjiaEndHandle_'.$offer_id.'_'.$item['id'];
+            $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$item['end_time'].
+                '" ON COMPLETION NOT  PRESERVE ENABLE DO
+        CALL xinJingjiaHandle('.$offer_id.',@a);';
+            $res = $stageObj->query($sql);
+        }
+        return $res;
     }
 
 

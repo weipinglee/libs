@@ -21,9 +21,10 @@
 
 //配置yaf
 define('TEST_PATH',__DIR__);
+date_default_timezone_set('Asia/Shanghai');
 $app = new Yaf\Application(TEST_PATH."/conf/application.ini");
 $config = Yaf\Application::app()->getConfig();
 \Yaf\Registry::set('config', $config);
-//$app->getDispatcher()->dispatch(new Yaf\Request_Simple());
 
+//$app->getDispatcher()->dispatch(new Yaf\Request_Simple());
 
