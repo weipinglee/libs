@@ -104,6 +104,7 @@ class FreeOrder extends Order{
 						$payment = $proof!='' ? 'offline' : $payment;
 						//自由与委托报盘只接受线下凭证
 						$mess = new \nainai\message($seller);
+
 						// var_dump($retainage);exit;
 						if($payment == 'online'){
 							//冻结买家帐户余额
@@ -124,6 +125,7 @@ class FreeOrder extends Order{
 							}else{
 								$res = $upd_res['info'];
 							}
+
 							if($res === true ){
 								$note = '冻结合同'.$info['order_no'].'款项￥'.number_format($retainage,2);
 								$account = $this->base_account->get_account($account);
@@ -193,7 +195,9 @@ class FreeOrder extends Order{
 		$res = $account->freezePay($buyer,$seller,$info['amount'],'合同'.$info['order_no'].'的款项￥'.$info['amount'],$info['order_no'],1,strtotime($info['create_time']));
         if($res===true){
 			$data = array('contract_status'=>self::CONTRACT_COMPLETE,'id'=>$info['id']);
-			$res1 = $this->orderUpdate($data);
+            $data['end_time'] =  date('Y-m-d H:i:s',time());
+
+            $res1 = $this->orderUpdate($data);
 			if(isset($res1['success']) && $res1['success']==1 && $this->order->commit()){
 				return tool::getSuccInfo();
 			}

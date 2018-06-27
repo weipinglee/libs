@@ -148,8 +148,8 @@ class message{
 			'content'=>$message);
 	}
 	public function buyerRetainage($order_id){
-		$title="尾款通知";
-		$message="您的订单".$order_id."买家已支付尾款";
+		$title="全款通知";
+		$message="您的订单".$order_id."买家已支付全款";
 		return array(
 			'title'=>$title,
 			'content'=>$message);

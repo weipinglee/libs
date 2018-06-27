@@ -163,7 +163,7 @@ class jingjiaOffer extends product{
         $offerData['sub_mode'] = 1;
         $insert = $this->insertOffer($productData,$offerData);
 
-        if( $insert>0){
+        if( is_numeric($insert) && $insert>0){
 
             //写入竞价设置
             $res = $this->addJingjiaSet($insert,$jingjiaSet);
@@ -501,6 +501,11 @@ class jingjiaOffer extends product{
             return true;
         }
         return false;
+    }
+
+    public function getOfferStage($offer_id){
+        $obj = new M('product_jingjia_set');
+        return $obj->where(array('jingjia_id'=>$offer_id))->select();
     }
 
 
