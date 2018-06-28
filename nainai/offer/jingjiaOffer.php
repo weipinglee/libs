@@ -129,30 +129,24 @@ class jingjiaOffer extends product{
      * @param $offerData
      */
     public function doOffer($productData,$offerData,$offer_id=0){
-           if(!isset($offerData['mode']) || !in_array($offerData['mode'],array(1,2,3,4))){
-               return tool::getSuccInfo(0,'报盘模型必须选择');
-           }
+        $offerData['mode'] = 1;
 
-
-        //判断写入时间是否合理
-        $jingjiaSet = $offerData['set'];//print_r($jingjiaSet);
-        unset($offerData['set']);
-        $startTemp = time::getTime();
-        foreach($jingjiaSet as $key=>$item){
-            $no = $key+1;
-            if($startTemp > time::getTime($item['start_time'])){
-                $info = $key==0 ? '开始时间不能小于当前时间' : '第'.$no.'阶段的开始时间不能小于上一阶段的结束时间';
-
-                return tool::getSuccInfo(0,$info);
-            }
-            if(time::getTime($item['end_time'])<=time::getTime($item['start_time'])){
-                $info  = '第'.$no.'阶段的结束时间必须大于开始时间';
-                return tool::getSuccInfo(0,$info);
-            }
-            $startTemp = time::getTime($item['end_time']);
+        if($offerData['jingjia_mode']==1){
+            $offerData['jingjia_pass'] = rand(1000,9999);
         }
 
 
+        if(time::getTime()>time::getTime($offerData['start_time'])){
+            return tool::getSuccInfo(0,'开始时间不能小于当前时间');
+        }
+
+        $days = 3;//开始前的预留天数
+        if(time::getTime()+$days * 24*3600 > time::getTime($offerData['start_time'])){
+            return tool::getSuccInfo(0,'必须要有至少3天的公示时间');
+        }
+        if(time::getTime($offerData['end_time'])<=time::getTime($offerData['start_time'])){
+            return tool::getSuccInfo(0,'结束时间必须大于开始时间');
+        }
         $this->_productObj->beginTrans();
         if($offer_id){
             $this->delOffer($offer_id,$this->user_id);
@@ -165,9 +159,8 @@ class jingjiaOffer extends product{
 
         if( is_numeric($insert) && $insert>0){
 
-            //写入竞价设置
-            $res = $this->addJingjiaSet($insert,$jingjiaSet);
-            if($res && $this->_productObj->commit()){
+
+            if($this->_productObj->commit()){
                 return tool::getSuccInfo();
             }
             else {
@@ -185,50 +178,12 @@ class jingjiaOffer extends product{
     }
 
     /**
-     * 竞价区间设置
+     * 转竞价的更新
      * @param $offer_id
-     * @param $jingjiaSet
-     * @return bool
+     * @param $offerData
+     * @param $user_id
+     * @return array
      */
-    private function addJingjiaSet($offer_id,$jingjiaSet){
-         $jingjiaSetObj = new M('product_jingjia_set');
-         if(count($jingjiaSet)==0){
-             return false;
-         }
-         $set_id = 0;
-         foreach($jingjiaSet as &$item){
-             $item['jingjia_id'] = $offer_id;
-             if($item['invitees']!=''){//如果有邀请人员，生产竞价密码
-                 $item['pass'] = rand(1000,9999);
-             }else{
-                 $item['pass'] = '';
-             }
-
-             $res = $jingjiaSetObj->data($item)->add();
-             if($set_id==0)
-                 $set_id = $res;
-
-         }
-        // print_r($jingjiaSet);
-         if($set_id){
-             $jingjiaOfferData = array(
-                 'jingjia_mode' => $jingjiaSet[0]['invitees'] ? 1 : 0,//有邀请则是场内
-                 'jingjia_pass' => $jingjiaSet[0]['pass'],
-                 'start_time' => $jingjiaSet[0]['start_time'],
-                 'end_time'   => $jingjiaSet[0]['end_time'],
-                 'price_l'    => $jingjiaSet[0]['price_l'],
-                 'jing_stepprice' => $jingjiaSet[0]['price_step'],
-                 'jingjia_set_id' => $set_id
-             );
-             $jingjisObj = new M('product_offer');
-             $jingjisObj->where(array('id'=>$offer_id))->data($jingjiaOfferData)->update();
-             return true;
-         }else{
-             return false;
-         }
-
-    }
-
     public function updateOffer($offer_id,$offerData,$user_id){
         $obj = new \Library\M('product_offer');
 
@@ -445,15 +400,15 @@ class jingjiaOffer extends product{
      * @param $offer_id
      */
     public function createXinEvent($offer_id){
-        $stageObj = new M('product_jingjia_set');
-        $stages = $stageObj->where(array('jingjia_id'=>$offer_id))->select();
-        foreach($stages as $item){
-            $event_name = 'jingjiaEndHandle_'.$offer_id.'_'.$item['id'];
-            $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$item['end_time'].
-                '" ON COMPLETION NOT  PRESERVE ENABLE DO
-        CALL xinJingjiaHandle('.$offer_id.',@a);';
-            $res = $stageObj->query($sql);
-        }
+        $offerObj = new M('product_offer');
+        $offerData = $offerObj->where(array('id'=>$offer_id))->select();
+
+        $event_name = 'autoStopJingjia_'.$offer_id;
+        $sql = 'CREATE  EVENT IF NOT EXISTS `'.$event_name.'`  ON SCHEDULE AT "'.$offerData['end_time'].
+            '" ON COMPLETION NOT  PRESERVE ENABLE DO
+    CALL xinJingjiaHandle('.$offer_id.',@a);';
+        $res = $offerObj->query($sql);
+
         return $res;
     }
 
@@ -503,10 +458,6 @@ class jingjiaOffer extends product{
         return false;
     }
 
-    public function getOfferStage($offer_id){
-        $obj = new M('product_jingjia_set');
-        return $obj->where(array('jingjia_id'=>$offer_id))->select();
-    }
 
 
 }
