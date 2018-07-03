@@ -209,7 +209,7 @@ class product  {
         array('acc_type','/^[\d+,?]+$/','账户类型错误'),
         array('sign','/^[a-zA-Z0-9_@\.\/]+$/','请上传图片'),
         array('accept_area', 'require', '交收地点必须填写'),
-        array('accept_day', 'number', '交收时间必须填写')
+
     );
 
     /**
