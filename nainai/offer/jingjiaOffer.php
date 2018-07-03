@@ -158,10 +158,10 @@ class jingjiaOffer extends product{
         $insert = $this->insertOffer($productData,$offerData);
 
         if( is_numeric($insert) && $insert>0){
-
-
             if($this->_productObj->commit()){
-                return tool::getSuccInfo();
+                $returnRes = tool::getSuccInfo();
+                $returnRes['id'] = $insert;
+                return $returnRes;
             }
             else {
                 $this->_productObj->rollBack();
@@ -457,6 +457,29 @@ class jingjiaOffer extends product{
             return true;
         }
         return false;
+    }
+
+    /**
+     * 卖方发布竞价后给买方发送短信
+     */
+    public function buyerMessageAftersellerDeploy($offer_id,$offerData=array()){
+
+        if(empty($offerData)){
+            $obj = new M('product_offer');
+            $offerData = $obj->where(array('id'=>$offer_id))->getObj();
+
+        }
+        //竞价模式为1，卖方自行通知
+        if($offerData['jingjia_mode']==1){
+            return false;
+        }
+        //获取发送的用户
+        $userObj = new M('user');
+        $userData = $userObj->where(array('is_false'=>0,'id'=>array('neq',$offerData['user_id'])))->getFields('mobile');
+        $hsms = new \Library\Hsms();
+        $content = '竞价通知，。。。。';
+        return $hsms->send($userData,$content);
+
     }
 
 
