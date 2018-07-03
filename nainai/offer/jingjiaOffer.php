@@ -177,6 +177,7 @@ class jingjiaOffer extends product{
 
     }
 
+
     /**
      * 转竞价的更新
      * @param $offer_id
@@ -457,6 +458,8 @@ class jingjiaOffer extends product{
         }
         return false;
     }
+
+
 
 
 

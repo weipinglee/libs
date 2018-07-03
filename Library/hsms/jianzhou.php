@@ -44,6 +44,9 @@ class jianzhou extends \Library\hsmsBase{
 		$config = self::getParam();
 		
 		$obj = self::getObj();
+		if(is_array($mobile)){
+		    $mobile  = join(';',$mobile);
+        }
 		$params = array(
 				'account' => $config['account'],
 				'password' => $config['password'],
